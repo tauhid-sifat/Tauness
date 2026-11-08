@@ -1,4 +1,4 @@
-# sync-labels.ps1 — create/update the governed GitHub label taxonomy (owner shell, requires gh auth with repo scope).
+# sync-labels.ps1 - create/update the governed GitHub label taxonomy (owner shell, requires gh auth with repo scope).
 # Usage: pwsh -File harness\scripts\sync-labels.ps1 [-DryRun] [-Repo owner/name]
 
 param(

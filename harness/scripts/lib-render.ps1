@@ -1,5 +1,7 @@
-# lib-render.ps1 — shared rendering engine for the AIDLC harness kit.
+# lib-render.ps1 - shared rendering engine for the AIDLC harness kit.
 # Requires Windows PowerShell 5.1+ (no PS7-only syntax). UTF-8 output WITHOUT BOM.
+# Source files must stay ASCII-only: PS 5.1 decodes BOM-less UTF-8 with the ANSI codepage, so any
+# non-ASCII literal can break parsing. Emit needed glyphs from code points ([char]0x2192) instead.
 # Parses the constrained project.yaml subset: `key: value`, inline arrays `[a, b]`,
 # quoted strings, two nesting levels via indentation, `#` comments.
 # Nothing here deletes files; writers refuse existing targets unless -Force.
@@ -106,7 +108,12 @@ function New-RenderContext { param([hashtable]$Cfg, [string]$KitDir, [string]$Pr
     $ctx['ONE_LINE_PROJECT_DESCRIPTION'] = $Cfg['project.description']
     $ctx['OWNER_LOGIN']    = $Cfg['owner.login']
     $ctx['LIFECYCLE_PROFILE'] = $Cfg['lifecycle.profile']
-    $ctx['KIT_VERSION']    = (Read-TextRaw (Join-Path $KitDir 'HARNESS-VERSION')).Trim()
+    # HARNESS-VERSION lives beside the kit (harness/HARNESS-VERSION), not inside it.
+    # Check the kit dir first so a bundled copy still works, then the harness root.
+    $versionFile = Join-Path $KitDir 'HARNESS-VERSION'
+    if (-not (Test-Path $versionFile)) { $versionFile = Join-Path (Split-Path -Parent $KitDir) 'HARNESS-VERSION' }
+    if (-not (Test-Path $versionFile)) { throw "HARNESS-VERSION not found near kit: $KitDir" }
+    $ctx['KIT_VERSION']    = (Read-TextRaw $versionFile).Trim()
     $ctx['RENDER_DATE']    = (Get-Date -Format 'yyyy-MM-dd')
     $ctx['MODEL_WORK']     = $Cfg['models.default']
     $ctx['MODEL_REVIEW']   = $Cfg['models.reviewer']
@@ -121,7 +128,12 @@ function New-RenderContext { param([hashtable]$Cfg, [string]$KitDir, [string]$Pr
     if ($phases.Count -eq 0) { throw ("profile phases empty: " + $Cfg['lifecycle.profile']) }
     $quoted = ($phases | ForEach-Object { '"' + $_.Id + ' ' + $_.Name + '"' }) -join ', '
     $ctx['PHASE_OPTIONS_YAML'] = $quoted
-    $ctx['PHASE_LIST'] = ($phases | ForEach-Object { $_.Id }) -join ' → '
+    # Rendered docs keep the typographic arrow (U+2192) between phase ids. Script sources must
+    # stay ASCII-only for Windows PowerShell 5.1 (BOM-less UTF-8 decodes via the ANSI codepage
+    # there, and U+2192's bytes contain an apostrophe that breaks string literals), so the
+    # character is emitted from its code point rather than written as a literal.
+    $arrow = [string][char]0x2192
+    $ctx['PHASE_LIST'] = ($phases | ForEach-Object { $_.Id }) -join (' ' + $arrow + ' ')
     $y = ''
     foreach ($p in $phases) {
         $y += ('  - { id: "' + $p.Id + '", name: "' + $p.Name + '", status: not_started }' + "`r`n")
@@ -212,7 +224,7 @@ function Get-StackPolicyDenies { param([hashtable]$Cfg)
     }
     foreach ($h in @($Cfg['stack.hard_deny_commands'])) {
         if ([string]::IsNullOrWhiteSpace($h)) { continue }
-        $out += (",`r`n    { `"action`": `"tool.use`", `"resource`": `"shell:" + $h + '*', "effect": "deny" }')
+        $out += (",`r`n    { `"action`": `"tool.use`", `"resource`": `"shell:" + $h + '*", "effect": "deny" }')
     }
     return $out
 }

@@ -1,4 +1,4 @@
-# lib-apply.ps1 — renders kit templates into an instance (init and apply share this engine).
+# lib-apply.ps1 - renders kit templates into an instance (init and apply share this engine).
 # Depends on lib-render.ps1 being dot-sourced first. NEVER deletes files; existing
 # targets are skipped unless -Force.
 
@@ -37,7 +37,7 @@ function New-RenderSlots { param([hashtable]$Cfg)
 }
 
 function Get-RenderPlan { param([string]$KitDir, [string]$TargetDir, [string]$DocsHarnessPath)
-    # Ordered map of kit-relative → instance-relative.
+    # Ordered map of kit-relative -> instance-relative.
     # Scope 'instance' = harness-owned generated files (apply may regenerate).
     # Scope 'init'     = project-authored files (only created at initialization; apply must NOT overwrite).
     $plan = New-Object System.Collections.ArrayList
@@ -45,7 +45,7 @@ function Get-RenderPlan { param([string]$KitDir, [string]$TargetDir, [string]$Do
         foreach ($f in $srcList) {
             $name = Split-Path -Leaf $f
             $dstName = $name
-            if ($stripTmpl -and $dstName.EndsWith('.tmpl')) { $dstName = $dstName.Substring(0, $dstName.Length - 6) }
+            if ($stripTmpl -and $dstName.EndsWith('.tmpl')) { $dstName = $dstName.Substring(0, $dstName.Length - 5) }
             [void]$plan.Add([pscustomobject]@{ Src = $f; Dst = (Join-Path $TargetDir (Join-Path $dstPrefix $dstName)); Scope = $Scope })
         }
     }
@@ -56,12 +56,12 @@ function Get-RenderPlan { param([string]$KitDir, [string]$TargetDir, [string]$Do
     AddItem @(Get-ChildItem -File (Join-Path $k 'github\workflows\*.tmpl')) '.github\workflows' $true 'instance'
     AddItem @((Join-Path $k 'github\workflows\harness-validation.yml')) '.github\workflows' $false 'instance'
     AddItem @((Join-Path $k 'github\labels.json')) '.github' $false 'instance'
-    # docs/project tree (mirror structure; strip .tmpl) — init only
+    # docs/project tree (mirror structure; strip .tmpl) - init only
     $docsRoot = Join-Path $k 'docs\project'
     foreach ($f in (Get-ChildItem -File -Recurse $docsRoot)) {
         $rel = $f.FullName.Substring($docsRoot.Length + 1)
         $dstName = $rel
-        if ($dstName.EndsWith('.tmpl')) { $dstName = $dstName.Substring(0, $dstName.Length - 6) }
+        if ($dstName.EndsWith('.tmpl')) { $dstName = $dstName.Substring(0, $dstName.Length - 5) }
         [void]$plan.Add([pscustomobject]@{ Src = $f.FullName; Dst = (Join-Path $TargetDir (Join-Path 'docs\project' $dstName)); Scope = 'init' })
     }
     # singletons

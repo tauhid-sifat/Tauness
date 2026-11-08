@@ -1,6 +1,6 @@
-# apply-harness-change.ps1 — owner-run harness application inside an instance repository.
+# apply-harness-change.ps1 - owner-run harness application inside an instance repository.
 # Regenerates the generated instance files from harness/kit + project.yaml.
-# This IS the owner-approval mechanism for harness changes (AGENTS.md §2): agents propose,
+# This IS the owner-approval mechanism for harness changes (AGENTS.md Sec. 2): agents propose,
 # the owner applies. Creates a timestamped backup of every file it overwrites.
 # Usage: pwsh -File harness\scripts\apply-harness-change.ps1 [-DryRun] [-Force] [-BackupDir <path>]
 
@@ -24,13 +24,13 @@ if (-not (Test-Path $py)) {
     $staged = Join-Path $repoRoot 'harness\staging\instance\project.yaml'
     if (Test-Path $staged) {
         Copy-Item $staged $py
-        Write-Host "No root project.yaml — placed staged copy ($staged) at repo root first."
+        Write-Host "No root project.yaml - placed staged copy ($staged) at repo root first."
     } else { throw "project.yaml missing at repo root (and no staged copy found)" }
 }
 
 # preview plan
 $plan = @(Get-RenderPlan -KitDir $kitDir -TargetDir $repoRoot | Where-Object { $_.Scope -eq 'instance' })
-Write-Host "Harness change apply — plan ($($plan.Count) generated files)"
+Write-Host "Harness change apply - plan ($($plan.Count) generated files)"
 Write-Host "Kit version: $((Read-TextRaw (Join-Path $repoRoot 'harness\HARNESS-VERSION')).Trim())"
 if (-not $Force) {
     Write-Host "`nExisting files will be SKIPPED unless -Force (never deleted). Re-run with -DryRun for a silent plan."

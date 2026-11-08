@@ -1,4 +1,4 @@
-# init-project.ps1 — create a new harness-managed project (or configure an existing folder).
+# init-project.ps1 - create a new harness-managed project (or configure an existing folder).
 # Usage (owner PowerShell, or the PM after writing project.yaml):
 #   pwsh -File init-project.ps1 -Target <path> [-Config <project.yaml>] [-InsideRepo] [-Force] [-DryRun]
 # Safety: never deletes; refuses to overwrite existing files unless -Force; -DryRun lists the plan.
@@ -18,13 +18,17 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $homeRoot = Split-Path -Parent $scriptDir          # the harness/ directory
 $kitDir   = Join-Path $homeRoot 'kit'
-$Target   = (Resolve-Path $Target -ErrorAction SilentlyContinue)
-if (-not $Target) {
-    if ($InsideRepo) { throw "InsideRepo target must exist: $Target" }
-    New-Item -ItemType Directory -Path $Target | Out-Null
-    $Target = Resolve-Path $Target
+# Resolve-Path returns nothing for a path that does not exist yet, and a new target is the normal
+# case for init. Keep the requested path so the directory can be created instead of binding $null.
+$requestedTarget = $Target
+$resolvedTarget = Resolve-Path $requestedTarget -ErrorAction SilentlyContinue
+if ($resolvedTarget) {
+    $Target = $resolvedTarget.Path
+} else {
+    if ($InsideRepo) { throw "InsideRepo target must exist: $requestedTarget" }
+    New-Item -ItemType Directory -Path $requestedTarget | Out-Null
+    $Target = (Resolve-Path $requestedTarget).Path
 }
-$Target = $Target.Path
 
 # safety gate: a fresh project target must not be an existing git repo unless -InsideRepo
 $isRepo = Test-Path (Join-Path $Target '.git')

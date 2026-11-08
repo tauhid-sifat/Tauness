@@ -1,0 +1,77 @@
+# project.yaml — Kit Fixture (harness self-test configuration)
+# NOT a real project. This is the Layer B input used by tests/render-and-validate.ps1 to render a
+# throwaway instance from harness/kit, so every template, placeholder slot and permission block in
+# the kit gets exercised on each PR. It also serves as a worked example of a valid project.yaml.
+#
+# Format contract (enforced by harness/scripts/lib-render.ps1 — Get-ProjectConfig):
+#   flat `key: value`, inline arrays [a, "b"], quoted scalars, two nesting levels via indentation,
+#   `#` comments. Block lists (`- item`) are skipped by the parser; `data_policy.rules` is
+#   documentation-shaped and rendered from `sensitivity` instead.
+
+project:
+  name: "Kit Fixture"
+  slug: "kit-fixture"                   # lowercase kebab; used in paths/branch naming
+  id_prefix: "FIX"                      # REQ/US/AC/TC/DEF/DEC/ADR/CR/CAP/BR/ENT/PROC/SRC/Q/ACT
+  description: "Synthetic fixture used to validate the AIDLC harness kit"
+
+owner:
+  login: "example-owner"                # synthetic authority; never a real account in a fixture
+
+repository:
+  host: github.com
+  visibility: private
+  remote: ""                            # empty is valid: the remote may not exist yet at init
+  default_branch: main
+
+lifecycle:
+  profile: "full"                       # overwritten per variant by the test runner
+  gates: owner-approved
+  areas: [web, api, data, auth, infra, docs]
+
+stack:
+  name: "Node + Express + Postgres (fixture stack)"
+  source_dirs: ["src/**", "tests/**"]
+  dev_commands: ["npm ci", "npm run dev", "npm run build", "npm run lint", "npm test"]
+  qa_commands: ["npm test", "npm run build", "npm run dev"]
+  reviewer_commands: ["npm test", "npm run lint"]
+  security_commands: ["npm audit"]
+  hard_deny_commands: ["rm -rf", "docker system prune"]
+  deploy_commands: ["vercel", "flyctl"]  # must never run locally -> permission + policy denies
+  browser: "http://localhost:3000"
+  agent_skills: []
+
+data_policy:
+  sensitivity: "personal"               # public | business | personal | regulated
+  rule_override: "Do not send fixture user data to external AI, scraping, browser, or research services without owner approval."
+  rules:
+    - "No secrets, credentials, .env files, or personal data in Git, issues, PRs, logs, or knowledge bundles."
+
+integrations:
+  github_issues: true
+  github_projects_v2: false             # test runner flips to true in the all-integrations variant
+  open_knowledge: false                 # true renders disabled mcp.servers entries
+  open_knowledge_path: "okn"
+  browser_live: false                   # true renders browseros_* as ask and grants the skill
+  web_research: false                   # true renders firecrawl_* as ask
+  design_system_tools: false            # true grants Hallmark/Impeccable skills and command allows
+  mcp_deny: ["composio_*", "jira_*", "pencil_*"]
+
+models:
+  default: "opencode-go/example-work-model"
+  reviewer: "opencode-go/example-review-model"
+  security_focused: "opencode-go/example-review-model"
+  security_extensive: "opencode-go/example-work-model"
+  readiness: "gated"                    # gated: no live model sessions in CI
+
+workspace:
+  docs_dir: docs/project
+  knowledge_dir: docs/project/knowledge
+  working_notes_dir: docs/project/working
+
+# harness bookkeeping - the real scripts write these; a fixture states them literally because
+# project.yaml is copied verbatim into the instance, and an unresolved double-brace placeholder
+# left in it would be reported as a template leak by validate-harness.ps1.
+harness:
+  kit_version: "1.0.0"
+  rendered_from_commit: "fixture"
+  rendered_at: "2026-11-09T00:00:00"

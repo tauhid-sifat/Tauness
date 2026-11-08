@@ -17,21 +17,15 @@ The full documentation lives in [`harness/README.md`](harness/README.md). This f
 ## Layout
 
 ```text
-harness/
-├── HARNESS-VERSION          # semantic version of the core kit
-├── README.md                # the real documentation
-├── kit/                     # templates with {{PLACEHOLDER}} slots
-│   ├── project.yaml.tmpl    # the single per-project input
-│   ├── agents/  commands/   # 7 roles, 15 slash commands
-│   ├── config/  github/     # opencode baseline, issue forms, workflows
-│   ├── docs/project/        # documentation + knowledge-base templates
-│   └── lifecycle/           # profile definitions
-└── scripts/
-    ├── init-project.ps1         # render a new project from kit + project.yaml
-    ├── apply-harness-change.ps1 # owner-run updater: re-render an instance from the kit
-    ├── validate-harness.ps1     # static + structural validation of an instance
-    ├── sync-labels.ps1          # GitHub label taxonomy sync
-    └── negative-tests.md        # runtime enforcement test procedure
+.
+├── docs/harness/    # canonical core documentation: specifications, audits, ADR-H-001 onward
+├── harness/         # the executable kit (Layer A) - full tree in harness/README.md
+│   ├── HARNESS-VERSION
+│   ├── README.md
+│   ├── kit/         # templates with {{PLACEHOLDER}} slots: agents, commands, config, github, docs, lifecycle
+│   └── scripts/     # init-project, apply-harness-change, validate-harness, sync-labels,
+│                    #   plus lib-render.ps1 and lib-apply.ps1, the shared rendering engine
+└── tests/           # the kit self-test: static source policy + render-and-validate
 ```
 
 ## Quick start
@@ -66,10 +60,25 @@ pwsh -File harness/scripts/validate-harness.ps1
 
 Generated files are build artifacts of the kit. Never hand-edit a rule into an instance: edit the kit, then re-apply with `apply-harness-change.ps1`, which is also the owner-approval mechanism for harness changes.
 
-## Not published here
+## Testing the kit
 
-`harness/staging/` (the pending-apply instance preview and staged core docs) and `harness/reports/` (validation output) are git-ignored: the staging tree carries rendered project values, which layer A must not contain.
+The kit repository holds only templates, so there is no instance here to validate. `tests/` closes that gap:
+
+```powershell
+pwsh -File tests/check-sources.ps1          # static policy - runs on any OS
+pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecycle profile
+```
+
+`check-sources.ps1` enforces the rules the kit was built without: script sources stay ASCII-only (Windows PowerShell 5.1 decodes BOM-less UTF-8 through the ANSI codepage, so a non-ASCII literal can silently break parsing), every template slot has a producer, and the kit contract holds by exact filename and count. `render-and-validate.ps1` renders a throwaway instance for each lifecycle profile plus an all-integrations variant, asserts the artifacts and the enforcement effect of each toggle, then requires `validate-harness.ps1` to exit clean **and** to have recorded specific checks as PASS — so a check that errors out cannot masquerade as a pass.
+
+`.github/workflows/kit-validation.yml` runs the render test on Windows and the static policy on Windows, Linux and macOS.
+
+**Known limitation:** the renderer addresses files with Windows path separators, so `init-project.ps1` and `validate-harness.ps1` are Windows-only in practice even though the harness targets all three platforms. Converting those literals is outstanding work; until then only the Windows runner can exercise a rendered instance.
+
+## Local-only artifacts
+
+`harness/staging/` (pending-apply previews, which carry rendered project values that Layer A must not contain) and `harness/reports/` (validator output) are git-ignored.
 
 ## Versioning
 
-See `harness/HARNESS-VERSION` and the commit hash recorded in each instance's `project.yaml.harness` section. Breaking kit changes require an owner-approved harness change and an ADR.
+See `harness/HARNESS-VERSION` and the commit hash recorded in each instance's `project.yaml.harness` section. Breaking kit changes require an owner-approved harness change and an ADR in `docs/harness/adr/`. The self-test is the gate: a kit change that cannot render a conforming instance does not merge.

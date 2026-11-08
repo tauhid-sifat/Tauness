@@ -1,0 +1,52 @@
+name: kit-validation
+# Kit-level self-check for the AIDLC harness home repository. This is NOT the instance workflow:
+# harness/kit/github/workflows/harness-validation.yml validates a rendered project instance and is
+# copied into every instance. This workflow validates the kit itself, which holds only templates.
+
+on:
+  pull_request:
+    paths:
+      - 'harness/**'
+      - 'docs/harness/**'
+      - 'tests/**'
+      - '.github/workflows/kit-validation.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # The renderer addresses files with Windows path separators, so instance rendering is exercised
+  # on Windows. Linux/macOS coverage of the renderer is a known gap (see README), which is why the
+  # platform-neutral static policy runs on all three.
+  render-and-validate:
+    name: Render and validate every lifecycle profile
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kit self-test (5 profiles + all-integrations variant)
+        shell: pwsh
+        run: ./tests/render-and-validate.ps1
+      - name: Keep the rendered reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kit-self-test-artifacts
+          path: |
+            C:/Users/runneradmin/AppData/Local/Temp/aidlc-kit-test-*/**/harness/reports/*.md
+          if-no-files-found: ignore
+
+  source-policy:
+    name: Static source policy
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: ASCII-only sources, parse clean, slot audit, kit contract
+        shell: pwsh
+        run: ./tests/check-sources.ps1

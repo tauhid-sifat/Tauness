@@ -1,4 +1,4 @@
-# validate-harness.ps1 — structural + consistency validation of a harness instance.
+# validate-harness.ps1 - structural + consistency validation of a harness instance.
 # Read-only; safe to run anytime. Exits non-zero on FAIL. Writes a report to harness/reports/.
 # Usage: pwsh -File harness\scripts\validate-harness.ps1 [-Root <repoRoot>] [-IncludeRuntime]
 
@@ -30,30 +30,41 @@ foreach ($d in @('.opencode\agents','.opencode\commands','docs\harness','docs\pr
 }
 
 # ---- 2. BOM + placeholder leaks
+# Scope rules:
+#  - A BOM is a defect anywhere in the instance, kit and scripts included.
+#  - An unresolved {{PLACEHOLDER}} is a defect only in GENERATED instance files. harness/kit/** and
+#    *.tmpl are templates by design; harness/scripts/** contains the substitution code, which holds
+#    literal token examples; docs/harness/** documents that same syntax. Scanning them as leaks
+#    produced false failures, so the sweep is limited to what the renderer actually produced.
 $leakFiles = @(); $bomFiles = @()
-$sweepDirs = @('.opencode','docs','\.github','harness\kit','harness\scripts')
-foreach ($rel in @('AGENTS.md','opencode.jsonc','project.yaml')) {
+$sweepDirs = @('.opencode','.github','docs','harness\kit','harness\scripts')
+$generatedRootFiles = @('AGENTS.md','opencode.jsonc','project.yaml','.gitignore','README.md')
+function Get-InstanceRel([string]$FullPath) { return $FullPath.Substring($Root.Length).TrimStart('\','/') }
+function Test-GeneratedPath([string]$Rel) {
+    if ($Rel -match '^harness(\\|$)') { return $false }          # kit + scripts: source of truth
+    if ($Rel -match '^docs\\harness(\\|$)') { return $false }    # core docs: document the syntax
+    if ($Rel -match '\.tmpl$') { return $false }
+    return $true
+}
+foreach ($rel in $generatedRootFiles) {
     $f = Join-Path $Root $rel
-    if (Test-Path $f) {
-        $bytes = [System.IO.File]::ReadAllBytes($f)
-        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $bomFiles += $rel }
-        $t = Read-TextRaw $f
-        if ($t -match '\{\{[A-Z0-9_]+\}\}') { $leakFiles += $rel }
-    }
+    if (-not (Test-Path $f)) { continue }
+    $bytes = [System.IO.File]::ReadAllBytes($f)
+    if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $bomFiles += $rel }
+    if ((Read-TextRaw $f) -match '\{\{[A-Z0-9_]+\}\}') { $leakFiles += $rel }
 }
 foreach ($sd in $sweepDirs) {
-    $full = if ($sd.StartsWith('\')) { Join-Path $Root $sd.Substring(1) } else { Join-Path $Root $sd }
+    $full = Join-Path $Root $sd
     if (-not (Test-Path $full)) { continue }
     foreach ($f in (Get-ChildItem -File -Recurse $full -Include *.md,*.yml,*.yaml,*.jsonc,*.json,*.ps1 -ErrorAction SilentlyContinue)) {
+        $rel = Get-InstanceRel $f.FullName
         $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
-        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $bomFiles += $f.FullName.Substring($Root.Length+1) }
-        $t = Read-TextRaw $f.FullName
-        # kit template files legitimately contain placeholders
-        if ($t -match '\{\{[A-Z0-9_]+\}\}' -and $f.FullName -notmatch '\\harness\\kit\\' -and $f.Name -notmatch '\.tmpl$') { $leakFiles += $f.FullName.Substring($Root.Length+1) }
+        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $bomFiles += $rel }
+        if ((Test-GeneratedPath $rel) -and (Read-TextRaw $f.FullName) -match '\{\{[A-Z0-9_]+\}\}') { $leakFiles += $rel }
     }
 }
 if ($bomFiles.Count -eq 0) { Pass 'encoding:bom' 'no BOMs in scanned files' } else { Warn 'encoding:bom' ('BOM found: ' + ($bomFiles -join ', ')) }
-if ($leakFiles.Count -eq 0) { Pass 'placeholders' 'no unresolved placeholders outside kit' } else { Fail 'placeholders' ('leaks: ' + ($leakFiles -join ', ')) }
+if ($leakFiles.Count -eq 0) { Pass 'placeholders' 'no unresolved placeholders in generated files' } else { Fail 'placeholders' ('leaks: ' + ($leakFiles -join ', ')) }
 
 # ---- 3. Config structure
 $cfg = Get-ProjectConfig (Join-Path $Root 'project.yaml')
@@ -63,8 +74,8 @@ $parsed = $null
 try { $parsed = $cfgJson | ConvertFrom-Json } catch { Fail 'config:json' ("JSONC parse: " + $_.Exception.Message) }
 if ($parsed) {
     Pass 'config:json' 'JSONC parses'
-    if ($parsed.permissions.Count -ge 20) { Pass 'config:permissions' ("{0} rules" -f $parsed.permissions.Count) } else { Fail 'config:permissions' 'too few rules' }
-    if ($parsed.policies -and $parsed.policies.Count -ge 10) { Pass 'config:policies' ("{0} hard-deny policies" -f $parsed.policies.Count) } else { Fail 'config:policies' 'policies missing/short — delegation-proof layer absent' }
+    if (@($parsed.permissions).Count -ge 20) { Pass 'config:permissions' ("{0} rules" -f @($parsed.permissions).Count) } else { Fail 'config:permissions' 'too few rules' }
+    if (@($parsed.policies).Count -ge 10) { Pass 'config:policies' ("{0} hard-deny policies" -f @($parsed.policies).Count) } else { Fail 'config:policies' 'policies missing/short - delegation-proof layer absent' }
     $shellDeny = @($parsed.permissions | Where-Object { $_.action -eq 'shell' -and $_.resource -eq '*' -and $_.effect -eq 'deny' })
     if ($shellDeny.Count -ge 1) { Pass 'config:shell-deny' 'shell deny-by-default present' } else { Fail 'config:shell-deny' 'shell is not deny-by-default' }
     foreach ($need in @('AGENTS.md','opencode.jsonc','.opencode/**','docs/harness/**','DESIGN.md')) {
@@ -72,7 +83,7 @@ if ($parsed) {
         if ($hit.Count -ge 1) { Pass "config:protect:$need" 'denied' } else { Fail "config:protect:$need" 'NOT denied' }
     }
     if ($parsed.mcp -and $parsed.mcp.servers) { Pass 'config:mcp-shape' 'modern mcp.servers form' }
-    elseif ($parsed.mcp) { Fail 'config:mcp-shape' 'deprecated top-level mcp entries — must use mcp.servers' }
+    elseif ($parsed.mcp) { Fail 'config:mcp-shape' 'deprecated top-level mcp entries - must use mcp.servers' }
     else { Pass 'config:mcp-shape' 'no mcp section (nothing enabled)' }
     if ($parsed.experimental -and $parsed.experimental.subagent_depth -eq 2) { Pass 'config:depth' 'subagent_depth 2' } else { Warn 'config:depth' 'subagent_depth != 2 (check intended profile)' }
 }
@@ -120,13 +131,14 @@ foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -
     $skAllow = @([regex]::Matches($t, '(?s)action:\s*"skill"\s*\n\s*resource:\s*"([^"]+)"\s*\n\s*effect:\s*"allow"') | ForEach-Object { $_.Groups[1].Value })
     foreach ($s in $skAllow) {
         if ($s -eq '*') { Fail "agent:$id:skills" 'wildcard skill allow' }
-        elseif (($skillDirs -notcontains $s) -and ($globalKnownSkills -notcontains $s)) { Warn "agent:$id:skill:$s" 'skill not found in project tree or known globals — verify installed' }
+        elseif (($skillDirs -notcontains $s) -and ($globalKnownSkills -notcontains $s)) { Warn "agent:$id:skill:$s" 'skill not found in project tree or known globals - verify installed' }
     }
     # MCP override check: agents must not allow MCP tools the project denies
     $mcpAllow = @([regex]::Matches($t, '(?m)^  - action:\s*"((?:firecrawl|browseros|composio|jira|pencil)_\*)"') | ForEach-Object { $_.Groups[1].Value })
     if ($mcpAllow.Count -gt 0) { Fail "agent:$id:mcp-override" ('agent re-allows denied MCP: ' + ($mcpAllow -join ',')) }
 }
-if ((Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue).Count -eq 7) { Pass 'agents:count' '7 role agents' } else { Fail 'agents:count' 'expected 7 role agents' }
+$agentCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue).Count
+if ($agentCount -eq 7) { Pass 'agents:count' '7 role agents' } else { Fail 'agents:count' "expected 7 role agents, found $agentCount" }
 
 # ---- 5. Model routing vs project.yaml
 foreach ($id in $agentModels.Keys) {
@@ -143,7 +155,7 @@ foreach ($cf in (Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md')
         if (-not (Test-Path (Join-Path $Root ".opencode\agents\$ag.md"))) { Fail "command:$($cf.BaseName)" ("references missing agent '$ag'") }
     }
 }
-$cmdCount = (Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md') -ErrorAction SilentlyContinue).Count
+$cmdCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md') -ErrorAction SilentlyContinue).Count
 if ($cmdCount -ge 15) { Pass 'commands:count' "$cmdCount commands" } else { Warn 'commands:count' "$cmdCount (< 15 expected after full generation)" }
 
 # ---- 7. Core docs completeness (instance copies)
@@ -171,12 +183,12 @@ if ($secretHits.Count -eq 0) { Pass 'secrets:scan' 'no secret patterns in instan
 
 # ---- 10. Runtime (owner-run only; requires opencode on PATH and model readiness = verified)
 if ($IncludeRuntime) {
-    if ("$($cfg['models.readiness'])" -eq 'gated') { Warn 'runtime' 'models.readiness=gated — run opencode debug only (no model calls); negative tests need readiness=verified' }
+    if ("$($cfg['models.readiness'])" -eq 'gated') { Warn 'runtime' 'models.readiness=gated - run opencode debug only (no model calls); negative tests need readiness=verified' }
     $dbg = & opencode debug agents 2>&1
     if ($LASTEXITCODE -eq 0) {
         Pass 'runtime:debug-agents' 'opencode debug agents exit 0'
         foreach ($id in $expectedMatrix.Keys) { if ($dbg -notmatch '"' + $id + '"') { Fail 'runtime:agent-missing' $id } }
-    } else { Fail 'runtime:debug-agents' 'opencode debug agents failed — config invalid' }
+    } else { Fail 'runtime:debug-agents' 'opencode debug agents failed - config invalid' }
     $dc = & opencode debug config 2>&1
     if ($LASTEXITCODE -eq 0) { Pass 'runtime:debug-config' 'parses' } else { Fail 'runtime:debug-config' 'parse error' }
 }
@@ -184,13 +196,13 @@ if ($IncludeRuntime) {
 # ---- report
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 if (-not $ReportPath) { $ReportPath = Join-Path $Root "harness\reports\validate-$stamp.md" }
-$lines = @("# Harness validation report", "> Root: $Root · $(Get-Date -Format 's') · kit $((Read-TextRaw (Join-Path $Root 'harness\HARNESS-VERSION') -ErrorAction SilentlyContinue).Trim())", "")
+$lines = @("# Harness validation report", "> Root: $Root - $(Get-Date -Format 's') - kit $((Read-TextRaw (Join-Path $Root 'harness\HARNESS-VERSION') -ErrorAction SilentlyContinue).Trim())", "")
 $fails = @($results | Where-Object Level -eq 'FAIL'); $warns = @($results | Where-Object Level -eq 'WARN'); $passes = @($results | Where-Object Level -eq 'PASS')
-$lines += ("**Result: {0} PASS · {1} WARN · {2} FAIL**" -f $passes.Count, $warns.Count, $fails.Count)
+$lines += ("**Result: {0} PASS - {1} WARN - {2} FAIL**" -f $passes.Count, $warns.Count, $fails.Count)
 $lines += ''
-foreach ($r in $results) { $lines += ("[{0}] {1} — {2}" -f $r.Level, $r.Check, $r.Detail) }
+foreach ($r in $results) { $lines += ("[{0}] {1} - {2}" -f $r.Level, $r.Check, $r.Detail) }
 New-Item -ItemType Directory -Path (Split-Path -Parent $ReportPath) -Force | Out-Null
 Write-TextUtf8 -Path $ReportPath -Text ($lines -join "`r`n")
-foreach ($r in $results | Where-Object { $_.Level -ne 'PASS' }) { Write-Host ("[{0}] {1} — {2}" -f $r.Level, $r.Check, $r.Detail) }
-Write-Host ("validate-harness: {0} PASS / {1} WARN / {2} FAIL — report: {3}" -f $passes.Count, $warns.Count, $fails.Count, $ReportPath)
+foreach ($r in $results | Where-Object { $_.Level -ne 'PASS' }) { Write-Host ("[{0}] {1} - {2}" -f $r.Level, $r.Check, $r.Detail) }
+Write-Host ("validate-harness: {0} PASS / {1} WARN / {2} FAIL - report: {3}" -f $passes.Count, $warns.Count, $fails.Count, $ReportPath)
 if ($fails.Count -gt 0) { exit 1 } else { exit 0 }
