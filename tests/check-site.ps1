@@ -70,6 +70,23 @@ foreach ($f in $pages) {
     # ---- no template or placeholder debris left in a published page
     if ($html -match '<!--\s*[A-Z_]+\s*-->') { Add-Fail "${name}: placeholder comment left in page: $($Matches[0])" }
     if ($html -match '\{\{[A-Z0-9_]+\}\}') { Add-Fail "${name}: unresolved template slot in page: $($Matches[0])" }
+
+    # ---- SVG annotations must fit their note box: text drawn outside the viewBox is silently
+    #      clipped (a 132-character note in a 500px box was cut on the live page). This is a coarse
+    #      guard, not a layout engine: .dg-s text measured 4.1-4.8 px per character in Chromium, so
+    #      anything more than 40px past the box on a 4.8 estimate is a real overflow. Tighter
+    #      constants false-positive on legitimate notes; the margin is deliberate.
+    foreach ($note in [regex]::Matches($html, '<rect x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="4" class="dg-note"/>')) {
+        $noteW = [int]$note.Groups[3].Value
+        $after = $html.Substring($note.Index + $note.Length, [Math]::Min(600, $html.Length - $note.Index - $note.Length))
+        foreach ($t in [regex]::Matches($after, '^<text x="\d+" y="\d+" class="dg-s" text-anchor="middle">([^<]*)</text>')) {
+            $text = [System.Net.WebUtility]::HtmlDecode($t.Groups[1].Value)
+            $estimate = [int]($text.Length * 4.8)
+            if ($estimate - $noteW -gt 40) {
+                Add-Fail "${name}: note text overflows its ${noteW}px box (about ${estimate}px): $text"
+            }
+        }
+    }
 }
 
 # ---- the handbook's version stamp must equal the kit version
