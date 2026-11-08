@@ -1,0 +1,19 @@
+# GitHub label taxonomy (Layer A). sync-labels.ps1 creates/updates these via gh.
+# Status is NOT a label — it lives in Projects v2 Status (OD-06). If Projects is
+# unavailable, the owner may approve the documented labels-fallback (needs decision).
+
+labels:
+  type: [feature, requirement, bug, investigation, qa, change-request, security, docs, refactor, harness-improvement, phase-gate]
+  priority: [p0, p1, p2, p3]
+  risk: [risk-low, risk-medium, risk-high]
+  statusless: [blocked, needs-approval, security, experimental, good-first-task]
+  phase: "PROFILE-DERIVED"   # phase-<n>-<slug> per active profile phase (sync-labels.ps1 generates from profiles.yaml + project.yaml)
+  area: "PROJECT-DERIVED"    # area:<value> per project.yaml lifecycle.areas
+
+colors:
+  type: "0e8a16"
+  priority: "d93f0b"
+  risk: "fbca04"
+  phase: "1d76db"
+  area: "c2e0c6"
+  statusless: "ededed"

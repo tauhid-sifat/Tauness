@@ -1,0 +1,85 @@
+# Lifecycle profiles — AIDLC harness core (Layer A)
+# The selected profile is recorded in project.yaml and rendered into phase-state.md.
+# Profiles change which phases are ACTIVE; they never change governance:
+# every active phase is owner-gated, every gate needs an evidence pack, OD-18 material rules apply.
+
+profiles:
+
+  full:
+    description: "User-facing products with real risk: web apps, mobile, customer-facing services, regulated domains."
+    phases:
+      - id: 1-discovery
+        name: "Discovery & Ideation"
+        lead: business-analyst
+        support: [project-manager, security-monitor]
+      - id: 2-design
+        name: "UI/UX Design"
+        lead: designer
+        support: [business-analyst, developer, qa-engineer]
+      - id: 3-architecture
+        name: "Architecture & System Design"
+        lead: developer
+        support: [security-monitor, code-reviewer, qa-engineer]
+      - id: 4-development
+        name: "Development"
+        lead: developer
+        support: [code-reviewer, security-monitor, qa-engineer]
+      - id: 5-qa
+        name: "QA & Verification"
+        lead: qa-engineer
+        support: [developer, code-reviewer, security-monitor]
+      - id: 6-deployment
+        name: "Deployment"
+        lead: project-manager
+        support: [developer, qa-engineer, security-monitor]
+      - id: 7-operations
+        name: "Operations & Maintenance"
+        lead: project-manager
+        support: [developer, security-monitor, qa-engineer]
+        mode: steady-state          # ongoing; changes flow through issues/PRs, not new phase gates
+    default: true
+
+  lean:
+    description: "Small tools, internal utilities, MVPs: discovery is light, design folds into development unless a UI exists."
+    phases:
+      - { id: 1-discovery, name: "Discovery (light)", lead: business-analyst, support: [project-manager] }
+      - { id: 3-architecture, name: "Architecture (light)", lead: developer, support: [security-monitor] }
+      - { id: 4-development, name: "Development", lead: developer, support: [code-reviewer] }
+      - { id: 5-qa, name: "QA (risk-based)", lead: qa-engineer, support: [developer] }
+      - { id: 6-deployment, name: "Deployment", lead: project-manager, support: [developer] }
+      - { id: 7-operations, name: "Operations & Maintenance", lead: project-manager, support: [developer], mode: steady-state }
+
+  headless:
+    description: "APIs, libraries, CLIs, data pipelines: no UI/UX phase; design duty shifts to interface & contract design."
+    phases:
+      - { id: 1-discovery, name: "Discovery & Requirements", lead: business-analyst, support: [project-manager, security-monitor] }
+      - { id: 3-architecture, name: "Architecture & Contracts", lead: developer, support: [security-monitor, code-reviewer, qa-engineer] }
+      - { id: 4-development, name: "Development", lead: developer, support: [code-reviewer, security-monitor] }
+      - { id: 5-qa, name: "QA & Verification", lead: qa-engineer, support: [developer] }
+      - { id: 6-deployment, name: "Deployment", lead: project-manager, support: [developer, security-monitor] }
+      - { id: 7-operations, name: "Operations & Maintenance", lead: project-manager, support: [developer, security-monitor], mode: steady-state }
+
+  brownfield:
+    description: "Adopting the harness for an existing codebase: assessment replaces greenfield discovery."
+    phases:
+      - { id: 0-intake, name: "Assessment & Intake", lead: project-manager, support: [business-analyst, developer, security-monitor] }
+      - { id: 1-discovery, name: "Gap Discovery & Requirements", lead: business-analyst, support: [developer] }
+      - { id: 3-architecture, name: "Architecture Reconciliation", lead: developer, support: [security-monitor, code-reviewer] }
+      - { id: 4-development, name: "Incremental Development", lead: developer, support: [code-reviewer, security-monitor] }
+      - { id: 5-qa, name: "QA & Regression Safety", lead: qa-engineer, support: [developer] }
+      - { id: 6-deployment, name: "Deployment", lead: project-manager, support: [developer] }
+      - { id: 7-operations, name: "Operations & Maintenance", lead: project-manager, support: [developer, security-monitor], mode: steady-state }
+
+  micro:
+    description: "Spikes, one-shot scripts, tiny services: one combined gate, minimal ceremony. Every ceremony must earn its cost."
+    phases:
+      - { id: 1-discovery, name: "Intent & Constraints", lead: project-manager, support: [business-analyst] }
+      - { id: 4-development, name: "Build", lead: developer, support: [code-reviewer, security-monitor] }
+      - { id: 6-deployment, name: "Ship & Close", lead: project-manager, support: [qa-engineer] }
+
+# Tailoring rules
+tailoring:
+  - The PM may recommend skipping an ACTIVE phase only when its artifacts are genuinely not applicable (e.g. no user-facing UI for 2-design); the owner approves the skip as a recorded decision.
+  - Skipped phases remain listed in phase-state.md with status `not_applicable` and a one-line justification.
+  - Adding ceremony is always allowed mid-flight; removing it is a material change (OD-18).
+  - Profile changes after Phase 1 closes are material decisions.

@@ -1,0 +1,18 @@
+---
+description: "Decompose approved scope into dependency-ordered, traceable work items."
+agent: project-manager
+---
+# /plan
+
+Plan a scope slice for {{PROJECT_NAME}}.
+
+Request: `$ARGUMENTS`
+
+1. Read `AGENTS.md`, `project.yaml`, the phase state, approved requirements/AC, and the decision register.
+2. Break the requested scope into the smallest sufficient work items; give each an owner role, dependencies (`Depends on #n`), and acceptance criteria links.
+3. Mark each item's change class (internal vs material per OD-18); material items get an owner decision request before implementation starts.
+4. Identify items safe to parallelise (no shared files/migrations/security-sensitive overlap) and items that must serialize.
+5. Draft issue specs for the BA's requirement-level items and create the execution issues via `/issue` flow.
+6. Record the plan and dependency map in `docs/project/working/project-manager/` and link it from the epic/issue.
+
+Do not schedule work beyond approved scope; propose, owner approves.

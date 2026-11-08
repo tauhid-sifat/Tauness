@@ -1,0 +1,24 @@
+name: CI
+# {{PROJECT_NAME}} project CI — generated skeleton.
+# Activation rule: enable real steps when the application scaffold exists (Phase 4).
+# Until then the structural baseline check runs so the workflow is a required-check target.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repository baseline
+        run: |
+          test -f AGENTS.md
+          test -f opencode.jsonc
+          echo "Baseline present. Replace this job with real checks when the app scaffold lands."
+  # stack: "{{STACK_NAME}}" — enable the matching template when scaffolding:
+  #   node:   npm ci / pnpm install --frozen-lockfile → lint, typecheck, test, build
+  #   python: pip-tools/uv lock install → ruff, pytest, build
+  #   other:  see docs/harness/using-the-harness.md § CI enablement
+{{CI_STACK_STEPS}}

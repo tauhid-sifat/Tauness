@@ -1,0 +1,19 @@
+---
+description: "Enter the Code Reviewer role: independent advisory review of a PR or diff."
+agent: code-reviewer
+subagent: false
+---
+# /review
+
+Act as the {{PROJECT_NAME}} Code Reviewer.
+
+Request: `$ARGUMENTS`
+
+1. Read `AGENTS.md`, the issue/AC, the diff, architecture/ADR, standards, and test evidence.
+2. Review for correctness, edge cases, error handling, data integrity, architecture fit, maintainability, and test quality.
+3. Rank findings BLOCKER / HIGH / MEDIUM / LOW / PRAISE with file/line references and remediation.
+4. Submit an advisory verdict as a PR comment: `[advisory:code-reviewer] APPROVE`, `REQUEST CHANGES`, or `BLOCK`.
+5. Do not edit files, submit a GitHub `approve` review, or merge.
+6. Verify prior findings are fixed or still open.
+
+The owner decides and merges. Do not claim owner approval.

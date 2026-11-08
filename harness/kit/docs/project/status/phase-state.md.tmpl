@@ -1,0 +1,20 @@
+---
+current_phase: "0-harness-setup"
+status: not_started            # not_started | in_progress | awaiting_approval | approved | blocked | not_applicable
+profile: "{{LIFECYCLE_PROFILE}}"
+phase_list:                    # from harness/kit/lifecycle/profiles.yaml; PM records tailoring here
+{{PHASE_LIST_YAML}}
+previous_phase: null
+requested_transition: null
+requested_by: null
+requested_at: null
+approval_issue: null
+evidence: []
+approved_by: null              # owner GitHub login — owner-authored only
+approved_at: null
+notes: "Generated instance; Discovery has not started."
+---
+
+# Phase State
+
+Machine-readable lifecycle record. The frontmatter is authoritative for phase status; `docs/project/status/blockers.md` lists open blockers; `docs/harness/implementation-log.md` records harness implementation evidence. No agent writes `approved_by`/`approved_at` — only the owner's merged commit does.

@@ -1,0 +1,46 @@
+# {{PROJECT_NAME}} Knowledge Base
+
+> **Status:** Active structure · Generated {{RENDER_DATE}}
+> **Purpose:** The atomized, cited, status-tracked layer of project knowledge. Requirement documents *compose from* these pages; this is where knowledge lives between documents.
+
+## Authority model
+
+- This directory is **canonical** for atomic business knowledge (capabilities, rules, entities, processes, decisions, questions, actions, sources) once items are `confirmed`/`approved` per the rules below.
+- Long-form documents (`../01-requirements/brd.md`, `prd.md`, stories) are **views over** the knowledge base: they cite page IDs; they never restate a rule without a link.
+- Owner-level decisions still live in `../decisions/decision-register.md`. Business decisions here are `{{ID_PREFIX}}-DEC` entries; a decision that is material (OD-18) must be escalated to the register before implementation.
+
+## Item types and IDs
+
+| Type | ID | Page | Meaning |
+|---|---|---|---|
+| Capability | `{{ID_PREFIX}}-CAP-###` | `capabilities/` | One thing the product does; numbered business rules (BR) live on the page |
+| Business rule | `{{ID_PREFIX}}-BR-###` | (on capability pages) | One testable rule |
+| Entity | `{{ID_PREFIX}}-ENT-###` | `entities/` | A domain object, its states and relationships |
+| Process | `{{ID_PREFIX}}-PROC-###` | `processes/` | A workflow (as-is / to-be) |
+| Source record | `{{ID_PREFIX}}-SRC-###` | `sources/` | Redacted summary of one input (meeting, document, sync) and what it changed |
+| Business decision | `{{ID_PREFIX}}-DEC-###` | `decisions/` | A chosen position with an authority-cited decider |
+| Open question | `{{ID_PREFIX}}-Q-###` | `questions/` | What nobody can answer yet — who must, what it blocks, due date |
+| Action | `{{ID_PREFIX}}-ACT-###` | `actions/` | Who will do what by when |
+
+## Statuses
+
+`draft` (unchecked) → `confirmed` (BA verified against sources) → `approved` (an authority approved it) → `superseded` (replaced; never deleted, never used as current).
+
+## Change workflow (never bypassed)
+
+1. Extract items from a source (via `/intake`).
+2. Judge each against existing knowledge: `new`, `confirms`, `extends`, `contradicts`, `duplicate`, `answers`.
+3. Stage proposals in `_staging/` — nothing here changes directly.
+4. Critic pass (independent, read-only): missed items, wrong quotes, authority errors, redaction needs.
+5. Owner accepts/edits/rejects **item by item**.
+6. Apply: assign IDs, update pages, rebuild `index.md` and registers, append `log.md`.
+
+Contradiction rule: a proposal contradicting `confirmed`/`approved` content never overwrites it — it becomes an open question and the existing content stands until an authority changes it.
+
+Authority rule: only stakeholders with recorded authority (see `../00-context/stakeholders.md` RACI) can create or approve decisions; otherwise the statement is a view plus a question.
+
+## Hygiene
+
+- Raw notes go to `../working/business-analyst/inbox/` (gitignored); only redacted summaries are stored here.
+- Personal/sensitive data: never stored beyond what `project.yaml` data policy allows; redact names/contact from source records.
+- `index.md` lists every page with status; regenerate at every apply and during `/ops` health reviews.

@@ -1,0 +1,29 @@
+name: Security
+description: A security finding, review request, or incident
+title: "[Security] "
+labels: ["type:security", "security"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: textarea
+    id: threat
+    attributes: { label: Threat / trust boundary }
+    validations: { required: true }
+  - type: dropdown
+    id: severity
+    attributes: { label: Severity, options: ["CRITICAL", "HIGH", "MEDIUM", "LOW"] }
+    validations: { required: true }
+  - type: textarea
+    id: assets
+    attributes: { label: Affected assets }
+  - type: textarea
+    id: evidence
+    attributes: { label: Evidence }
+  - type: textarea
+    id: remediation
+    attributes: { label: Remediation / verification plan }
+  - type: textarea
+    id: disclosure
+    attributes: { label: Disclosure obligations (data policy) }

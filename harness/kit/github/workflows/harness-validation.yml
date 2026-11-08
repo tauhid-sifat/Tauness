@@ -1,0 +1,65 @@
+name: harness-validation
+# Core harness self-check — runs with zero project dependencies.
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'opencode.jsonc'
+      - 'project.yaml'
+      - '.opencode/**'
+      - 'harness/**'
+      - '.github/workflows/harness-validation.yml'
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Structure and placeholder-leak validation
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const fail = (m) => { console.error('FAIL: ' + m); process.exitCode = 1; };
+          const exists = (p) => fs.existsSync(p);
+          // 1) Required instance files
+          for (const p of ['AGENTS.md','opencode.jsonc','project.yaml','harness/HARNESS-VERSION'])
+            if (!exists(p)) fail('missing ' + p);
+          // 2) opencode.jsonc parses as JSONC
+          try {
+            const raw = fs.readFileSync('opencode.jsonc','utf8');
+            const noComments = raw.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+            const cfg = JSON.parse(noComments);
+            if (!Array.isArray(cfg.permissions) || cfg.permissions.length < 20) fail('permissions array missing/short');
+            if (!Array.isArray(cfg.policies) || cfg.policies.length < 10) fail('policies array missing/short');
+            if (process.env.STRICT === '1' && (raw.charCodeAt(0) === 0xFEFF)) fail('BOM in opencode.jsonc');
+          } catch (e) { fail('opencode.jsonc JSONC parse: ' + e.message); }
+          // 3) No unresolved template placeholders in instance files
+          const sweep = (dir, filter) => {
+            if (!exists(dir)) return;
+            for (const f of fs.readdirSync(dir, { recursive: true })) {
+              const p = String(f);
+              if (!filter(p)) continue;
+              const t = fs.readFileSync(p,'utf8');
+              if (/\{\{[A-Z0-9_]+\}\}/.test(t)) fail('placeholder leak: ' + p);
+              if (t.charCodeAt(0) === 0xFEFF) fail('BOM: ' + p);
+            }
+          };
+          sweep('.opencode', p => p.endsWith('.md'));
+          sweep('docs', p => p.endsWith('.md'));
+          sweep('.github', p => p.endsWith('.yml') || p.endsWith('.md'));
+          // 4) Agent frontmatter basics
+          if (exists('.opencode/agents')) for (const f of fs.readdirSync('.opencode/agents')) {
+            const t = fs.readFileSync('.opencode/agents/'+f,'utf8');
+            if (!/^---[\s\S]*?^description:/m.test(t)) fail('agent missing description: '+f);
+            if (!/mode:\s*(primary|subagent|all)/.test(t)) fail('agent missing mode: '+f);
+            if (!/permissions:/.test(t)) fail('agent missing permissions: '+f);
+          }
+          // 5) Core docs exist
+          for (const d of ['architecture-specification','agent-specifications','workflow-and-governance','security-and-permissions','github-governance','knowledge-management','project-initialization','using-the-harness','open-decisions','implementation-roadmap'])
+            if (!exists('docs/harness/'+d+'.md')) fail('missing core doc '+d);
+          console.log('harness-validation done');
+          NODE

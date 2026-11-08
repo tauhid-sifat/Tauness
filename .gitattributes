@@ -1,0 +1,23 @@
+# Normalize line endings so the kit is byte-identical on Windows, Linux and macOS
+# regardless of each contributor's core.autocrlf setting. The kit is cross-platform
+# and PowerShell reads LF scripts fine, so LF is authoritative for text files.
+* text=auto eol=lf
+
+# Windows-only batch helpers must stay CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never run diff/merge or newline conversion on binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.gz binary
+
+# Treat the kit's template payloads as text even when extensionless.
+*.tmpl text

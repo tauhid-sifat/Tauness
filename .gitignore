@@ -1,0 +1,28 @@
+# --- Harness: pending-apply staging area -------------------------------------
+# harness/staging/ holds the instance preview and staged core docs produced by
+# apply-harness-change.ps1. It contains rendered project values (layer C), which
+# the published kit (layer A) must not carry. Kept locally, never committed.
+harness/staging/
+
+# --- Harness: generated artifacts --------------------------------------------
+# Written by validate-harness.ps1 on every run.
+harness/reports/
+
+# --- OS / editor cruft --------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+*.swp
+*~
+.idea/
+.vscode/
+
+# --- Tooling ------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+*.local.env
+.env
+.env.*

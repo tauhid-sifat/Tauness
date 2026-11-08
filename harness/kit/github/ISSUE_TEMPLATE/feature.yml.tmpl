@@ -1,0 +1,67 @@
+name: Feature
+description: A user-facing or platform feature
+title: "[Feature] "
+labels: ["type:feature"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary, description: One sentence describing the outcome. }
+    validations: { required: true }
+  - type: textarea
+    id: context
+    attributes: { label: Context / problem }
+    validations: { required: true }
+  - type: textarea
+    id: uservalue
+    attributes: { label: User value }
+    validations: { required: true }
+  - type: textarea
+    id: outcome
+    attributes: { label: Desired outcome }
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes: { label: Scope in / out, placeholder: "In:\nOut:" }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes: { label: Acceptance criteria, description: Given/When/Then, or link to the approved requirement. }
+    validations: { required: true }
+  - type: input
+    id: requirements
+    attributes: { label: Requirement IDs, placeholder: "{{ID_PREFIX}}-REQ-012, {{ID_PREFIX}}-US-004" }
+    validations: { required: true }
+  - type: dropdown
+    id: phase
+    attributes: { label: Phase, options: [{{PHASE_OPTIONS_YAML}}] }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes: { label: Area, options: [{{AREA_OPTIONS_YAML}}] }
+    validations: { required: true }
+  - type: dropdown
+    id: priority
+    attributes: { label: Priority, options: ["P0", "P1", "P2", "P3"] }
+    validations: { required: true }
+  - type: textarea
+    id: dependencies
+    attributes: { label: Dependencies, description: "Blocking issues/decisions (Depends on #n)." }
+  - type: textarea
+    id: risks
+    attributes: { label: Risks and assumptions }
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Definition of Done
+      options:
+        - { label: Acceptance criteria met with evidence }
+        - { label: Tests added/updated and passing (where applicable) }
+        - { label: Independent review complete }
+        - { label: Traceability updated }
+        - { label: No unresolved blocker/high findings }
+  - type: checkboxes
+    id: approval
+    attributes:
+      label: Owner decision
+      options:
+        - { label: This change requires owner approval before implementation (material per OD-18) }

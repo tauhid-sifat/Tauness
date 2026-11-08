@@ -1,0 +1,31 @@
+name: Change request
+description: A material change requiring owner decision (OD-18)
+title: "[Change request] "
+labels: ["type:change-request", "needs-approval"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: textarea
+    id: rationale
+    attributes: { label: Rationale }
+    validations: { required: true }
+  - type: textarea
+    id: impact
+    attributes: { label: Impact analysis, description: "Affected requirements, issues, PRs, tests, decisions, timeline, cost." }
+    validations: { required: true }
+  - type: input
+    id: requirements
+    attributes: { label: Affected requirement IDs }
+    validations: { required: true }
+  - type: textarea
+    id: options
+    attributes: { label: Options with trade-offs }
+  - type: textarea
+    id: approval
+    attributes: { label: Owner decision (recorded) }
+  - type: dropdown
+    id: phase
+    attributes: { label: Phase, options: [{{PHASE_OPTIONS_YAML}}] }
+    validations: { required: true }

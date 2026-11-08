@@ -1,0 +1,25 @@
+name: PR policy
+# Enforces ledger discipline on every PR (github-governance.md §4).
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require issue link, requirement IDs, and labels
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "$BODY" | grep -Eq 'Closes #[0-9]+' || { echo "Missing 'Closes #<issue>' in PR body"; exit 1; }
+          echo "$BODY" | grep -Eq 'Req: {{ID_PREFIX}}-(REQ|US)-[0-9]+|Req: N/A' || { echo "Missing 'Req: {{ID_PREFIX}}-REQ-###' (or explicit Req: N/A with justification)"; exit 1; }
+      - uses: actions/checkout@v4
+      - name: Label check
+        run: |
+          gh pr view "$NUMBER" --json labels --jq '.labels[].name' > /tmp/labels
+          grep -Eq '^type:' /tmp/labels || { echo "Missing type: label"; exit 1; }
+          grep -Eq '^phase-' /tmp/labels || { echo "Missing phase label"; exit 1; }
+        env: { GH_TOKEN: ${{ github.token }} }

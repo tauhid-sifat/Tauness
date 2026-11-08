@@ -1,0 +1,27 @@
+# {{PROJECT_NAME}}
+
+> {{ONE_LINE_PROJECT_DESCRIPTION}}
+> Governed by the **AIDLC harness** {{KIT_VERSION}} — see `AGENTS.md` for the rules every agent follows, `project.yaml` for this project's configuration, and `docs/harness/using-the-harness.md` for operations.
+
+## Start here
+
+| I want to… | Do this |
+|---|---|
+| Work on the project | Open OpenCode here (the `project-manager` agent is the default) and use `/pm`, or a specialist command (`/ba`, `/dev`, …) |
+| Know the current state | `/status` or read `docs/project/status/phase-state.md` |
+| Start the lifecycle | `/pm` with your intent — Phase 1 begins with a Discovery gate pack |
+| Ask about approved knowledge | `/ask <question>` (cited, read-only) |
+| Feed new information | `/intake <source>` (staged, critic pass, you accept item-by-item) |
+| Change the harness | Open a `harness-improvement` issue; after approval run `harness/scripts/apply-harness-change.ps1` |
+
+## Layout
+
+- `harness/` — core kit + scripts (never hand-edit to change rules; propose instead)
+- `docs/harness/` — core harness specifications and decisions (project-agnostic)
+- `project.yaml` — this project's configuration (the single per-project input)
+- `docs/project/` — this project's workspace (knowledge, requirements, status, decisions)
+- `.opencode/` — generated agents/commands · `.github/` — generated governance forms and workflows
+
+## Safety
+
+Agents cannot merge, push `main`, deploy, approve phases, or edit governance/config paths — those are owner actions enforced by permissions, policies, and GitHub. Secrets and sensitive data are permission-denied. See `docs/harness/security-and-permissions.md`.

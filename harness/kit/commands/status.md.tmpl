@@ -1,0 +1,16 @@
+---
+description: "Report current lifecycle state: phase, gates, blockers, findings, and the next owner decision."
+agent: project-manager
+---
+# /status
+
+Report the current state of {{PROJECT_NAME}}.
+
+Request: `$ARGUMENTS` (optional focus area)
+
+1. Read `docs/project/status/phase-state.md`, `blockers.md`, the gate directory, open findings (quality/security reviews), and the work ledger.
+2. Output: current phase and profile; status of the active gate; open blockers with owners; unresolved CRITICAL/HIGH findings; items Ready/blocked; traceability gaps; the single next owner decision with a recommendation.
+3. Distinguish verified facts from claims; link every status to evidence.
+4. If reality diverges from `phase-state.md` or `blockers.md`, update those files (PM owns status) and note the correction.
+
+Keep it short enough to read in two minutes.

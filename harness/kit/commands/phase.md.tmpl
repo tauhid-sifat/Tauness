@@ -1,0 +1,18 @@
+---
+description: "Prepare a phase-gate evidence pack and transition recommendation for owner approval."
+agent: project-manager
+---
+# /phase
+
+Prepare a phase-gate recommendation.
+
+Request: `$ARGUMENTS`
+
+1. Read `AGENTS.md`, `project.yaml`, `docs/project/status/phase-state.md`, the active lifecycle profile's gate criteria, and the decision register.
+2. Create or update `docs/project/status/gates/<phase>-<name>.md` with a criteria table, evidence links, unresolved risks, assumptions, and an explicit owner decision request.
+3. Verify every evidence link; do not claim a criterion is met without evidence.
+4. Prepare the phase-state PR on branch `phase/<n>-<name>` if authorized.
+5. Do not approve or merge the transition; the owner does.
+6. Report blockers and residual risk.
+
+If any entry criterion or prerequisite is missing, mark the gate blocked and stop.

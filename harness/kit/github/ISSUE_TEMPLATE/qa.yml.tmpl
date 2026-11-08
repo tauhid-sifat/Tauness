@@ -1,0 +1,33 @@
+name: QA
+description: A verification or test scope
+title: "[QA] "
+labels: ["type:qa"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes: { label: Test scope }
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes: { label: Environment / build }
+  - type: dropdown
+    id: risk
+    attributes: { label: Risk level, options: ["low", "medium", "high"] }
+  - type: textarea
+    id: entryexit
+    attributes: { label: Entry / exit criteria }
+  - type: input
+    id: requirements
+    attributes: { label: Requirement IDs, placeholder: "{{ID_PREFIX}}-AC-###" }
+  - type: dropdown
+    id: phase
+    attributes: { label: Phase, options: [{{PHASE_OPTIONS_YAML}}] }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes: { label: Area, options: [{{AREA_OPTIONS_YAML}}] }
+    validations: { required: true }

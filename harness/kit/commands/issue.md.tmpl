@@ -1,0 +1,18 @@
+---
+description: "Prepare or create a GitHub issue using the PM-only duplicate-check flow."
+agent: project-manager
+---
+# /issue
+
+Prepare an issue for the {{PROJECT_NAME}} work ledger.
+
+Request: `$ARGUMENTS`
+
+1. Read `AGENTS.md`, the relevant requirements/decisions, and existing issues.
+2. Run the duplicate check: search open/closed issues by title, requirement ID, and area; search PRs.
+3. If a duplicate exists, comment on it with the new context and reuse it; do not create a duplicate.
+4. If creating, use the correct issue template and include summary, context, outcome, scope, acceptance criteria, requirement IDs, phase, area, priority, dependencies, risks, DoD, evidence, and owner-decision flag.
+5. Record the duplicate-check evidence in the issue.
+6. Do not invent requirements or acceptance criteria.
+
+Only the PM creates repository issues (OD-07). Specialists draft.

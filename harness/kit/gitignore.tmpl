@@ -1,0 +1,69 @@
+# {{PROJECT_NAME}} — generated .gitignore (harness baseline)
+
+# -----------------------------------------------------------------------------
+# Environment files and secrets — never committed
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+.vercel
+
+# -----------------------------------------------------------------------------
+# Harness / agent tooling artifacts (local only)
+# -----------------------------------------------------------------------------
+.opencode/state/
+.opencode/cache/
+.opencode/logs/
+.opencode/history/
+.opencode/tmp/
+.opencode/telemetry/
+worktrees/
+.hallmark/
+.impeccable/
+.firecrawl/
+.playwright/
+.playwright-mcp/
+.puppeteer/
+docs/project/working/*/inbox/
+.aider*
+.continue/
+
+# -----------------------------------------------------------------------------
+# OS and editor noise
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# Build outputs and dependencies (enable the block matching your stack)
+# -----------------------------------------------------------------------------
+# --- Node / JS ---
+# node_modules/
+# /dist/
+# /build/
+# /coverage/
+# *.log
+# logs/
+# --- Python ---
+# __pycache__/
+# .venv/
+# *.pyc
+# --- Go/Rust/Java/.NET: add as the scaffold lands ---
+
+*.local
+/.temp/
+/tmp/

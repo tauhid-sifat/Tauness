@@ -1,0 +1,24 @@
+name: Refactor
+description: Behaviour-preserving change
+title: "[Refactor] "
+labels: ["type:refactor"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: textarea
+    id: preserve
+    attributes: { label: Behaviour-preservation evidence, description: "Tests that pin current behaviour before the change." }
+    validations: { required: true }
+  - type: textarea
+    id: risk
+    attributes: { label: Risk / rollback }
+  - type: dropdown
+    id: phase
+    attributes: { label: Phase, options: [{{PHASE_OPTIONS_YAML}}] }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes: { label: Area, options: [{{AREA_OPTIONS_YAML}}] }
+    validations: { required: true }

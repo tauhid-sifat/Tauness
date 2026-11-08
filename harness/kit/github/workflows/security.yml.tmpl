@@ -1,0 +1,16 @@
+name: Security
+# Dependency and secret scanning. Keep lean; heavy scans nightly.
+# Rule: third-party Actions must be version-pinned by SHA and owner-reviewed (supply-chain policy).
+on:
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+{{SECURITY_STACK_STEPS}}
+      - name: Secret scan (placeholder until an owner-approved pinned scanner is enabled)
+        run: echo "Enable gitleaks/truffle pinned by SHA with owner review, or rely on GitHub push protection."

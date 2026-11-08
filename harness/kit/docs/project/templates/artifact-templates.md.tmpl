@@ -1,0 +1,133 @@
+# Artifact Templates — {{PROJECT_NAME}}
+
+> Replace every placeholder. Unknown values become open questions; never invented content.
+
+## Common header (every artifact)
+
+```markdown
+> **Source:** <author / inputs>
+> **Status:** draft | proposed | approved | superseded
+> **Assumptions:** <list>
+> **Dependencies:** <issues / decisions / artifacts>
+> **Open questions:** <who answers, blocking status>
+> **Evidence:** <links / commands / results>
+```
+
+## Requirement
+
+```markdown
+### {{ID_PREFIX}}-REQ-### — <one testable statement>
+- Source / Status / Rationale:
+- Business rule / NFR (EARS: WHEN/WHILE/THE … SHALL …):
+- Acceptance criteria: {{ID_PREFIX}}-AC-###-#
+- Assumptions / dependencies / open questions:
+```
+
+## User story (INVEST)
+
+```markdown
+### {{ID_PREFIX}}-US-### — As a <role> I want <goal> so that <benefit>
+- Source:  - Acceptance criteria: {{ID_PREFIX}}-AC-###-1, -2 (≥2, Given/When/Then)
+- Failure/permission/empty/invalid-input paths:
+- Dependencies / open questions:
+```
+
+## Acceptance criterion
+
+```markdown
+### {{ID_PREFIX}}-AC-###-# — <title>
+Given <context>
+When <action>
+Then <observable outcome>
+- Test mapping: {{ID_PREFIX}}-TC-###
+```
+
+## ADR
+
+```markdown
+### {{ID_PREFIX}}-ADR-### — <decision title>
+- Status: proposed | accepted | superseded   - Date / decider:
+- Context:            - Decision:
+- Consequences:       - Alternatives considered:
+- Supersedes / superseded by:
+```
+
+## Design spec
+
+```markdown
+### <flow / screen>
+- Journey / requirements:
+- Layout and components / states (default, hover, focus, active, disabled, loading, error, success):
+- Responsive behavior / accessibility criteria / tokens:
+- Open questions:
+```
+
+## Test plan
+
+```markdown
+### Test plan — <scope>
+- Risk level / entry & exit criteria:
+- Environments / test cases ({{ID_PREFIX}}-TC-###) / regression scope:
+- Evidence required:
+```
+
+## Test case
+
+```markdown
+### {{ID_PREFIX}}-TC-### — <title>
+- Requirement / AC:   - Preconditions:
+- Steps / expected / actual:
+- Evidence / result:
+```
+
+## Defect
+
+```markdown
+### {{ID_PREFIX}}-DEF-### — <title>
+- Severity / environment / steps to reproduce / expected vs actual:
+- Requirement link / evidence / regression risk:
+```
+
+## Security report
+
+```markdown
+### Security review — <scope>
+- Threat / trust boundary / severity / affected assets:
+- Evidence / remediation / verification:
+- Release verdict: pass | pass-with-risk (owner accepted: <record>) | block
+```
+
+## Release notes
+
+```markdown
+### Release <version> — <date>
+- Scope / changes / known issues / rollback / approvals:
+```
+
+## Phase gate
+
+```markdown
+### Phase <n> — <name> gate
+- Criteria table (criterion | status | evidence link):
+- Unresolved risks / assumptions:
+- Owner decision requested: <exactly what to approve>
+```
+
+## Retrospective
+
+```markdown
+### Retrospective — <phase / incident>
+- What worked / what did not:
+- Actions (owner / date):
+- Harness improvement proposals (→ harness-improvement issue):
+```
+
+## Incident / hotfix
+
+```markdown
+### Incident {{ID_PREFIX}}-INC-### — <title>
+- Impact / detection / severity:
+- Timeline (contain → notify → eradicate → recover):
+- Fix (issue/PR/deploy evidence):
+- Post-hoc reviews (code + security, within 24h) / retrospective / preventive actions:
+```

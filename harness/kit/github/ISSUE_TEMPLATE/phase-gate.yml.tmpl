@@ -1,0 +1,26 @@
+name: Phase gate
+description: Owner approval request for a lifecycle transition
+title: "[Phase gate] "
+labels: ["type:phase-gate", "needs-approval"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary, description: "Which phase closes; which opens." }
+    validations: { required: true }
+  - type: textarea
+    id: criteria
+    attributes: { label: Criteria table, description: "Criterion | status | evidence link — all evidence verified before submitting." }
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: Evidence pack path and links }
+    validations: { required: true }
+  - type: textarea
+    id: risks
+    attributes: { label: Unresolved risks and assumptions }
+  - type: textarea
+    id: approval
+    attributes: { label: Owner approval requested, description: "Exactly what is being approved and what it commits to." }
+    validations: { required: true }
+  - type: markdown
+    attributes: { value: "The owner approves by commenting here and merging the phase-state PR. Agent verdicts never satisfy this gate." }

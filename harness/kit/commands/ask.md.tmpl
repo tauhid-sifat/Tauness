@@ -1,0 +1,17 @@
+---
+description: "Answer a project question from the knowledge base with citations. Read-only; says so when the knowledge base does not know."
+agent: business-analyst
+subagent: false
+---
+# /ask
+
+Answer a question about {{PROJECT_NAME}} from approved knowledge.
+
+Question: `$ARGUMENTS`
+
+1. Search `docs/project/knowledge/`, `docs/project/01-requirements/`, `docs/project/00-context/`, the decision register, and gate records.
+2. Answer with a citation per statement (file + section/ID). Mark anything on `draft` status as unconfirmed; `superseded` content never appears as current.
+3. If the knowledge base does not know: say plainly that it does not know, and draft the open question (who must answer, why it blocks) for the PM to record.
+4. If the question implies a change to knowledge, point to `/intake` — never write from `/ask`.
+
+No file writes in this command. No external services for sensitive data.

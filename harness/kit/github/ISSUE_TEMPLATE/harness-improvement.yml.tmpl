@@ -1,0 +1,27 @@
+name: Harness improvement
+description: Proposal to change the harness itself (kit, docs, governance)
+title: "[Harness] "
+labels: ["type:harness-improvement"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: textarea
+    id: problem
+    attributes: { label: Problem observed }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: Proposed change (kit file / rule / template) }
+    validations: { required: true }
+  - type: textarea
+    id: impact
+    attributes: { label: Risk, permissions, and governance impact }
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgements
+      options:
+        - { label: I cannot apply this myself (agents never edit harness/config directly) }
+        - { label: Owner approval and apply-harness-change.ps1 are required }

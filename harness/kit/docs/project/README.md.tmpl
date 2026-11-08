@@ -1,0 +1,32 @@
+# {{PROJECT_NAME}} — Project Workspace
+
+> Generated {{RENDER_DATE}} from harness kit {{KIT_VERSION}}. This tree is Layer C (project workspace). The harness itself never lives here.
+
+## Structure & ownership
+
+| Path | Purpose | Writing role |
+|---|---|---|
+| `00-context/` | brief, scope, stakeholders + RACI, metrics, glossary, business rules, constraints, RAID | BA drafts; PM ratifies |
+| `01-requirements/` | BRD/PRD, stories, acceptance criteria, NFRs, issue drafts, change requests | BA |
+| `02-design/` | UX strategy, IA, journeys, screens, design system, accessibility, handoff, audits | Designer |
+| `03-architecture/` | architecture, data model, contracts, integrations, environments, spikes, `adr/` | Developer |
+| `04-quality/` | test strategy, plans, cases, reports, defects, review copies | QA |
+| `05-security/` | threat model, baseline, reviews, remediation log, incidents | Security Monitor |
+| `06-operations/` | deployment, backup/restore, runbooks, smoke tests, release notes | PM/Developer |
+| `knowledge/` | atomized cited knowledge base (`README` = rules) | BA via staging workflow |
+| `decisions/decision-register.md` | append-only owner decisions | PM records; owner approves |
+| `status/` | phase state, blockers, metrics, gates, retrospectives | PM |
+| `working/<agent>/` | non-authoritative working memory and inbox | each agent |
+| `traceability.md` | requirement → story → AC → issue → PR → test → QA | roles write; PM reconciles |
+
+## Reading order
+
+`../../project.yaml` → `../../AGENTS.md` → `status/phase-state.md` → the issue → this area's approved artifacts.
+
+## Rules
+
+1. Every artifact carries the common header (source, status, assumptions, dependencies, open questions, evidence) — see `templates/artifact-templates.md`.
+2. Draft ≠ approved. Never present unapproved content as fact.
+3. Supersede, never overwrite; the register and KB history survive.
+4. `working/` is memory, not knowledge: promote through the correct workflow or delete at retro. Sensitive inbox files stay gitignored.
+5. No secrets, no personal data beyond `project.yaml` data policy.

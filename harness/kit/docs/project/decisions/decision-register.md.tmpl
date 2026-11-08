@@ -1,0 +1,12 @@
+# Decision Register — {{PROJECT_NAME}}
+
+> **Authority:** Append-only record of owner decisions. Only the owner moves a material decision to `accepted`; the PM records.
+> **Rule:** never overwrite an entry — add a new one with `supersedes:`.
+
+| ID | Date | Status | Decision | Approver | Supersedes | Evidence |
+|---|---|---|---|---|---|---|
+| {{ID_PREFIX}}-DEC-000 | {{RENDER_DATE}} | accepted | Project initialized with the AIDLC harness; {{LIFECYCLE_PROFILE}} profile selected | Owner | — | `project.yaml`, init log |
+
+## Harness decision IDs (OD-nn)
+
+Governance decisions of the core harness are tracked in `../../docs/harness/open-decisions.md`; accepted ones are mirrored here as instance records when they bind this project.

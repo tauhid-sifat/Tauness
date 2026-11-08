@@ -1,0 +1,27 @@
+name: Docs
+description: A documentation deliverable
+title: "[Docs] "
+labels: ["type:docs"]
+body:
+  - type: input
+    id: summary
+    attributes: { label: Summary }
+    validations: { required: true }
+  - type: input
+    id: document
+    attributes: { label: Document / source of truth path }
+    validations: { required: true }
+  - type: input
+    id: audience
+    attributes: { label: Audience }
+  - type: textarea
+    id: context
+    attributes: { label: Context }
+  - type: dropdown
+    id: phase
+    attributes: { label: Phase, options: [{{PHASE_OPTIONS_YAML}}] }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes: { label: Area, options: [{{AREA_OPTIONS_YAML}}] }
+    validations: { required: true }
