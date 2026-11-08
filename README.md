@@ -2,6 +2,8 @@
 
 A reusable **AI Development Lifecycle** engineering harness for [OpenCode](https://opencode.ai) 2.2.x on Windows, Linux and macOS. It turns an AI coding agent team into a governed engineering org: role-separated agents, deny-by-default permissions, lifecycle phase gates, decision registers, a cited knowledge base, and GitHub-enforced approvals.
 
+**Handbook:** <https://tauhid-sifat.github.io/Tauness/> — a browsable engineering handbook generated from these documents.
+
 The full documentation lives in [`harness/README.md`](harness/README.md). This file is just the front door.
 
 ## What you get
@@ -25,8 +27,11 @@ The full documentation lives in [`harness/README.md`](harness/README.md). This f
 │   ├── kit/         # templates with {{PLACEHOLDER}} slots: agents, commands, config, github, docs, lifecycle
 │   └── scripts/     # init-project, apply-harness-change, validate-harness, sync-labels,
 │                    #   plus lib-render.ps1 and lib-apply.ps1, the shared rendering engine
-└── tests/           # the kit self-test: static source policy + render-and-validate
+├── site/            # the GitHub Pages handbook (self-contained HTML, no build step)
+└── tests/           # the kit self-test: static source policy, render-and-validate, site checks
 ```
+
+The handbook in `site/` is deployed to GitHub Pages by `.github/workflows/pages.yml`, gated by `tests/check-site.ps1`.
 
 ## Quick start
 

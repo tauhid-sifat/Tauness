@@ -9,6 +9,7 @@ on:
       - 'harness/**'
       - 'docs/harness/**'
       - 'tests/**'
+      - 'site/**'
       - '.github/workflows/kit-validation.yml'
   push:
     branches: [main]
@@ -50,3 +51,12 @@ jobs:
       - name: ASCII-only sources, parse clean, slot audit, kit contract
         shell: pwsh
         run: ./tests/check-sources.ps1
+
+  site-policy:
+    name: Handbook structure and counted claims
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Anchors, tag balance, version stamp, table counts
+        shell: pwsh
+        run: ./tests/check-site.ps1

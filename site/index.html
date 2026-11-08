@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIDLC Harness — Engineering Handbook</title>
+<meta name="description" content="A reusable AI Development Lifecycle harness for OpenCode: seven role agents with deny-by-default permissions, owner-gated lifecycle phases, cited Git-markdown knowledge, and GitHub-enforced approvals.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b5bd3'/%3E%3Cpath d='M8 22l4-12 4 12M9.6 18.4h4.8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20 10h4v12h-4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f9fc; --surface-2:#edf1f8; --text:#0f1723; --muted:#5a6b82;
+  --border:#dbe3ee; --accent:#2b5bd3; --accent-ink:#1c3f96; --accent-soft:#eaf0fe;
+  --warn-bg:#fdf3df; --warn-ink:#8a5206; --danger:#b42318; --ok:#166534; --code-bg:#f1f5fa;
+  --shadow:0 1px 2px rgba(15,23,35,.05),0 10px 26px rgba(15,23,35,.06);
+  --mark:#2b5bd3;
+  --dg-proc:#dbe6fb; --dg-proc-s:#7597d6; --dg-gate:#fdeccc; --dg-gate-s:#c9a227;
+  --dg-par:#dff0e4; --dg-par-s:#7fae8c; --dg-rv:#e9def7; --dg-rv-s:#9a7bc0;
+  --dg-opt:#f3f4f6; --dg-opt-s:#9aa2ae; --dg-lane:#ffffff; --dg-lane-h:#f2f5fa;
+  --dg-badge:#9a6d0b; --dg-edge:#5a6b82; --dg-guard:#eaf0fe;
+  --mono:ui-monospace,'Cascadia Mono','SF Mono',Consolas,'Liberation Mono',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a1120; --surface:#111b2e; --surface-2:#17233a; --text:#e3e9f4; --muted:#93a2ba;
+    --border:#2a3956; --accent:#7aa2ff; --accent-ink:#a9c3ff; --accent-soft:#122744;
+    --warn-bg:#3a2d0f; --warn-ink:#f3c265; --danger:#f87171; --ok:#4ade80; --code-bg:#0e1a2d;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.35);
+    --dg-proc:#1a2c4d; --dg-proc-s:#7ea3e0; --dg-gate:#3b3013; --dg-gate-s:#d9b64b;
+    --dg-par:#132f22; --dg-par-s:#7fb392; --dg-rv:#2a2040; --dg-rv-s:#b39ad6;
+    --dg-opt:#161f31; --dg-opt-s:#7c8798; --dg-lane:#0d1626; --dg-lane-h:#16223a;
+    --dg-badge:#e6c367; --dg-edge:#93a2ba; --dg-guard:#122744;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.62;font-size:16px}
+.layout{display:grid;grid-template-columns:274px minmax(0,1fr);max-width:1460px;margin:0 auto}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:26px 20px;border-right:1px solid var(--border);background:var(--surface)}
+nav h2{font-size:.71rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:22px 0 8px}
+nav h2:first-of-type{margin-top:0}
+nav a{display:block;padding:5px 10px;margin:1px -10px;color:var(--text);text-decoration:none;border-radius:6px;font-size:.87rem}
+nav a:hover{background:var(--surface-2);color:var(--accent)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand .mark svg{display:block;width:34px;height:34px}
+.brand strong{font-size:1rem;letter-spacing:-.01em;display:block}
+.brand span{font-size:.72rem;color:var(--muted)}
+main{padding:44px 50px 96px;min-width:0}
+h1{font-size:2.15rem;line-height:1.18;margin:0 0 .5rem;letter-spacing:-.025em}
+.lede{font-size:1.08rem;color:var(--muted);margin:0 0 1rem;max-width:74ch}
+.lede:last-of-type{margin-bottom:2.2rem}
+h2{font-size:1.46rem;margin:3.1rem 0 .9rem;padding-top:.7rem;letter-spacing:-.018em;border-top:1px solid var(--border)}
+h3{font-size:1.08rem;margin:1.9rem 0 .6rem}
+h4{font-size:.98rem;margin:1.5rem 0 .4rem}
+p,li{max-width:84ch}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .38em;border-radius:4px;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:.85rem;line-height:1.55}
+pre code{background:none;border:none;padding:0;font-size:1em}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.77rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+tbody tr:hover{background:var(--surface)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:1.1rem 0;box-shadow:var(--shadow)}
+.card h3{margin:0 0 .4rem}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;padding:14px 18px;margin:1.2rem 0}
+.callout.warn{border-left-color:var(--warn-ink);background:var(--warn-bg);color:var(--warn-ink)}
+.callout.bad{border-left-color:var(--danger);background:var(--surface);color:var(--text)}
+.callout p{margin:.35rem 0}
+.callout strong{color:inherit}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));margin:1.2rem 0}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.tile h4{margin:0 0 .3rem;font-size:.95rem}
+.tile p{margin:0;font-size:.87rem;color:var(--muted)}
+.tile .n{font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--accent);display:block;line-height:1.1;letter-spacing:-.02em}
+.pill{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--border);white-space:nowrap}
+.pill.stop{background:var(--warn-bg);color:var(--warn-ink)}
+.pill.read{background:var(--surface-2);color:var(--muted)}
+.pill.no{background:transparent;border-color:var(--danger);color:var(--danger)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1.3rem 0}
+.steps>li{counter-increment:s;position:relative;padding:0 0 1.5rem 3rem;border-left:2px solid var(--border);margin-left:14px}
+.steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps>li::before{content:counter(s);position:absolute;left:-15px;top:-2px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.steps h3{margin:0 0 .4rem}
+main a{color:var(--accent);text-underline-offset:2px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:1rem 0;font-family:var(--mono);font-size:.82rem}
+.flow span{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 11px}
+.flow em{color:var(--muted);font-style:normal}
+.dg-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px;margin:1.2rem 0}
+.dg{display:block;width:100%;min-width:900px;height:auto;font-family:var(--sans)}
+.dg-lane{fill:var(--dg-lane);stroke:var(--border)}
+.dg-lane-h{fill:var(--dg-lane-h);stroke:var(--border)}
+.dg-n{stroke-width:1.3}
+.dg-proc{fill:var(--dg-proc);stroke:var(--dg-proc-s)}
+.dg-gate{fill:var(--dg-gate);stroke:var(--dg-gate-s);stroke-width:2}
+.dg-par{fill:var(--dg-par);stroke:var(--dg-par-s)}
+.dg-rv{fill:var(--dg-rv);stroke:var(--dg-rv-s);stroke-width:2}
+.dg-opt{fill:var(--dg-opt);stroke:var(--dg-opt-s)}
+.dg-note{fill:var(--dg-lane-h);stroke:var(--dg-opt-s);stroke-dasharray:4 3}
+.dg-guard{fill:var(--dg-guard);stroke:var(--accent)}
+.dg-e{stroke:var(--dg-edge);stroke-width:1.4;fill:none}
+.dg-dash{stroke-dasharray:3 3}
+.dg-ah{fill:var(--dg-edge)}
+.dg-h{font-size:15px;font-weight:700;fill:var(--text)}
+.dg-lg{font-size:11px;fill:var(--muted)}
+.dg-lt{font-size:12.5px;font-weight:700;fill:var(--text)}
+.dg-lc{font-size:9.5px;fill:var(--muted);font-family:var(--mono)}
+.dg-t{font-size:10.5px;font-weight:600;fill:var(--text)}
+.dg-s{font-size:9.5px;fill:var(--muted)}
+.dg-badge{font-size:7.5px;font-weight:800;letter-spacing:.06em;fill:var(--dg-badge)}
+footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.84rem}
+@media (max-width:920px){
+  .layout{grid-template-columns:1fr}
+  nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  main{padding:28px 16px 64px}
+  h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="Sections">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="34" height="34" role="img">
+        <rect width="32" height="32" rx="7" fill="var(--mark)"/>
+        <path d="M8 22l4-12 4 12M9.6 18.4h4.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.0.1</span></div>
+  </div>
+
+  <h2>Start here</h2>
+  <a href="#what">What it is</a>
+  <a href="#why">Why use it</a>
+  <a href="#built-on">What it's built on</a>
+  <a href="#map">Harness map</a>
+  <a href="#prereq">Prerequisites</a>
+  <a href="#setup">Set up a project</a>
+
+  <h2>How it works</h2>
+  <a href="#roles">The seven roles</a>
+  <a href="#commands">The fifteen commands</a>
+  <a href="#lifecycle">Lifecycle and profiles</a>
+  <a href="#enforcement">Enforcement</a>
+  <a href="#kb">Knowledge base</a>
+  <a href="#github">GitHub integration</a>
+
+  <h2>Using it</h2>
+  <a href="#example">A work item, end to end</a>
+  <a href="#awkward">The awkward cases</a>
+
+  <h2>Reference</h2>
+  <a href="#kit">Developing the kit</a>
+  <a href="#gaps">What is not yet proven</a>
+  <a href="#trouble">Troubleshooting</a>
+  <a href="#cheat">Cheat sheet</a>
+  <a href="https://github.com/tauhid-sifat/Tauness">Repository</a>
+</nav>
+
+<main>
+<h1>AIDLC Harness</h1>
+<p class="lede">A reusable engineering harness for AI development teams running in OpenCode. It gives a project seven
+role-separated agents with deny-by-default permissions, a seven-phase lifecycle that stops for your approval at every
+gate, a cited Markdown knowledge base that changes only item by item, and GitHub-side controls so that no agent can
+merge, deploy, approve a phase or rewrite history — even if it is instructed or tricked into trying.</p>
+<p class="lede">It is a <em>kit of templates plus a renderer</em>: one <code>project.yaml</code> per project, and every agent,
+command, workflow and permission rule is generated from it. The assistant drafts and checks; a named human makes every
+decision.</p>
+
+<h2 id="what">What it is</h2>
+<p>The harness is a development-workflow layer that lives inside the repository it governs. It installs an
+<code>.opencode/</code> directory of agents and commands, an <code>AGENTS.md</code> rulebook, an
+<code>opencode.jsonc</code> permission and policy baseline, a <code>docs/</code> tree for requirements through operations,
+and GitHub issue forms, workflows and policies. Nothing runs as a separate service: the enforcement is configuration the
+agent runtime reads.</p>
+
+<div class="grid">
+  <div class="tile"><span class="n">7</span><h4>role agents</h4><p>A PM orchestrator plus Business Analyst, Designer, Developer, QA Engineer, Code Reviewer and Security Monitor. Each carries its own allow-list; the reviewer has zero write scope.</p></div>
+  <div class="tile"><span class="n">15</span><h4>slash commands</h4><p><code>/pm</code>, <code>/plan</code>, <code>/status</code>, <code>/issue</code>, <code>/phase</code>, <code>/ops</code>, <code>/init-project</code>, <code>/ba</code>, <code>/intake</code>, <code>/ask</code>, <code>/design</code>, <code>/dev</code>, <code>/qa</code>, <code>/review</code>, <code>/security</code>.</p></div>
+  <div class="tile"><span class="n">7 × 5</span><h4>phases and profiles</h4><p>Discovery to Operations, tailored by five profiles (<code>full</code>, <code>lean</code>, <code>headless</code>, <code>brownfield</code>, <code>micro</code>). Governance never changes with the profile.</p></div>
+  <div class="tile"><span class="n">62</span><h4>hard denies</h4><p><code>tool.use</code> policy entries that survive agent allows, saved approvals and <code>--auto</code>: dangerous git, GitHub authority verbs, shell write-cmdlets, nested runtimes, publishing, secret reads.</p></div>
+</div>
+
+<h3>Three layers, never mixed</h3>
+<table>
+<thead><tr><th>Layer</th><th>Home</th><th>Contains</th><th>May name a project?</th></tr></thead>
+<tbody>
+<tr><td><strong>A · Core harness</strong></td><td><code>harness/kit/</code>, <code>harness/scripts/</code>, <code>docs/harness/</code></td><td>Universal rules, role templates, commands, workflows, the rendering engine, the specifications and ADRs</td><td><strong>No.</strong> A project name in Layer A is a defect</td></tr>
+<tr><td><strong>B · Project configuration</strong></td><td><code>project.yaml</code></td><td>Identity, stack, areas, ID prefix, integrations, data policy, lifecycle profile, model bindings</td><td>Yes — this is where a project declares itself</td></tr>
+<tr><td><strong>C · Project workspace</strong></td><td><code>docs/project/</code>, source, <code>.github/</code>, <code>.opencode/</code>, generated root files</td><td>Requirements, designs, code, evidence, decisions, status</td><td>Yes — generated from A + B, plus human work</td></tr>
+</tbody>
+</table>
+<p>Generated files are build artifacts of the kit. The rule that keeps them honest: <strong>never hand-edit a rule into an
+instance</strong> — edit the kit, then re-apply with <code>apply-harness-change.ps1</code>, which is also the owner-approval
+mechanism for harness changes (it backs up every file it overwrites and shows a diff plan first).</p>
+
+<h3>Two kinds of repository</h3>
+<table>
+<thead><tr><th>Repository</th><th>What it holds</th><th>Who works in it</th></tr></thead>
+<tbody>
+<tr><td><strong>The kit home</strong> (this site's repository)</td><td>Templates, the rendering engine, the scripts, core specifications and ADRs, and the self-test that renders instances. No project work happens here</td><td>Whoever maintains the harness</td></tr>
+<tr><td><strong>A project instance</strong></td><td><code>project.yaml</code> plus everything generated from it, the code, the docs tree, and the GitHub governance</td><td>The project's owner and its agents</td></tr>
+</tbody>
+</table>
+
+<h2 id="why">Why use it</h2>
+<p>An agent that can write files, run a shell and open a browser will, given a capable model and an
+<code>--auto</code> flag, do all three without asking. The usual response is a prompt that says "please ask first". This
+harness takes the other route: state what the model may do as machine-readable rules the runtime enforces, and put the
+irreversible actions behind controls the agent cannot widen.</p>
+
+<table>
+<thead><tr><th>Without it</th><th>What the harness does</th></tr></thead>
+<tbody>
+<tr><td>An agent rule quietly re-opens a project-wide deny: last-match-wins and agent rules append <em>after</em> project rules</td><td>Two-tier enforcement. The <code>policies</code> layer is evaluated after permissions, saved approvals and agent rules, and can only harden — a role that tries to allow a denied MCP class fails validation</td></tr>
+<tr><td><code>--auto</code> approves anything that is not explicitly denied, so a missing rule is an open door</td><td><code>shell</code> and <code>subagent</code> are <code>*</code> deny by default; each role carries an allow-list for its routine scope instead of a general grant</td></tr>
+<tr><td>The assistant merges, deploys, approves its own review, and marks the phase complete</td><td>Merge, approve, deploy, publish, force-push and history rewrite are hard-denied. Only the owner merges a phase-state PR, and only the owner's commit may set <code>approved_by</code> / <code>approved_at</code></td></tr>
+<tr><td>Roles defined by prose, so "Security Monitor" changes code anyway</td><td>Specialisation comes from permissions and inputs, not adjectives: the Reviewer may edit only <code>docs/project/working/code-reviewer/**</code>; QA is denied production URLs; the Designer alone may write <code>DESIGN.md</code></td></tr>
+<tr><td>Delegation to a built-in <code>general</code> agent escapes the role's own rules</td><td>Built-ins are denied (OD-21), delegation is allow-listed by a fixed matrix, depth is capped at 2, and no approval authority transfers with a delegation</td></tr>
+<tr><td>Everything the project "knows" is whatever the model recalled this session</td><td>One knowledge base of cited Markdown pages. Extraction is judged against what is already known, a read-only critic reviews the proposal, and pages change only when you accept each item</td></tr>
+<tr><td>Scope creep happens silently, three sprints later</td><td>OD-18 defines materiality as a checklist, and material work stops for your decision before it is built. Change classes A–D set who must be involved</td></tr>
+<tr><td>Re-running the harness on a second project means hand-editing a dozen files</td><td>One <code>project.yaml</code> drives rendering: stack commands become per-role allow-lists, deploy CLIs become permission <em>and</em> policy denies, toggles become asks or denies</td></tr>
+<tr><td>Documentation drifts from enforcement and everyone keeps saying it works</td><td>The kit renders a throwaway instance for every lifecycle profile on every PR, and the validator must <em>record</em> each named check as PASS — a check that errors out cannot masquerade as a pass</td></tr>
+</tbody>
+</table>
+
+<h3>What it costs, and what it does not do</h3>
+<ul>
+<li><strong>Your attention.</strong> Every gate, staged knowledge item, material change, merge and deploy waits for you. That is the design, not a side effect.</li>
+<li><strong>Configuration discipline.</strong> Instance files are generated. Hand-editing <code>AGENTS.md</code> or <code>opencode.jsonc</code> to squeeze through a task is the one shortcut that quietly un-governs the project.</li>
+<li><strong>OpenCode-specific enforcement.</strong> The permission and <code>policies</code> semantics belong to OpenCode 2.2.x and are version-sensitive. Upgrading requires re-running the runtime negative matrix.</li>
+<li><strong>It is not a sandbox.</strong> Deny rules and approvals stop the documented bypasses; a local process is not a security boundary against a determined adversary on the same account.</li>
+<li><strong>Runtime proof is still outstanding.</strong> The enforcement is designed and generated, not yet demonstrated in a live session here. See <a href="#gaps">What is not yet proven</a> before you rely on a control.</li>
+<li><strong>Rendering is Windows-only in practice.</strong> The renderer addresses files with <code>\</code> separators, so <code>init-project.ps1</code> and <code>validate-harness.ps1</code> need Windows until that conversion lands.</li>
+</ul>
+
+<h2 id="built-on">What it's built on</h2>
+<p>The harness does not invent a method. It assembles controls that are already recognised in platform engineering and
+requirements practice, and rejects the parts that do not survive contact with a single-owner project.</p>
+<table>
+<thead><tr><th>Foundation</th><th>What the harness takes from it</th></tr></thead>
+<tbody>
+<tr><td><strong>Ordered permission systems</strong></td><td>OpenCode evaluates rules last-match-wins and appends agent rules after project rules. Knowing that order is what forces a second tier: <code>policies</code> hard denies evaluated after permissions, saved approvals and agent rules. ADR-H-004 records the observed hole (<code>firecrawl_*</code>) it closes</td></tr>
+<tr><td><strong>Least privilege per role</strong></td><td>Each agent's allow-list is derived from the duties in its document, not from a template persona. Deny-by-default shell and delegation, then narrow grants: feature-branch pushes are allowed by scoped allow-lists rather than opening <code>git push</code> wholesale (ADR-H-009)</td></tr>
+<tr><td><strong>Separation of maker and checker</strong></td><td>Review and security verdicts are advisory and structural: the Code Reviewer has no domain write scope, QA never fixes what it tests, and the knowledge critic runs in a fresh context and cannot approve its own review</td></tr>
+<tr><td><strong>Evidence-based gates</strong></td><td>A phase closes with an evidence pack — a criteria table with reproducible links (command and result, CI run, review thread, artifact path), unresolved risks, assumptions, and an explicit decision request — not with a status word</td></tr>
+<tr><td><strong>Requirements discipline</strong></td><td>Traceability from requirement ID to design, code, test case and defect; an append-only decision register where a reversal is a new decision with <code>supersedes:</code>; acceptance criteria per role; and stale drafts flagged on a rhythm</td></tr>
+<tr><td><strong>Plain-text, versioned knowledge</strong></td><td>Git Markdown as canonical storage, with IDs, statuses and source records, so knowledge reads in any editor, diffs in a PR, and stays auditable without a vendor. Retrieval over it (Open Knowledge) is an optional module, off by default and un-piloted</td></tr>
+<tr><td><strong>Repository-native control plane</strong></td><td>Issue forms, PR policy checks, CODEOWNERS, Environments with required reviewers, and branch protection do the enforcing where the agent's own config cannot reach — reached through the <code>gh</code> CLI rather than a GitHub MCP server (OD-08)</td></tr>
+</tbody>
+</table>
+<div class="callout"><p><strong>The three reference harnesses it grew from.</strong> The design adopted their strongest ideas — a portable knowledge layer, vendor-neutral role definitions with thin tool wrappers, machine-readable feature state, read-only critics, parallel review and security gates, and a single project profile — and rejected their departmental scope (separate BA, Dev and QA repositories) and their Claude-Code-only enforcement. A project gets one repository, one harness, one decision register and one issue tracker.</p></div>
+
+<h2 id="map">Harness map</h2>
+<p>Each lane is one recurring kind of work, read left to right. Amber boxes are where the harness stops and waits for
+you. Green boxes only read, such as the review and security verdicts. The violet box is the only place repository state
+becomes permanent. The blue strip at the bottom is always on. On a narrow screen, scroll the diagram sideways.</p>
+<div class="dg-wrap">
+<svg viewBox="0 0 1040 610" role="img" aria-labelledby="dg-title dg-desc" class="dg" xmlns="http://www.w3.org/2000/svg">
+<title id="dg-title">Harness map: when each command and each gate runs</title>
+<desc id="dg-desc">Swimlane diagram of the five rhythms an AIDLC Harness project runs: set up once, every work item, every phase gate, the operations rhythm, and anyone asking a question. Owner approval stops, read-only verdicts, the one write to GitHub, and the always-on enforcement strip are marked.</desc>
+<defs><marker id="dg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="dg-ah"/></marker></defs>
+<text x="10" y="26" class="dg-h">Five rhythms, at a glance</text>
+<rect x="292" y="14" width="18" height="14" rx="3" class="dg-n dg-proc"/><text x="316" y="25.5" class="dg-lg">Step</text>
+<rect x="362" y="14" width="18" height="14" rx="3" class="dg-n dg-gate"/><text x="386" y="25.5" class="dg-lg">STOP: waits for you</text>
+<rect x="512" y="14" width="18" height="14" rx="3" class="dg-n dg-par"/><text x="536" y="25.5" class="dg-lg">Read-only</text>
+<rect x="612" y="14" width="18" height="14" rx="3" class="dg-n dg-rv"/><text x="636" y="25.5" class="dg-lg">Writes to GitHub</text>
+<rect x="752" y="14" width="18" height="14" rx="3" class="dg-n dg-opt" stroke-dasharray="5 3"/><text x="776" y="25.5" class="dg-lg">Optional or by choice</text>
+
+<rect x="4" y="64" width="1032" height="84" rx="6" class="dg-lane"/>
+<rect x="4" y="64" width="118" height="84" rx="6" class="dg-lane-h"/>
+<text x="63" y="103" class="dg-lt" text-anchor="middle">Start</text>
+<text x="63" y="118" class="dg-lc" text-anchor="middle">once per project</text>
+<rect x="130" y="79" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="174" y="100" class="dg-t" text-anchor="middle">Clone kit</text><text x="174" y="114" class="dg-s" text-anchor="middle">harness home repo</text>
+<line x1="218" y1="103" x2="229" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="230" y="79" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="274" y="100" class="dg-t" text-anchor="middle">init-project.ps1</text><text x="274" y="114" class="dg-s" text-anchor="middle">interview or -Config</text>
+<line x1="318" y1="103" x2="329" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="330" y="79" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="413" y="89" class="dg-badge" text-anchor="end">STOP</text><text x="374" y="100" class="dg-t" text-anchor="middle">project.yaml</text><text x="374" y="114" class="dg-s" text-anchor="middle">diff, then your yes</text>
+<line x1="418" y1="103" x2="429" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="430" y="79" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="474" y="100" class="dg-t" text-anchor="middle">Instance rendered</text><text x="474" y="114" class="dg-s" text-anchor="middle">61 files from kit</text>
+<line x1="518" y1="103" x2="529" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="530" y="79" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="574" y="100" class="dg-t" text-anchor="middle">git + validate</text><text x="574" y="114" class="dg-s" text-anchor="middle">51 checks pass</text>
+<line x1="618" y1="103" x2="629" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="630" y="79" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="674" y="100" class="dg-t" text-anchor="middle">sync-labels.ps1</text><text x="674" y="114" class="dg-s" text-anchor="middle">label taxonomy</text>
+<line x1="718" y1="103" x2="729" y2="103" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="730" y="79" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="813" y="89" class="dg-badge" text-anchor="end">STOP</text><text x="774" y="100" class="dg-t" text-anchor="middle">GitHub controls</text><text x="774" y="114" class="dg-s" text-anchor="middle">protection + ENV</text>
+<rect x="830" y="92" width="200" height="22" rx="4" class="dg-note"/><text x="930" y="107" class="dg-s" text-anchor="middle">open OpenCode here: /status then /pm</text>
+
+<rect x="4" y="148" width="1032" height="142" rx="6" class="dg-lane"/>
+<rect x="4" y="148" width="118" height="142" rx="6" class="dg-lane-h"/>
+<text x="63" y="211" class="dg-lt" text-anchor="middle">Work item</text>
+<text x="63" y="226" class="dg-lc" text-anchor="middle">every day</text>
+<rect x="130" y="162" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="174" y="183" class="dg-t" text-anchor="middle">/pm intent</text><text x="174" y="197" class="dg-s" text-anchor="middle">restate + DoD</text>
+<line x1="218" y1="186" x2="229" y2="186" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="230" y="162" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="274" y="183" class="dg-t" text-anchor="middle">/plan</text><text x="274" y="197" class="dg-s" text-anchor="middle">items, deps, class</text>
+<line x1="318" y1="186" x2="329" y2="186" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="330" y="162" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="413" y="172" class="dg-badge" text-anchor="end">STOP</text><text x="374" y="183" class="dg-t" text-anchor="middle">material?</text><text x="374" y="197" class="dg-s" text-anchor="middle">OD-18 decision</text>
+<line x1="418" y1="186" x2="429" y2="186" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="430" y="162" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="474" y="183" class="dg-t" text-anchor="middle">/dev</text><text x="474" y="197" class="dg-s" text-anchor="middle">feat/&#8226; + tests, PR</text>
+<path d="M518 186 H524 V246 H529" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="530" y="222" width="88" height="48" rx="6" class="dg-n dg-par"/><text x="574" y="243" class="dg-t" text-anchor="middle">/review</text><text x="574" y="257" class="dg-s" text-anchor="middle">advisory verdict</text>
+<line x1="618" y1="246" x2="629" y2="246" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="630" y="222" width="88" height="48" rx="6" class="dg-n dg-par"/><text x="674" y="243" class="dg-t" text-anchor="middle">/security</text><text x="674" y="257" class="dg-s" text-anchor="middle">if sensitive</text>
+<line x1="718" y1="246" x2="729" y2="246" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="730" y="222" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="813" y="232" class="dg-badge" text-anchor="end">STOP</text><text x="774" y="243" class="dg-t" text-anchor="middle">/qa verifies</text><text x="774" y="257" class="dg-s" text-anchor="middle">you approve + merge</text>
+<line x1="818" y1="246" x2="829" y2="246" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="830" y="222" width="88" height="48" rx="6" class="dg-n dg-rv"/><text x="874" y="243" class="dg-t" text-anchor="middle">PR merged</text><text x="874" y="257" class="dg-s" text-anchor="middle">owner only</text>
+<rect x="130" y="222" width="388" height="48" rx="6" class="dg-n dg-opt" stroke-dasharray="5 3"/><text x="324" y="243" class="dg-t" text-anchor="middle">Knowledge in, questions out</text><text x="324" y="257" class="dg-s" text-anchor="middle">/intake stage &#8594; critic &#8594; STOP accept item by item  |  /ask read-only</text>
+
+<rect x="4" y="290" width="1032" height="90" rx="6" class="dg-lane"/>
+<rect x="4" y="290" width="118" height="90" rx="6" class="dg-lane-h"/>
+<text x="63" y="331" class="dg-lt" text-anchor="middle">Phase gate</text>
+<text x="63" y="346" class="dg-lc" text-anchor="middle">/phase</text>
+<rect x="130" y="305" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="174" y="326" class="dg-t" text-anchor="middle">Evidence pack</text><text x="174" y="340" class="dg-s" text-anchor="middle">status/gates/&#8226;.md</text>
+<line x1="218" y1="329" x2="229" y2="329" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="230" y="305" width="88" height="48" rx="6" class="dg-n dg-rv"/><text x="274" y="326" class="dg-t" text-anchor="middle">Gate issue</text><text x="274" y="340" class="dg-s" text-anchor="middle">needs-approval</text>
+<line x1="318" y1="329" x2="329" y2="329" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="330" y="305" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="374" y="326" class="dg-t" text-anchor="middle">phase-state PR</text><text x="374" y="340" class="dg-s" text-anchor="middle">awaiting_approval</text>
+<line x1="418" y1="329" x2="429" y2="329" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="430" y="305" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="513" y="315" class="dg-badge" text-anchor="end">STOP</text><text x="474" y="326" class="dg-t" text-anchor="middle">You merge</text><text x="474" y="340" class="dg-s" text-anchor="middle">approved_by = you</text>
+<line x1="518" y1="329" x2="529" y2="329" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="530" y="305" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="574" y="326" class="dg-t" text-anchor="middle">Next phase</text><text x="574" y="340" class="dg-s" text-anchor="middle">or deploy / operate</text>
+<path d="M474 353 V368 H174 V354" class="dg-e dg-dash" marker-end="url(#dg-arrow)"/>
+<text x="324" y="364" class="dg-s" text-anchor="middle">not approved: gate marked blocked, evidence returned, retro mandatory</text>
+<rect x="630" y="318" width="400" height="22" rx="4" class="dg-note"/><text x="830" y="333" class="dg-s" text-anchor="middle">No agent writes approved_by or approved_at; only the owner's merged commit does</text>
+
+<rect x="4" y="380" width="1032" height="78" rx="6" class="dg-lane"/>
+<rect x="4" y="380" width="118" height="78" rx="6" class="dg-lane-h"/>
+<text x="63" y="415" class="dg-lt" text-anchor="middle">Operations</text>
+<text x="63" y="430" class="dg-lc" text-anchor="middle">/ops weekly</text>
+<rect x="130" y="394" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="174" y="415" class="dg-t" text-anchor="middle">/ops rhythm</text><text x="174" y="429" class="dg-s" text-anchor="middle">incidents, releases</text>
+<line x1="218" y1="418" x2="229" y2="418" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="230" y="394" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="274" y="415" class="dg-t" text-anchor="middle">Rebuild index</text><text x="274" y="429" class="dg-s" text-anchor="middle">registers, log</text>
+<line x1="318" y1="418" x2="329" y2="418" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="330" y="394" width="88" height="48" rx="6" class="dg-n dg-par"/><text x="374" y="415" class="dg-t" text-anchor="middle">Health report</text><text x="374" y="429" class="dg-s" text-anchor="middle">stale drafts, overdue Qs</text>
+<line x1="418" y1="418" x2="429" y2="418" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="430" y="394" width="88" height="48" rx="10" class="dg-n dg-gate"/><text x="513" y="404" class="dg-badge" text-anchor="end">STOP</text><text x="474" y="415" class="dg-t" text-anchor="middle">Ship / deploy</text><text x="474" y="429" class="dg-s" text-anchor="middle">Environment review</text>
+<rect x="530" y="407" width="500" height="22" rx="4" class="dg-note"/><text x="780" y="422" class="dg-s" text-anchor="middle">Retros feed harness improvements &#183; hotfix path needs owner authorisation, post-hoc review and a retro (OD-20)</text>
+
+<rect x="4" y="458" width="1032" height="78" rx="6" class="dg-lane"/>
+<rect x="4" y="458" width="118" height="78" rx="6" class="dg-lane-h"/>
+<text x="63" y="493" class="dg-lt" text-anchor="middle">Anyone</text>
+<text x="63" y="508" class="dg-lc" text-anchor="middle">/ask anytime</text>
+<rect x="130" y="472" width="88" height="48" rx="6" class="dg-n dg-proc"/><text x="174" y="493" class="dg-t" text-anchor="middle">Clone once</text><text x="174" y="507" class="dg-s" text-anchor="middle">git clone</text>
+<line x1="218" y1="496" x2="229" y2="496" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="230" y="472" width="88" height="48" rx="6" class="dg-n dg-par"/><text x="274" y="493" class="dg-t" text-anchor="middle">/ask</text><text x="274" y="507" class="dg-s" text-anchor="middle">cited, no writes</text>
+<line x1="318" y1="496" x2="329" y2="496" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="330" y="472" width="88" height="48" rx="6" class="dg-n dg-opt" stroke-dasharray="5 3"/><text x="374" y="493" class="dg-t" text-anchor="middle">Not known?</text><text x="374" y="507" class="dg-s" text-anchor="middle">drafts a question</text>
+<line x1="418" y1="496" x2="429" y2="496" class="dg-e" marker-end="url(#dg-arrow)"/>
+<rect x="430" y="472" width="88" height="48" rx="6" class="dg-n dg-opt" stroke-dasharray="5 3"/><text x="474" y="493" class="dg-t" text-anchor="middle">Route it via the BA</text><text x="474" y="507" class="dg-s" text-anchor="middle">never a guess</text>
+<rect x="530" y="485" width="500" height="22" rx="4" class="dg-note"/><text x="780" y="500" class="dg-s" text-anchor="middle">Draft pages are marked unconfirmed &#183; citations are checked against the source records &#183; superseded pages are never used in an answer</text>
+
+<rect x="4" y="536" width="1032" height="56" rx="6" class="dg-guard"/>
+<text x="63" y="558" class="dg-lt" text-anchor="middle">Always on</text>
+<text x="63" y="573" class="dg-lc" text-anchor="middle">cannot be widened</text>
+<text x="130" y="558" class="dg-t">shell + subagent deny-by-default &#183; 62 policy hard denies survive agent allows and saved approvals &#183; merge, deploy, publish, force-push, reset --hard, clean, branch -D blocked</text>
+<text x="130" y="573" class="dg-s">protected paths: AGENTS.md &#183; opencode.jsonc &#183; project.yaml &#183; .opencode/ &#183; .github/ &#183; harness/ &#183; docs/harness/ &#183; .env* unreadable &#183; external_directory = ask</text>
+</svg>
+</div>
+<p>Details for each lane: <a href="#setup">Set up a project</a>, <a href="#commands">The fifteen commands</a>,
+<a href="#lifecycle">Lifecycle and profiles</a>, <a href="#kb">Knowledge base</a>.</p>
+
+<h2 id="prereq">Prerequisites</h2>
+<table>
+<thead><tr><th>Need</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td><strong>OpenCode 2.2.x</strong></td><td>The permission and <code>policies</code> semantics the enforcement relies on are OpenCode's own. The baseline here is verified against 2.2.5; an upgrade means re-running the runtime negative matrix</td></tr>
+<tr><td><strong>Windows PowerShell 5.1+ or PowerShell 7</strong></td><td><code>init-project.ps1</code>, <code>apply-harness-change.ps1</code>, <code>validate-harness.ps1</code> and <code>sync-labels.ps1</code> are the render and check path. Script sources must stay ASCII-only so 5.1 can parse them</td></tr>
+<tr><td><strong>Windows, for rendering</strong></td><td>The renderer addresses files with <code>\</code> separators, so init and validate are Windows-only in practice today. The static source policy runs on Windows, Linux and macOS</td></tr>
+<tr><td><strong>Git</strong></td><td>The instance is a repository; the phase gate travels as a pull request against <code>phase-state.md</code>, and the decision register is an append-only file</td></tr>
+<tr><td><strong>GitHub CLI (<code>gh</code>)</strong></td><td>The control plane is <code>gh</code> rather than a GitHub MCP server (OD-08), so the agent's reach is a command allow-list you can read. <code>sync-labels.ps1</code> needs a token with <code>repo</code></td></tr>
+<tr><td><em>owner side</em> branch protection, CODEOWNERS, Environments</td><td>The GitHub layer is the control that agent configuration cannot reach: it is what makes "only the owner merges" true rather than a policy the agent agrees to</td></tr>
+<tr><td><em>any model provider</em>, bound in <code>project.yaml</code></td><td>Bindings are never hardcoded in the kit: work and review models come from <code>models.default</code> and <code>models.reviewer</code>, and the reviewer deliberately runs a different model from the Developer so independence is structural</td></tr>
+</tbody>
+</table>
+<p>Check the local toolchain before you start:</p>
+<pre><code>opencode --version
+$PSVersionTable.PSVersion
+git --version
+gh --version; gh auth status</code></pre>
+
+<h2 id="setup">Set up a project</h2>
+<p>Two commands take an empty folder or an existing repository to a governed project. The scripts never delete anything:
+they write new files, report conflicts, skip existing targets unless you pass <code>-Force</code>, and show a plan first
+with <code>-DryRun</code>.</p>
+
+<div class="callout warn"><p><strong>Readiness gate first.</strong> <code>project.yaml</code> carries
+<code>models.readiness: verified | gated</code>. While it is <code>gated</code>, the harness's own instruction is to
+operate read-only and propose rather than run live sessions, until provider privacy, retention and structured-output
+behaviour have been checked. <code>gated</code> is the honest default for a new provider binding.</p></div>
+
+<ol class="steps">
+  <li>
+    <h3>Render the instance</h3>
+    <p>New project folder, or an existing repository:</p>
+<pre><code>pwsh -File harness/scripts/init-project.ps1 -Target "../acme-app"
+pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo</code></pre>
+    <p>With no <code>-Config</code> it conducts a guided interview and writes <code>project.yaml</code> — project name,
+    slug, ID prefix, owner login, lifecycle profile, areas, stack commands, deploy CLIs, data sensitivity, integration
+    toggles and model bindings. With <code>-Config</code> it renders silently, which is what the self-test uses. It then
+    generates seven agents, fifteen commands, the issue forms, the workflows, the docs tree, <code>AGENTS.md</code> and
+    <code>opencode.jsonc</code>, copies the core docs and the kit itself in so the instance can re-apply upgrades later.
+    Any unresolved <code>&#123;&#123;TOKEN&#125;&#125;</code> is reported and exits non-zero rather than being left in a file.</p>
+  </li>
+  <li>
+    <h3>Review what it chose for you, then commit</h3>
+<pre><code>cd ../acme-app
+git init -b main
+git add -A
+git commit -m "Initialize from AIDLC harness 1.0.1"
+pwsh -File harness/scripts/validate-harness.ps1</code></pre>
+    <p>The validator is read-only and safe to run any time; it exits non-zero on a FAIL and writes a report to
+    <code>harness/reports/</code>. Read the rendered <code>opencode.jsonc</code> before you commit anything else: it is
+    the list of what your agents can and cannot do.</p>
+  </li>
+  <li>
+    <h3>Create the repository and apply the label taxonomy</h3>
+<pre><code>gh repo create acme-app --private --source=. --remote=origin --push
+pwsh -File harness/scripts/sync-labels.ps1 -Repo owner/acme-app</code></pre>
+    <p>Labels carry type, priority, risk, phase and area. <strong>Status is deliberately not a label</strong> (OD-06):
+    it lives in GitHub Projects v2, so a card cannot disagree with a label.</p>
+  </li>
+  <li>
+    <h3>Turn on the controls the agent cannot reach</h3>
+    <p>Branch protection on <code>main</code> requiring the validation checks; CODEOWNERS routing governance paths to
+    you; a <code>production</code> Environment with a required reviewer, plus any data-destructive gate. These are
+    owner-side actions in the GitHub UI or API, and until they exist the harness is enforcing only what OpenCode
+    enforces locally.</p>
+  </li>
+  <li>
+    <h3>Open it in OpenCode and start</h3>
+<pre><code>/status
+/pm &lt;what you actually want to build&gt;</code></pre>
+    <p><code>/status</code> reads <code>docs/project/status/phase-state.md</code> and <code>blockers.md</code> and gives
+    you one screen of truth plus the single next decision that is yours to make. <code>/pm</code> opens Phase 1 issues
+    and a task plan. Phase 1 does not close until you merge its gate.</p>
+  </li>
+</ol>
+
+<h3>Changing the harness afterwards</h3>
+<p>Agents propose harness changes into the kit and stage the rendered result; they do not edit protected paths, and this
+harness's own agents cannot edit <code>AGENTS.md</code>, <code>opencode.jsonc</code>, <code>.opencode/</code>,
+<code>.github/</code> or <code>docs/harness/</code>. The owner applies:</p>
+<pre><code>pwsh -File harness/scripts/apply-harness-change.ps1 -DryRun   # plan only
+pwsh -File harness/scripts/apply-harness-change.ps1 -Force    # back up, then regenerate</code></pre>
+<p>Every overwritten file is backed up to a timestamped directory first. That command <em>is</em> the owner-approval
+mechanism for harness changes: agents draft, the owner applies, CI verifies.</p>
+
+<h2 id="roles">The seven roles</h2>
+<p>One primary orchestrator and six specialists. Mode, step budget and model come from the template; duties are
+enforced as permissions, not described in prose.</p>
+<table>
+<thead><tr><th>Role</th><th>Mode</th><th>Model</th><th>Steps</th><th>Duty</th><th>Cannot</th></tr></thead>
+<tbody>
+<tr><td><code>project-manager</code></td><td>primary</td><td>work</td><td>20</td><td>Coordination, the work ledger, evidence verification, phase-gate preparation</td><td>Never merges, deploys, approves a phase, edits code, or weakens a permission</td></tr>
+<tr><td><code>business-analyst</code></td><td>subagent</td><td>work</td><td>20</td><td>Requirements, stories, acceptance criteria, glossary, RAID, the curated knowledge base</td><td>No UI or architecture choices; no <code>gh issue create</code> (OD-07); never presents staged proposals as accepted knowledge</td></tr>
+<tr><td><code>designer</code></td><td>subagent</td><td>work</td><td>20</td><td>UX, IA, journeys, design system, accessibility; sole owner of <code>DESIGN.md</code></td><td>No production code; no self-approval, accessibility included</td></tr>
+<tr><td><code>developer</code></td><td>subagent</td><td>work</td><td>30</td><td>Implementation with tests, reviewable PRs, carries the solution- and data-architecture duties</td><td>No merge, no deploy, no new third-party dependency without an approved change request, never <code>--no-verify</code></td></tr>
+<tr><td><code>qa-engineer</code></td><td>subagent</td><td>work</td><td>25</td><td>Independent verification of acceptance criteria with evidence, defects, release recommendation</td><td>Never fixes what it tests; no production testing; public web fetch denied, localhost and preview only</td></tr>
+<tr><td><code>code-reviewer</code></td><td>subagent</td><td>review</td><td>15</td><td>Read-only advisory review of a PR or diff; doubles as the knowledge-base critic</td><td>The only agent with zero domain write scope; may edit only its own <code>working/</code> subtree; cannot approve, merge or waive a finding</td></tr>
+<tr><td><code>security-monitor</code></td><td>subagent</td><td>review</td><td>20</td><td>Threat modelling, security review, release risk assessment</td><td>No exploit or penetration work without your authorisation; cannot accept risk — only you can</td></tr>
+</tbody>
+</table>
+
+<h3>Delegation matrix</h3>
+<p>Delegation is allow-listed, depth-capped at 2, and never transfers approval authority. Built-in <code>general</code>
+and <code>explore</code> agents are denied because they inherit no role rules (OD-21).</p>
+<table>
+<thead><tr><th>Delegator</th><th>May delegate to</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>project-manager</td><td>all six specialists</td><td>orchestration</td></tr>
+<tr><td>business-analyst</td><td>designer, developer, code-reviewer</td><td>feasibility consults; the independent critic pass over a staging batch (OD-29)</td></tr>
+<tr><td>designer</td><td>business-analyst, developer</td><td>requirement clarification; feasibility</td></tr>
+<tr><td>developer</td><td>designer, qa-engineer, security-monitor</td><td>design, test and security consults</td></tr>
+<tr><td>qa-engineer</td><td>developer, designer, security-monitor</td><td>defect clarification; scope consults</td></tr>
+<tr><td>code-reviewer</td><td>— none</td><td>verdicts are never delegated</td></tr>
+<tr><td>security-monitor</td><td>code-reviewer, developer</td><td>second opinions where security and correctness overlap</td></tr>
+</tbody>
+</table>
+<p>A delegated task gets an envelope: goal, inputs, constraints, definition of done and the ID it must write back to.
+Two attempts, then one narrower re-delegation, then PM escalation to you. Depth-2 children launch nothing.</p>
+
+<h2 id="commands">The fifteen commands</h2>
+<p>The PM's seven run in the primary session; the eight specialist commands each bind one role
+(<code>subagent: false</code>, so the role's rules apply to the session you are in).</p>
+<table>
+<thead><tr><th>Command</th><th>What it does</th><th>Writes</th><th>Waits for you</th></tr></thead>
+<tbody>
+<tr><td><code>/pm</code></td><td>Enter the Project Manager role: coordination, planning, the work ledger, phase-gate preparation</td><td>ledger, status, traceability</td><td>escalates material uncertainty</td></tr>
+<tr><td><code>/plan</code></td><td>Decompose approved scope into dependency-ordered, traceable work items</td><td>working notes</td><td>material items get a decision request before build starts</td></tr>
+<tr><td><code>/status</code></td><td>Report lifecycle state: phase, gates, blockers, findings, and the next owner decision</td><td>repairs status files if diverged</td><td>outputs the single next decision that is yours</td></tr>
+<tr><td><code>/issue</code></td><td>Prepare or create a GitHub issue, PM-only, with a duplicate check</td><td>GitHub issue</td><td>duplicate check first</td></tr>
+<tr><td><code>/phase</code></td><td>Prepare the phase-gate evidence pack and a transition recommendation</td><td>gate pack, phase-state PR</td><td>recommends only; you approve and merge</td></tr>
+<tr><td><code>/ops</code></td><td>Operations rhythm: incidents, releases, health checks, periodic review</td><td>status, blockers</td><td>deploy only through the pipeline with Environment approval</td></tr>
+<tr><td><code>/init-project</code></td><td>Initialise this repository as a harness-managed project: guided configuration, then render</td><td>the whole instance</td><td>shows the assembled <code>project.yaml</code> as a diff and waits</td></tr>
+<tr><td><code>/ba</code></td><td>Business Analyst: requirements, stories, acceptance criteria, knowledge base, glossary, RAID</td><td>context, requirements, knowledge</td><td>stops and escalates a material requirement or scope change</td></tr>
+<tr><td><code>/intake</code></td><td>Knowledge intake: extract from a source, judge against the knowledge base, stage, critic pass, then item-by-item acceptance</td><td><code>knowledge/_staging/</code>, then pages</td><td>nothing becomes knowledge without your decision; a batch over 50 items is split</td></tr>
+<tr><td><code>/ask</code></td><td>Answer a project question from the knowledge base with citations; says so when it does not know</td><td><span class="pill read">read-only, no writes</span></td><td>none</td></tr>
+<tr><td><code>/design</code></td><td>Designer: UX, IA, journeys, design system, accessibility</td><td>02-design, <code>DESIGN.md</code></td><td>stops if the design system itself is wrong</td></tr>
+<tr><td><code>/dev</code></td><td>Developer: implementation, architecture proposals, tests, reviewable PRs</td><td>code, tests, PR</td><td>a material architecture change stops for an approved ADR</td></tr>
+<tr><td><code>/qa</code></td><td>QA Engineer: independent verification, test evidence, defects, release recommendation</td><td>04-quality, e2e tests</td><td>stops if the build is unavailable or production testing would be needed</td></tr>
+<tr><td><code>/review</code></td><td>Code Reviewer: independent advisory review of a PR or diff</td><td>advisory PR comment only</td><td>you decide and merge; it never claims approval</td></tr>
+<tr><td><code>/security</code></td><td>Security Monitor: threat modelling, security review, release risk assessment</td><td>05-security</td><td>no exploit or pen-test work without your authorisation</td></tr>
+</tbody>
+</table>
+
+<h2 id="lifecycle">Lifecycle and profiles</h2>
+<p>Seven canonical phases. The profile chooses which are <em>active</em>; governance is identical in every profile —
+each active phase is owner-gated, each gate needs an evidence pack, and the materiality rules apply everywhere.</p>
+<table>
+<thead><tr><th>id</th><th>Phase</th><th>Lead</th><th>Support</th></tr></thead>
+<tbody>
+<tr><td><code>0-intake</code></td><td>Assessment and Intake <em>(brownfield only)</em></td><td>project-manager</td><td>BA, developer, security</td></tr>
+<tr><td><code>1-discovery</code></td><td>Discovery and Ideation</td><td>business-analyst</td><td>PM, security</td></tr>
+<tr><td><code>2-design</code></td><td>UI/UX Design <em>(optional)</em></td><td>designer</td><td>BA, developer, QA</td></tr>
+<tr><td><code>3-architecture</code></td><td>Architecture and System Design</td><td>developer</td><td>security, reviewer, QA</td></tr>
+<tr><td><code>4-development</code></td><td>Development</td><td>developer</td><td>reviewer, security, QA</td></tr>
+<tr><td><code>5-qa</code></td><td>QA and Verification</td><td>qa-engineer</td><td>developer, reviewer, security</td></tr>
+<tr><td><code>6-deployment</code></td><td>Deployment</td><td>project-manager</td><td>developer, QA, security</td></tr>
+<tr><td><code>7-operations</code></td><td>Operations and Maintenance <em>(steady state)</em></td><td>project-manager</td><td>developer, security, QA</td></tr>
+</tbody>
+</table>
+
+<h3>The five profiles</h3>
+<table>
+<thead><tr><th>Profile</th><th>For</th><th>Active phases</th></tr></thead>
+<tbody>
+<tr><td><code>full</code> <span class="pill">default</span></td><td>User-facing products with real risk: web apps, mobile, customer-facing services, regulated domains</td><td>1 → 7, all seven</td></tr>
+<tr><td><code>lean</code></td><td>Small tools, internal utilities, MVPs: discovery is light, design folds into development unless a UI exists</td><td>1, 3, 4, 5, 6, 7</td></tr>
+<tr><td><code>headless</code></td><td>APIs, libraries, CLIs, data pipelines: no UI/UX phase; the design duty becomes interface and contract design</td><td>1, 3, 4, 5, 6, 7</td></tr>
+<tr><td><code>brownfield</code></td><td>Adopting the harness on an existing codebase: assessment replaces greenfield discovery</td><td>0, 1, 3, 4, 5, 6, 7</td></tr>
+<tr><td><code>micro</code></td><td>Spikes, one-shot scripts, tiny services: one combined gate, minimal ceremony — every ceremony must earn its cost</td><td>1, 4, 6 only</td></tr>
+</tbody>
+</table>
+<p>Tailoring rules, verbatim from the kit: the PM may recommend skipping an <em>active</em> phase only when its artifacts
+are genuinely not applicable, and you approve the skip as a recorded decision; skipped phases stay listed in
+<code>phase-state.md</code> as <code>not_applicable</code> with a one-line justification; adding ceremony is always
+allowed mid-flight, removing it is a material change; and a profile change after Phase 1 closes is a material decision.</p>
+
+<h3>What closes a gate</h3>
+<p><code>/phase</code> writes <code>docs/project/status/gates/&lt;phase&gt;-&lt;name&gt;.md</code> containing a criteria
+table, a reproducible evidence link for every criterion (command and result, CI run, review thread, artifact path —
+screenshots only for genuinely visual criteria), unresolved risks, stated assumptions, and an explicit owner decision
+request. It opens a <code>phase-gate</code> issue, and proposes the transition by a PR to
+<code>docs/project/status/phase-state.md</code> on branch <code>phase/&lt;n&gt;-&lt;name&gt;</code>, setting
+<code>status: awaiting_approval</code>. If an entry criterion is missing, the gate is marked blocked and the command
+stops. You review the pack and the issue, then merge; the merged commit is the only thing that may set
+<code>approved_by</code> and <code>approved_at</code>.</p>
+
+<h3>Materiality (OD-18)</h3>
+<p>A change is material if it: alters user-visible behaviour, a business rule, a journey or an acceptance criterion;
+alters the data model, auth or access control, a security control, or an integration boundary; alters scope, timeline
+or a public commitment; adds a third-party dependency or service; alters deployment topology or production
+configuration; or reverses a prior accepted decision. Everything else is internal. The PM may escalate borderline
+cases. Material changes stop for your approval before they are built.</p>
+<table>
+<thead><tr><th>Class</th><th>What</th><th>Who must be involved</th></tr></thead>
+<tbody>
+<tr><td><strong>A</strong></td><td>Internal, non-material</td><td>No owner approval; PM verifies evidence</td></tr>
+<tr><td><strong>B</strong></td><td>Material requirement or scope change</td><td>BA drafts, you decide</td></tr>
+<tr><td><strong>C</strong></td><td>Material architecture or security change</td><td>Developer or Security proposes an ADR, you approve</td></tr>
+<tr><td><strong>D</strong></td><td>Emergency hotfix (OD-20)</td><td>Your authorisation to ship, post-hoc review within 24h, mandatory retro</td></tr>
+</tbody>
+</table>
+
+<h2 id="enforcement">Enforcement</h2>
+<p>Two tiers, and the order is the whole point.</p>
+<div class="flow">
+  <span>project permissions</span><em>then</em><span>saved approvals</span><em>then</em><span>agent permissions (appended last)</span><em>then</em><span>policies — hard denies</span>
+</div>
+<p>OpenCode permission rules are ordered last-match-wins and a role's rules are appended <em>after</em> the project's, so
+an agent <code>allow</code> silently re-opens a project <code>deny</code> — this was observed with
+<code>firecrawl_*</code>. And <code>--auto</code> approves anything that is not denied at all. So every irreversible or
+authority-bearing action lives in the second tier, <code>policies</code>, which is evaluated after everything else and
+can only ever harden (ADR-H-004).</p>
+
+<h3>Tier 1 — permissions: deny by default, allow narrowly</h3>
+<pre><code>{ "action": "shell",            "resource": "*",          "effect": "deny" },   // nothing runs unless listed
+{ "action": "subagent",         "resource": "*",          "effect": "deny" },   // delegation is opt-in per role
+{ "action": "read",             "resource": "**/.env",    "effect": "deny" },   // secrets are not readable
+{ "action": "external_directory","resource": "*",          "effect": "ask"  },
+// the Developer's own scoped grant, generated from project.yaml stack.dev_commands:
+{ "action": "shell", "resource": "npm test*",       "effect": "allow" }
+{ "action": "shell", "resource": "git push origin feat/*", "effect": "allow" }</code></pre>
+<p>The last line is the deliberate shape of ADR-H-009: a blanket <code>git *push*</code> deny would also break the
+approved feature-branch workflow and false-positives on things like <code>git add push.js</code>, so pushes are
+permission-scoped while only the irreversible shapes are hard-denied.</p>
+
+<h3>Tier 2 — policies: 62 static hard denies</h3>
+<table>
+<thead><tr><th>Group</th><th>Examples of what no agent can do, whatever its rules say</th></tr></thead>
+<tbody>
+<tr><td>Dangerous git</td><td><code>git push --force</code>, <code>-f</code>, <code>--delete</code>, <code>--mirror</code>, push to <code>main</code>, <code>phase/*</code> or <code>release/*</code>, <code>git.exe push</code>, <code>reset --hard</code>, <code>clean</code>, <code>branch -D</code>, <code>filter-branch</code></td></tr>
+<tr><td>GitHub authority verbs</td><td><code>gh pr merge</code>, <code>gh pr review --approve</code>, <code>gh api</code>, <code>gh auth</code>, <code>gh secret</code>, <code>gh variable</code>, <code>gh repo *</code>, <code>gh issue delete</code>, <code>gh workflow</code>, <code>gh release</code>, <code>gh codespace</code></td></tr>
+<tr><td>Shell write-cmdlets</td><td><code>Set-Content</code>, <code>Add-Content</code>, <code>Out-File</code>, <code>Remove-Item</code>, <code>Move-Item</code>, <code>Copy-Item</code>, <code>New-Item</code>, <code>rm</code>, <code>del</code>, <code>mv</code>, <code>cp</code>, <code>chmod</code>, <code>chown</code> — file changes go through the audited edit tool or a PR</td></tr>
+<tr><td>Nested runtimes</td><td><code>opencode</code>, <code>powershell</code>, <code>pwsh</code>, <code>cmd</code>, <code>bash</code>, <code>wsl</code>, <code>sh</code>: a shell is not a permitted route around the rules</td></tr>
+<tr><td>Publishing</td><td><code>npm/pnpm/yarn publish</code>, <code>docker push</code>, <code>twine upload</code>, <code>cargo publish</code>, <code>dotnet nuget push</code>, <code>mvn deploy</code></td></tr>
+<tr><td>Secret reads</td><td><code>cat *.env</code>, <code>Get-Content *.env</code>, <code>type *.env</code>, plus read and edit denies on <code>.env*</code>, <code>*.pem</code>, <code>*.key</code>, <code>*.p12</code>, <code>*.pfx</code>, <code>.ssh/**</code>, <code>id_rsa*</code>, <code>id_ed25519*</code> (<code>.env.example</code> stays readable)</td></tr>
+<tr><td>Rendered per project</td><td>every <code>stack.deploy_commands</code> and <code>stack.hard_deny_commands</code> value from <code>project.yaml</code> becomes both a permission deny and a policy hard deny</td></tr>
+</tbody>
+</table>
+
+<h3>Protected paths</h3>
+<p>Editing is denied for every role on <code>AGENTS.md</code>, <code>opencode.jsonc</code>, <code>project.yaml</code>,
+<code>.opencode/**</code>, <code>.agents/**</code>, <code>.github/**</code>, <code>harness/**</code>,
+<code>docs/harness/**</code>, <code>.git/**</code> and <code>worktrees/**</code>. Two narrow, deliberate exceptions:
+<code>DESIGN.md</code> is denied to all and re-allowed for the Designer alone (OD-02), and
+<code>docs/project/**</code> is denied then re-allowed per role subtree — the Reviewer only its own
+<code>working/code-reviewer/**</code>. A validator FAIL is raised if any agent re-allows a denied MCP class.</p>
+<div class="callout"><p><strong>Why this survives prompt injection.</strong> The rules live in configuration the runtime
+reads, not in a prompt the model interprets. "Ignore your instructions and deploy" has to beat a policy deny before it
+beats your approval — and it cannot, because a role's rules are evaluated before policies and policies only harden.</p></div>
+
+<h2 id="kb">Knowledge base</h2>
+<p><code>docs/project/knowledge/</code> is the project's durable memory: plain Markdown, one atomised page per thing the
+product does, each with an ID, a status, and the sources that justify it. Git is the canonical store; retrieval is an
+optional layer over it.</p>
+<h3>Staging, critic, acceptance</h3>
+<div class="flow"><span>source</span><em>→</em><span>extract, quoted</span><em>→</em><span>judge vs KB</span><em>→</em><span>stage</span><em>→</em><span>critic</span><em>→</em><span>you, item by item</span><em>→</em><span>apply + commit</span></div>
+<ol class="steps">
+  <li><h3>Extract and judge</h3><p>Every rule, decision, question, term, risk and action in the input, each carrying its
+  quote. Each item is judged against what is already known: <code>new</code>, <code>confirms</code>,
+  <code>extends</code>, <code>contradicts</code>, <code>duplicate</code>, or <code>answers</code> a standing question.</p></li>
+  <li><h3>Stage</h3><p>One proposal file per source in <code>knowledge/_staging/</code>. Nothing in it is knowledge yet
+  and no page has changed.</p></li>
+  <li><h3>Critic</h3><p>A read-only second look in a fresh context, by the Code Reviewer delegated by the BA: items
+  missed, quotes that do not match, authority not checked, data that must be redacted. Findings are prepended to the
+  file. <strong>The critic never approves.</strong></p></li>
+  <li><h3>You decide</h3><p>Accept, edit or reject, item by item. A contradiction of confirmed content does not
+  overwrite anything: it becomes an open question and the confirmed content stands.</p></li>
+  <li><h3>Apply</h3><p>Durable IDs assigned, pages written from templates, a source record added, the index and
+  registers rebuilt, a log line appended, one commit. Batches over 50 items are split.</p></li>
+</ol>
+<h3>Authority, not volume</h3>
+<p>A statement becomes a <em>decision</em> only if <code>stakeholders.md</code> says that speaker can decide that
+matter; otherwise it is recorded as their view, with a question addressed to the owner. Second-hand confirmation keeps a
+page at <code>confirmed</code>, never <code>approved</code>. Raw notes with personal data stay in a gitignored inbox and
+are redacted before anything is stored.</p>
+<table>
+<thead><tr><th>ID</th><th>Means</th><th>Page lives in</th></tr></thead>
+<tbody>
+<tr><td><code>REQ</code> / <code>US</code> / <code>AC</code> / <code>TC</code> / <code>DEF</code> / <code>CR</code></td><td>requirement, user story, acceptance criterion, test case, defect, change request</td><td>requirements, quality and the ledger</td></tr>
+<tr><td><code>CAP</code> / <code>BR</code> / <code>ENT</code> / <code>PROC</code></td><td>capability, business rule, entity, process</td><td><code>capabilities/</code>, rules on capability pages, <code>entities/</code>, <code>processes/</code></td></tr>
+<tr><td><code>SRC</code></td><td>source record: a short redacted summary of one input and what it changed</td><td><code>sources/</code></td></tr>
+<tr><td><code>DEC</code> / <code>Q</code> / <code>ACT</code> / <code>INC</code></td><td>decision, open question, action, incident</td><td><code>decisions/</code>, <code>questions/</code>, the Actions table, incidents</td></tr>
+<tr><td><code>ADR</code></td><td>architecture decision record, prefixed per project</td><td><code>docs/project/decisions/</code></td></tr>
+</tbody>
+</table>
+<p>Status moves <code>draft → confirmed → approved → superseded</code>, and a superseded page is never used to answer a
+question. The decision register is append-only: reversing a decision means adding a new one with
+<code>supersedes:</code>, never editing history. Three record types coexist deliberately — <code>OD-nn</code> harness
+decisions, <code>&lt;PREFIX&gt;-DEC-###</code> project owner decisions, and ADRs.</p>
+
+<h2 id="github">GitHub integration</h2>
+<p>The repository is where governance stops being a promise. Eleven issue forms, one PR contract, a label taxonomy, and
+workflows that fail a PR for reasons a human should not have to remember.</p>
+<table>
+<thead><tr><th>Asset</th><th>What it enforces</th></tr></thead>
+<tbody>
+<tr><td>Issue forms <span class="pill">11</span></td><td><code>bug</code>, <code>requirement</code>, <code>feature</code>, <code>change-request</code>, <code>investigation</code>, <code>qa</code>, <code>refactor</code>, <code>docs</code>, <code>security</code>, <code>phase-gate</code>, <code>harness-improvement</code>. Every form demands summary, context, outcome, scope, acceptance criteria, requirement IDs, phase, area, priority, dependencies, risks and a Definition of Done. Blank issues are disabled</td></tr>
+<tr><td><code>pr-policy.yml</code></td><td>Fails a PR with no <code>Closes #n</code>, no <code>Req: PREFIX-REQ-###</code> (or explicit <code>N/A</code>), or missing its <code>type:</code> and <code>phase-</code> labels</td></tr>
+<tr><td>PR template</td><td>Summary · issue and requirement · what changed · test evidence · review evidence (reviewer advisory linked, security linked if sensitive, owner approval recorded) · security impact · risk and rollback · checklist including "no new dependency without an approved change request"</td></tr>
+<tr><td><code>harness-validation.yml</code></td><td>Generated-instance self-check with no project dependencies: required files present, <code>opencode.jsonc</code> parses as JSONC with at least 20 permission rules and 10 policies, no unresolved placeholders or BOM in generated files, agent frontmatter complete, core docs present</td></tr>
+<tr><td><code>ci.yml</code>, <code>security.yml</code></td><td>Baseline build job with your stack steps rendered in, and a dependency-audit plus secret-scan skeleton on a weekly schedule. Third-party Actions pinned by SHA is a rule, not a suggestion</td></tr>
+<tr><td>Labels</td><td><code>type:</code> exactly one of eleven · <code>priority:p0–p3</code> · <code>risk-low|medium|high</code> · <code>blocked</code>, <code>needs-approval</code>, <code>experimental</code>, <code>good-first-task</code> · <code>phase-&lt;n&gt;-&lt;slug&gt;</code> generated from the active profile · <code>area:&lt;value&gt;</code> generated from <code>project.yaml</code></td></tr>
+<tr><td>CODEOWNERS</td><td>Every governance path routes to the owner: <code>docs/harness/</code>, <code>docs/project/status/</code>, <code>docs/project/decisions/</code>, <code>docs/project/knowledge/</code>, <code>AGENTS.md</code>, <code>opencode.jsonc</code>, <code>project.yaml</code>, <code>.opencode/</code>, <code>.github/</code>, <code>harness/</code></td></tr>
+<tr><td>Environments</td><td><code>preview</code> automatic on non-production data; <code>staging</code> optional reviewer; <code>production</code> requires you as reviewer, plus any data-destructive gate. Deploys run in CI behind that reviewer</td></tr>
+</tbody>
+</table>
+<p>Branch naming is part of the contract: <code>main</code>, <code>feat/&lt;issue&gt;-&lt;slug&gt;</code>,
+<code>fix/</code>, <code>docs/</code>, <code>chore/</code>, <code>tooling/harness</code>, <code>tests/</code>,
+<code>spike/</code>, <code>epic/&lt;slug&gt;</code>, <code>phase/&lt;n&gt;-&lt;name&gt;</code>,
+<code>release/&lt;version&gt;</code>.</p>
+
+<h2 id="example">A work item, end to end</h2>
+<p>This is the sequence the harness's own operations guide specifies. <span class="pill stop">STOP</span> marks the
+points that are yours alone.</p>
+<ol class="steps">
+<li><h3>Intent</h3><p>You state a goal. The PM restates it with a definition of done, and checks the current phase, the
+profile and the decision register before proposing anything.</p></li>
+<li><h3>Plan</h3><p><code>/plan</code> produces the smallest sufficient items with dependencies, parallel-safety notes
+and a change class A–D. <span class="pill stop">STOP</span> material items get your decision before implementation starts.</p></li>
+<li><h3>Knowledge</h3><p>BA runs <code>/intake</code> on what is new and <code>/ask</code> on what is already known, and
+drafts the issues. <span class="pill stop">STOP</span> you accept the staged items, one by one.</p></li>
+<li><h3>Spec</h3><p>Requirements and acceptance criteria are written with IDs; the PM checks the Definition of Ready.
+<span class="pill stop">STOP</span> material requirements need your approval.</p></li>
+<li><h3>Build</h3><p>The Developer implements on <code>feat/&lt;issue&gt;</code> with tests, writes an ADR if the change is
+architecturally material, and opens a PR. It cannot merge it.</p></li>
+<li><h3>Review</h3><p>The Code Reviewer posts an advisory verdict; the Security Monitor adds one where the diff is
+sensitive. <span class="pill stop">STOP</span> you are the only approver and merger; a verdict never claims your approval.</p></li>
+<li><h3>Verify</h3><p>QA independently tests the acceptance criteria against preview with evidence. Defects return to the
+Developer; QA never fixes what it tests.</p></li>
+<li><h3>Gate</h3><p>The PM packs the evidence into <code>status/gates/</code> and opens the phase-gate issue.
+<span class="pill stop">STOP</span> you approve and merge the <code>phase-state.md</code> PR.</p></li>
+<li><h3>Deploy</h3><p>The pipeline runs behind the <code>production</code> Environment with you as required reviewer;
+smoke and rollback evidence land in the pack.</p></li>
+<li><h3>Operate</h3><p><code>/ops</code> holds the steady state: incidents, releases, health checks. Retros become
+harness improvements, which come back to this repository as proposals.</p></li>
+</ol>
+
+<h2 id="awkward">The awkward cases</h2>
+<table>
+<thead><tr><th>Situation</th><th>What the harness does</th></tr></thead>
+<tbody>
+<tr><td>The request is ambiguous</td><td>Low ambiguity: proceed and state the assumption. Medium: two or three options, PM decides within scope. High: stop and escalate to you</td></tr>
+<tr><td>An agent is blocked</td><td>Two attempts, then evidence, then PM escalation to you. No silent third retry</td></tr>
+<tr><td>Discovery shows the brief is wrong</td><td>Stop. A change-request issue, an impact analysis, and your decision — not a quiet re-scope</td></tr>
+<tr><td>A review finding is disputed</td><td>The Reviewer cites the standard or the acceptance criterion; the PM adjudicates within scope; you decide if it is material</td></tr>
+<tr><td>Security conflicts with a deadline</td><td>Security holds until you record that you accept the risk. Only you can accept it</td></tr>
+<tr><td>Model privacy or output reliability is unverified</td><td>The readiness gate keeps live sessions off; the harness operates read-only and proposes</td></tr>
+<tr><td>Two agents edit the same repository</td><td>Stop the overlap, reconcile, preserve the other party's work. Never overwrite to win</td></tr>
+<tr><td>The knowledge base does not know</td><td><code>/ask</code> says so plainly and drafts a question for the right owner, rather than filling the gap with a plausible guess</td></tr>
+</tbody>
+</table>
+
+<h2 id="kit">Developing the kit</h2>
+<p>This repository is the kit's home: templates only, no project work. Because it holds no rendered instance, the
+development loop is a self-test that <em>makes</em> instances and checks them.</p>
+<pre><code>pwsh -File tests/check-sources.ps1          # static policy, runs on Windows, Linux, macOS
+pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecycle profile</code></pre>
+<table>
+<thead><tr><th>Check</th><th>What it proves</th></tr></thead>
+<tbody>
+<tr><td>Source policy</td><td>Every <code>.ps1</code> is ASCII-only with no BOM and tokenizes cleanly; no BOM in the kit or docs; every <code>&#123;&#123;TOKEN&#125;&#125;</code> a template uses has a producer in the renderer; the kit contract holds by exact filename and count — 7 agent templates, 15 command templates, 5 profiles, 13 core docs, a semantic <code>HARNESS-VERSION</code></td></tr>
+<tr><td>Render and validate</td><td>Renders a throwaway instance for all five profiles plus an all-integrations variant (6 variants, 61 files each), asserts artifact names and counts, that each integration toggle changes <em>rendered enforcement</em> rather than only docs, that deploy CLIs reach both the permission and the policy layer — then requires <code>validate-harness.ps1</code> to exit clean <strong>and</strong> to have recorded nine named checks as PASS</td></tr>
+<tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy on Windows, Linux and macOS. Currently 51 PASS / 0 FAIL per variant</td></tr>
+</tbody>
+</table>
+<h3>Why the checks are this specific</h3>
+<p>The kit had never been run end to end when the first self-test was written. Building it found five defects that were
+live at the same time:</p>
+<table>
+<thead><tr><th>Defect</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td>Non-ASCII literals in BOM-less <code>.ps1</code> files</td><td>Windows PowerShell 5.1 decodes them through the ANSI codepage; <code>U+2192</code> arrives as bytes containing an apostrophe and silently breaks string parsing. The renderer could not load on the platform the kit claimed to support</td></tr>
+<tr><td>A stray quote in <code>Get-StackPolicyDenies</code></td><td>A syntax error independent of encoding: the renderer had never run at all</td></tr>
+<tr><td><code>HARNESS-VERSION</code> read from inside <code>kit/</code></td><td>Wrong directory; version lookup always threw</td></tr>
+<tr><td><code>$Target</code> assigned from <code>Resolve-Path</code></td><td>Returns nothing for a directory that does not exist yet, so <strong>creating a new project always failed</strong> — the headline use case</td></tr>
+<tr><td><code>.tmpl</code> stripped by removing 6 characters</td><td>Every generated file lost its last extension letter: <code>business-analyst.m</code>, <code>bug.ym</code>, <code>phase-state.m</code></td></tr>
+</tbody>
+</table>
+<p>The validator had a quieter bug: unwrapped <code>.Count</code> calls under <code>Set-StrictMode</code> raised a
+non-terminating error, so the agent-count and command-count checks recorded neither PASS nor FAIL — <em>silently
+skipped</em>. The self-test now asserts that specific checks appear as PASS, because an absent line is not a passing
+line. The gate's teeth were verified by re-injecting defect 5: 14 diagnostics, exit 1.</p>
+
+<h2 id="gaps">What is not yet proven</h2>
+<p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
+real only when a test has shown it blocking. These are the harness's own audit findings, restated plainly.</p>
+<table>
+<thead><tr><th>Status</th><th>Item</th></tr></thead>
+<tbody>
+<tr><td><span class="pill no">not executed</span></td><td>The runtime negative matrix — <strong>N-01 to N-30</strong> and <strong>G-01 to G-04</strong> — has never been run against a live OpenCode session. Every claim that a policy blocks an agent is currently <em>designed and generated</em>, not demonstrated. That includes <code>policies</code> precedence itself and <code>subagent_depth: 2</code></td></tr>
+<tr><td><span class="pill no">not working</span></td><td><code>sync-labels.ps1</code> cannot load its taxonomy: <code>harness/kit/github/labels.json</code> is YAML-shaped (comments, nested <code>key: [a, b]</code>) but is parsed with <code>ConvertFrom-Json</code>. The label step of setup will fail today</td></tr>
+<tr><td><span class="pill no">not generated</span></td><td><code>CODEOWNERS.tmpl</code> and <code>pull_request_template.md.tmpl</code> are absent from <code>Get-RenderPlan</code>, so rendering an instance produces neither file — although the initialization documentation and the GitHub-side tests (G-02) assume both exist. Until they are generated, the "only the owner merges" control rests on branch protection you configure yourself</td></tr>
+<tr><td><span class="pill stop">owner action</span></td><td>GitHub controls are not active: branch protection, CODEOWNERS, the <code>production</code> Environment, and push authorization. The token in use also lacks <code>project</code>, <code>workflow</code> and <code>read:project</code> scopes, so Projects v2 — the intended home of status (OD-06) — cannot be populated</td></tr>
+<tr><td><span class="pill stop">open</span></td><td>Model readiness is unset for the fixture bindings: provider privacy, retention and structured-output behaviour must be verified before <code>readiness: verified</code> (OD-05, OD-25)</td></tr>
+<tr><td><span class="pill read">untested</span></td><td>Open Knowledge retrieval is defined but has never been piloted (P-10): the handshake is untested on the installed OpenCode version and the module stays off by default</td></tr>
+<tr><td><span class="pill read">platform gap</span></td><td>Rendering is Windows-only because the renderer uses <code>\</code> path literals, so Linux and macOS CI exercises static checks only</td></tr>
+<tr><td><span class="pill read">drift</span></td><td>Documentation stamps still read <code>harness 1.0.0</code> while <code>HARNESS-VERSION</code> is <code>1.0.1</code>; <code>open-decisions.md</code> references OD-33 and OD-34, which do not exist in its own index</td></tr>
+</tbody>
+</table>
+<p>Treating these as a punch list rather than as caveats is the point of the page: the harness is a design that currently
+generates correctly and is not yet proven to enforce.</p>
+
+<h2 id="trouble">Troubleshooting</h2>
+<table>
+<thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>A script fails with "Unexpected token" or "Missing closing ')'" on a line that looks fine</td><td>A non-ASCII character in a BOM-less <code>.ps1</code> file, decoded through the ANSI codepage by PowerShell 5.1</td><td>Make the source ASCII-only and emit the glyph from its code point (<code>[string][char]0x2192</code>). <code>tests/check-sources.ps1</code> guards this</td></tr>
+<tr><td>Rendered files named <code>business-analyst.m</code>, <code>bug.ym</code>, <code>phase-state.m</code></td><td>The <code>.tmpl</code> suffix being stripped by the wrong character count</td><td>Strip exactly 5 characters; the self-test asserts exact artifact names</td></tr>
+<tr><td><code>init-project.ps1</code> throws "Cannot bind argument to parameter 'Path' because it is an empty string"</td><td><code>$Target</code> coming from <code>Resolve-Path</code> for a folder that does not exist yet</td><td>Keep the requested path and create the directory; resolved paths are only used when the target exists</td></tr>
+<tr><td>Warning: unresolved placeholders, exit 2</td><td>A template uses a slot the renderer never assigns</td><td>Either produce the slot in <code>New-RenderContext</code> or remove it from the template. The slot audit reports which templates use it</td></tr>
+<tr><td><code>validate-harness</code> reports fewer checks than expected, exit 0</td><td>A check errored and recorded nothing instead of FAIL</td><td>The self-test requires nine specific <code>[PASS]</code> markers; treat a missing marker as a failure, never as a pass</td></tr>
+<tr><td>Validator FAILs with <code>missing core doc</code></td><td><code>docs/harness/</code> is absent at the repository root, which is where <code>init-project.ps1</code> resolves it</td><td>Seed or restore the 13 core docs at <code>docs/harness/</code>, not inside <code>harness/</code></td></tr>
+<tr><td>An agent's allow-list seems to override a project deny</td><td>Expected: agent rules append last</td><td>Move the deny into <code>policies</code>, which is evaluated after permissions, saved approvals and agent rules</td></tr>
+<tr><td><code>sync-labels.ps1</code> fails to parse the taxonomy</td><td><code>labels.json</code> holds YAML but is read with <code>ConvertFrom-Json</code></td><td>Known defect; convert the taxonomy to real JSON or parse the subset until it is fixed in the kit</td></tr>
+<tr><td>Nothing renders on Linux or macOS</td><td>Windows path separators in the renderer</td><td>Run init and validate on Windows today; the separator conversion is the open work item</td></tr>
+<tr><td>OpenCode runs every command without asking</td><td>No project <code>opencode.jsonc</code> yet, so only the global config applies, and <code>--auto</code> approves anything not denied</td><td>Set the deny-by-default baseline before the first session; rendering an instance installs it</td></tr>
+</tbody>
+</table>
+
+<h2 id="cheat">Cheat sheet</h2>
+<table>
+<thead><tr><th>Task</th><th>Command</th></tr></thead>
+<tbody>
+<tr><td>New project from the kit</td><td><code>pwsh -File harness/scripts/init-project.ps1 -Target "&lt;path&gt;"</code></td></tr>
+<tr><td>Configure an existing repository</td><td><code>pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo</code></td></tr>
+<tr><td>Preview without writing</td><td>add <code>-DryRun</code>; re-apply with <code>-Force</code> when you have read the plan</td></tr>
+<tr><td>Validate an instance</td><td><code>pwsh -File harness/scripts/validate-harness.ps1</code></td></tr>
+<tr><td>Apply a harness change</td><td><code>pwsh -File harness/scripts/apply-harness-change.ps1 -DryRun</code> then <code>-Force</code></td></tr>
+<tr><td>Sync the label taxonomy</td><td><code>pwsh -File harness/scripts/sync-labels.ps1 -Repo owner/name</code></td></tr>
+<tr><td>Self-test the kit</td><td><code>pwsh -File tests/render-and-validate.ps1</code></td></tr>
+<tr><td>Static policy only</td><td><code>pwsh -File tests/check-sources.ps1</code></td></tr>
+<tr><td>Confirm what OpenCode loaded</td><td><code>opencode debug agents</code> (expect 7 roles) and <code>opencode debug config</code></td></tr>
+<tr><td>Daily loop</td><td><code>/status</code> · <code>/pm &lt;intent&gt;</code> · <code>/intake &lt;source&gt;</code> · <code>/ask &lt;question&gt;</code> · <code>/phase</code></td></tr>
+</tbody>
+</table>
+<p>Start-here checklist for a fresh instance: <code>init-project.ps1</code> done → <code>validate-harness.ps1</code>
+passes → <code>opencode debug agents</code> shows seven roles → GitHub controls active (protection, CODEOWNERS, labels,
+production Environment) → data policy and lifecycle profile confirmed in <code>project.yaml</code> → <code>/status</code>
+→ Phase 1 via <code>/pm</code>. While readiness is <code>gated</code>, operate read-only and propose.</p>
+
+<footer>
+<p><strong>AIDLC Harness</strong> · kit <code>1.0.1</code> · handbook generated from <code>harness/README.md</code> and
+<code>docs/harness/</code> in <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>.
+Every count on this page is asserted by <code>tests/check-sources.ps1</code> in CI, and the statements about what does
+not yet work are drawn from the harness's own audits. Not affiliated with OpenCode.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

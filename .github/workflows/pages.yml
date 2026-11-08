@@ -1,0 +1,49 @@
+name: deploy-site
+# Publishes the GitHub Pages handbook from site/. Static, self-contained HTML: no build step, no
+# Jekyll, no npm install. The validator job gates the deploy, so a page with a broken anchor, an
+# unbalanced tag, a stale version stamp or a claim that no longer matches the kit cannot go live.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'harness/HARNESS-VERSION'
+      - 'tests/check-site.ps1'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate the handbook
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Structure, anchors and counted claims
+        shell: pwsh
+        run: ./tests/check-site.ps1
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: validate
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
