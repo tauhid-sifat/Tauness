@@ -4,7 +4,29 @@ All notable changes to the AIDLC Harness kit. Version is `harness/HARNESS-VERSIO
 entry here, and material changes (permissions, policies, gates, approvals - OD-18) also get an ADR in
 [`docs/harness/adr/`](docs/harness/adr/INDEX.md).
 
+## [1.1.1] - 2026-11-09
+
+Patch: a shipped workflow was unrunnable, found by auditing rendered YAML rather than reading the template.
+
+### Fixed
+
+- **`pr-policy.yml` could never run in any instance.** The template ended a step with
+  `env: { GH_TOKEN: ${{ github.token }} }` - a YAML flow mapping containing an Actions expression, which
+  standard parsers reject (`expected ',' or '}'`). GitHub Actions loads workflow files through a YAML
+  parser, so the PR policy gate that the handbook says "fails a PR with no `Closes #n`" was, in every
+  instance, a file that would not load. Now block style. Found by parsing all 16 rendered `.github`
+  YAML files; it is invisible to a template reader and to the JSONC-only check that `harness-validation.yml`
+  performs on `opencode.jsonc`.
+
+### Added
+
+- **Workflow YAML shape gate** in `tests/render-and-validate.ps1`: rendered `.github/**/*.yml` must contain
+  no flow mapping holding an expression and no unresolved template slot, and all 16 expected files must be
+  present (12 issue forms + 4 workflows). Slot detection excludes `${{ ... }}` expressions, which legitimately
+  contain `{{`; an over-crude first version of this check false-positived on them.
+
 ## [1.1.0] - 2026-11-09
+
 
 Rendering output changed: instances are now more complete and self-consistent than before.
 

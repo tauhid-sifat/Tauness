@@ -1,6 +1,6 @@
 # Harness Implementation Log
 
-> **Status:** Active · harness 1.1.0 · Rule: evidence only. Approval is not implementation; implementation is not verification.
+> **Status:** Active · harness 1.1.1 · Rule: evidence only. Approval is not implementation; implementation is not verification.
 
 ## Environment (verified 2026-11-09)
 
@@ -48,6 +48,7 @@ OpenCode `2.2.5` (npm global) · Node `v22.19.0` · Chrome 156 at `C:\Program Fi
 | Governance adopted by this repository (ADR-H-014) | `.github/ISSUE_TEMPLATE/{bug,harness-improvement,config}.yml`, `.github/CODEOWNERS`, `.github/CONTRIBUTING.md`, `.github/SECURITY.md`, `CHANGELOG.md`. Not done, deliberately, pending owner decision: branch protection with required checks (would end direct pushes to `main`) and a `LICENSE` |
 | Honesty table updated | Removed the three fixed rows; added genuinely outstanding ones: label creation still unattested (CI has no credential or repo to write to), Layer A "never names a project" rule unenforced (9 core docs name a project/patients/vendors), skill allow-lists encode one machine's inventory (41 WARNs per instance), CODEOWNERS generated but enforcement unproven, no LICENSE. `check-site.ps1` now asserts these wordings so a caveat cannot be quietly deleted, and counts 10 rows |
 | Documentation consistency | 13 core docs re-stamped to `harness 1.1.0` (dated audits left as point-in-time evidence); `open-decisions.md` header claimed OD-27..OD-34 while the index ends at OD-32; `repository-structure.md` reconciled on `harness/reports/` (committed as gate evidence in an instance, ignored in the kit home repo) |
+| pr-policy workflow was unrunnable (1.1.1) | Auditing **rendered** YAML rather than reading templates found `env: { GH_TOKEN: ${{ github.token }} }` in `kit/github/workflows/pr-policy.yml.tmpl` - a flow mapping cannot contain an Actions expression, so the workflow was unparseable in every instance since 1.0.0, while `github-governance.md` and the handbook described what it "fails". Now block style. New gate in `render-and-validate.ps1`: rendered `.github/**/*.yml` must have no flow-mapping expression, no unresolved slot, and 16 files present. Slot detection had to exclude `${{ }}` (which contains `{{`) after a first version false-positived - caught by the same audit, not by the kit |
 
 ## Outstanding evidence (unchanged unless marked)
 

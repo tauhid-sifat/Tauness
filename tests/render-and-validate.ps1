@@ -254,6 +254,25 @@ try {
             $afterCmds = @(Get-ChildItem -File (Join-Path $dir '.opencode/commands') -Filter *.md -ErrorAction SilentlyContinue).Count
             if ($afterCmds -ne 16) { $fails += ("{0}: after re-apply the instance has {1} commands, expected 16" -f $v.Name, $afterCmds) }
             if (-not (Test-Path (Join-Path $dir '.github/CODEOWNERS'))) { $fails += ("{0}: re-apply removed CODEOWNERS" -f $v.Name) }
+
+        # ---- workflow and issue-form YAML must be loadable. A flow mapping containing an Actions
+        #      expression (env: { TOKEN: ${{ ... }} }) is not parseable YAML and GitHub rejects it,
+        #      so a workflow written that way ships in every instance and never runs - which is
+        #      exactly what pr-policy.yml.tmpl did until 1.1.1.
+        $yamlBad = @()
+        foreach ($yf in (Get-ChildItem -File -Recurse (Join-Path $dir '.github') -Filter *.yml -ErrorAction SilentlyContinue)) {
+            $txt = Get-Text $yf.FullName
+            $flow = @([regex]::Matches($txt, '(?m)^.*\{[^}\n]*\$\{\{[^}\n]*\}.*$'))
+            if ($flow.Count -gt 0) {
+                $yamlBad += ("{0}: flow mapping containing an expression: {1}" -f $yf.Name, $flow[0].Value.Trim())
+            }
+            if ($txt -match '(?<!\$)\{\{[A-Z0-9_]{3,}\}\}') {
+                $yamlBad += ("{0}: unresolved template slot" -f $yf.Name)
+            }
+        }
+        foreach ($y in $yamlBad) { $fails += ("{0}: {1}" -f $v.Name, $y) }
+        $ghYamlCount = @(Get-ChildItem -File -Recurse (Join-Path $dir '.github') -Filter *.yml -ErrorAction SilentlyContinue).Count
+        if ($ghYamlCount -lt 16) { $fails += ("{0}: only {1} .github YAML files rendered, expected 16 (12 forms + 4 workflows)" -f $v.Name, $ghYamlCount) }
         }
 
         if ($fails.Count -eq $before) { $lines += ("  [ok]   {0}: {1}" -f $v.Name, $resultLine) }

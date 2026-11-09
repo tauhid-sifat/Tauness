@@ -127,7 +127,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
         <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.1.0</span></div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.1.1</span></div>
   </div>
 
   <h2>Start here</h2>
@@ -729,6 +729,7 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 <tr><td>Reachability audit</td><td>Every file under <code>harness/kit/</code> must be reachable from <code>Get-RenderPlan</code> itself - the check calls the renderer instead of re-implementing its patterns - or be a declared non-rendered input with a stated reason. This is what turns "a template that ships, is documented, and is never generated" into a build failure</td></tr>
 <tr><td>Interview-template audit</td><td><code>kit/project.yaml.tmpl</code> is substituted by <code>init-project.ps1</code>'s interview rather than by <code>Expand-Template</code>, so it sat outside every slot check. Auditing it against the interview's producer set found <code>&#123;&#123;KIT_COMMIT&#125;&#125;</code> leaking into every instance built through the guided path</td></tr>
 <tr><td>Data-format contract</td><td>Every <code>kit/**/*.json</code> must parse as JSON. <code>labels.json</code> shipped as commented YAML and was piped straight into <code>ConvertFrom-Json</code></td></tr>
+<tr><td>Workflow YAML shape</td><td>Rendered <code>.github/**/*.yml</code> must contain no flow mapping holding an Actions expression and no unresolved slot, and all 16 files must be present. Added after <code>pr-policy.yml</code> was found ending a step with <code>env: { GH_TOKEN: ${{ ... }} }</code> - unparseable YAML, so the PR policy gate had never been loadable in any instance</td></tr>
 <tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy and handbook checks on Windows, Linux and macOS. Currently 51 PASS / 0 FAIL per variant</td></tr>
 </tbody>
 </table>
@@ -756,6 +757,11 @@ that shipped, were documented, and never entered the render plan (<code>CODEOWNE
 literal placeholder in every guided-path instance's own configuration — and would have been reported by its own
 validator. Each is now covered by the specific check that had missed it, and the reachability audit is what keeps the
 class from returning.</p>
+<p>A fourth came from parsing rather than reading: <code>pr-policy.yml</code> ended a step with
+<code>env: { GH_TOKEN: ${{ github.token }} }</code>. A YAML flow mapping cannot contain an Actions expression, so the
+workflow was unparseable - in every instance, from the first release. Nothing in the test suite noticed, because
+nothing parsed the rendered <code>.github</code> files, and <code>harness-validation.yml</code> only checks that
+<code>opencode.jsonc</code> parses. Fixed in 1.1.1, and the shape of that mistake is now a gate.</p>
 
 <h2 id="gaps">What is not yet proven</h2>
 <p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
@@ -817,7 +823,7 @@ production Environment) → data policy and lifecycle profile confirmed in <code
 → Phase 1 via <code>/pm</code>. While readiness is <code>gated</code>, operate read-only and propose.</p>
 
 <footer>
-<p><strong>AIDLC Harness</strong> · kit <code>1.1.0</code> · handbook generated from <code>harness/README.md</code> and
+<p><strong>AIDLC Harness</strong> · kit <code>1.1.1</code> · handbook generated from <code>harness/README.md</code> and
 <code>docs/harness/</code> in <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>.
 Every count on this page is asserted by <code>tests/check-sources.ps1</code> in CI, and the statements about what does
 not yet work are drawn from the harness's own audits. Not affiliated with OpenCode.</p>

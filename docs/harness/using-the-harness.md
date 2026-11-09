@@ -1,6 +1,6 @@
 # AIDLC Harness — Using the Harness (Operations Guide)
 
-> **Status:** Core harness guide (Layer A) · harness 1.1.0 · 2026-11-09. The day-to-day manual for owner and agents.
+> **Status:** Core harness guide (Layer A) · harness 1.1.1 · 2026-11-09. The day-to-day manual for owner and agents.
 
 ## 0. Mental model in one paragraph
 

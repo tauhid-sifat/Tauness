@@ -22,4 +22,5 @@ jobs:
           gh pr view "$NUMBER" --json labels --jq '.labels[].name' > /tmp/labels
           grep -Eq '^type:' /tmp/labels || { echo "Missing type: label"; exit 1; }
           grep -Eq '^phase-' /tmp/labels || { echo "Missing phase label"; exit 1; }
-        env: { GH_TOKEN: ${{ github.token }} }
+        env:
+          GH_TOKEN: ${{ github.token }}
