@@ -1,0 +1,82 @@
+# project.yaml — Example: Next.js web application with Supabase and a CMS
+# Starter configuration for `pwsh -File harness/scripts/init-project.ps1 -Target <path> -Config examples/nextjs-web.yaml`
+# Edit every value before real use; the CI self-test renders this file to prove the shape works.
+#
+# Format contract (harness/scripts/lib-render.ps1): flat `key: value`, inline arrays [a, "b"],
+# quoted scalars, two nesting levels by indentation, `#` comments. Block lists are not read.
+
+project:
+  name: "Acme Console"
+  slug: "acme-console"
+  id_prefix: "ACM"
+  description: "Customer-facing console: marketing site, booking flow, and an internal admin area"
+
+owner:
+  login: "example-owner"
+
+repository:
+  host: github.com
+  visibility: private
+  remote: ""
+  default_branch: main
+
+lifecycle:
+  profile: "full"                       # user-facing product with real risk: all seven phases
+  gates: owner-approved
+  areas: [web, booking, admin, cms, auth, data, infra, docs]
+
+stack:
+  name: "Next.js (App Router) + Supabase (Postgres + auth) + Vercel"
+  source_dirs: ["src/**", "tests/**"]
+  dev_commands: ["npm ci", "npm run dev", "npm run build", "npm run lint", "npm test", "npx prisma validate"]
+  qa_commands: ["npm test", "npm run build", "npm run dev", "npx playwright test"]
+  reviewer_commands: ["npm test", "npm run lint", "npm run build"]
+  security_commands: ["npm audit"]
+  hard_deny_commands: ["rm -rf", "docker system prune"]
+  deploy_commands: ["vercel", "supabase"]   # never runnable locally: denied in permissions AND policies
+  browser: "http://localhost:3000"
+  agent_skills: ["setup-ts-deep-modules"]
+
+# Skills are project configuration: declare only what is installed here, or validation warns per role.
+skills:
+  shared: []
+  project-manager: []
+  business-analyst: []
+  designer: []                          # renderer adds prototype + writing-for-agents; see integrations
+  developer: []
+  qa-engineer: []
+  code-reviewer: []
+  security-monitor: []
+
+data_policy:
+  sensitivity: "personal"
+  rules:
+    - "No secrets, credentials, .env files, or customer data in Git, issues, PRs, logs, or knowledge bundles."
+
+integrations:
+  github_issues: true
+  github_projects_v2: false             # needs `project` + `read:project` token scopes
+  open_knowledge: false
+  open_knowledge_path: "okn"
+  browser_live: true                    # QA and Designer may verify against localhost only
+  web_research: false                   # no external research service for a personal-data product
+  design_system_tools: true             # grants the Designer its critique/polish tooling as ask-scoped
+  mcp_deny: ["composio_*", "jira_*", "pencil_*"]
+
+models:
+  default: "opencode-go/example-work-model"
+  reviewer: "opencode-go/example-review-model"
+  security_focused: "opencode-go/example-review-model"
+  security_extensive: "opencode-go/example-work-model"
+  readiness: "gated"                    # flip to verified once provider privacy is confirmed
+
+workspace:
+  docs_dir: docs/project
+  knowledge_dir: docs/project/knowledge
+  working_notes_dir: docs/project/working
+
+# Written by init-project.ps1 at render time; values here are placeholders.
+harness:
+  kit_version: "0.0.0"
+  rendered_from_commit: "unset"
+  rendered_at: "1970-01-01T00:00:00"

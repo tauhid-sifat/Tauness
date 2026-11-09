@@ -1,6 +1,6 @@
 # AIDLC Harness — GitHub Governance
 
-> ${1}harness 1.2.0 · 2026-11-09. Mechanically generated instance artifacts live in `harness/kit/github/`; this document governs their meaning.
+> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Mechanically generated instance artifacts live in `harness/kit/github/`; this document governs their meaning.
 > **Depends on:** `workflow-and-governance.md`, `security-and-permissions.md`
 
 ---

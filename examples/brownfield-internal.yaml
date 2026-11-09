@@ -1,0 +1,78 @@
+# project.yaml — Example: adopting the harness on an existing internal codebase
+# Starter configuration for `pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo -Config examples/brownfield-internal.yaml`
+# This is the shape for work you did NOT start with the harness: Phase 0 assesses before anything is built.
+# Edit every value before real use; the CI self-test renders this file to prove the shape works.
+
+project:
+  name: "Ops Portal"
+  slug: "ops-portal"
+  id_prefix: "OPS"
+  description: "Long-lived internal admin tool; adopt the harness without stopping feature work"
+
+owner:
+  login: "example-owner"
+
+repository:
+  host: github.com
+  visibility: private
+  remote: ""
+  default_branch: main
+
+lifecycle:
+  profile: "brownfield"                 # 0-intake assessment replaces greenfield discovery
+  gates: owner-approved
+  areas: [portal, jobs, reporting, auth, infra, docs]
+
+stack:
+  name: "Rails 7 monolith + Sidekiq + Postgres, deployed with Capistrano"
+  source_dirs: ["app/**", "lib/**", "spec/**"]
+  dev_commands: ["bundle install", "bin/rails test", "bundle exec rubocop", "bin/rails runner"]
+  qa_commands: ["bundle exec rspec", "bin/rails server"]
+  reviewer_commands: ["bundle exec rspec", "bundle exec rubocop"]
+  security_commands: ["bundle audit"]
+  hard_deny_commands: ["bin/rails db:drop", "bin/rails db:reset", "git push --force"]
+  deploy_commands: ["cap production"]
+  browser: "http://localhost:3000"
+  agent_skills: []
+
+skills:
+  shared: []
+  project-manager: []
+  business-analyst: []
+  designer: []
+  developer: []
+  qa-engineer: []
+  code-reviewer: []
+  security-monitor: []
+
+data_policy:
+  sensitivity: "business"
+  rules:
+    - "Internal operational data stays in Git and approved tooling; no external research services."
+
+integrations:
+  github_issues: true
+  github_projects_v2: false
+  open_knowledge: false
+  open_knowledge_path: "okn"
+  browser_live: false
+  web_research: false
+  design_system_tools: false
+  mcp_deny: ["composio_*", "jira_*", "pencil_*"]
+
+models:
+  default: "opencode-go/example-work-model"
+  reviewer: "opencode-go/example-review-model"
+  security_focused: "opencode-go/example-review-model"
+  security_extensive: "opencode-go/example-work-model"
+  readiness: "gated"
+
+workspace:
+  docs_dir: docs/project
+  knowledge_dir: docs/project/knowledge
+  working_notes_dir: docs/project/working
+
+harness:
+  kit_version: "0.0.0"
+  rendered_from_commit: "unset"
+  rendered_at: "1970-01-01T00:00:00"

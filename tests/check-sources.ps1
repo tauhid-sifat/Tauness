@@ -171,7 +171,10 @@ foreach ($r in @(
     'docs/harness/skills-inventory.md',
     'docs/harness/opencode-capability-matrix.md',
     'docs/harness/repository-structure.md',
-    'tests/fixture/project.yaml'
+    'tests/fixture/project.yaml',
+    'examples/nextjs-web.yaml',
+    'examples/python-api.yaml',
+    'examples/brownfield-internal.yaml'
 )) {
     if (-not (Test-Path (Join-Path $repoRoot $r))) { Add-Fail "required kit path missing: $r" }
 }
@@ -267,7 +270,7 @@ if ($banned.Count -ne 6) { Add-Fail ("purity term list is malformed ({0} entries
 # scanner can see a violation before believing its silence. This suite has been bitten by exactly that.
 $probe = "readme " + $banned[0] + " mention"
 if (-not ($probe -match [regex]::Escape($banned[0]))) { Add-Fail 'purity check is vacuous: its own terms do not match a known-bad sample' }
-$purityRoots = @('harness', 'docs', 'tests', 'site', '.github')
+$purityRoots = @('harness', 'docs', 'tests', 'site', '.github', 'examples')
 $purityScanned = 0
 foreach ($root in $purityRoots) {
     $dir = Join-Path $repoRoot $root

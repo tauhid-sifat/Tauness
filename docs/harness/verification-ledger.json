@@ -296,6 +296,18 @@
       "notes": "Edit denies are per role subtree; the runtime refusal is what N-02 exercises."
     },
     {
+      "id": "VC-32",
+      "control": "The starter configurations in examples/ render and validate through the documented -Config path",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "tests/render-and-validate.ps1 example-* variants (brownfield-internal, nextjs-web, python-api), each render -> validate -> re-apply -> validate" },
+        { "kind": "ci", "ref": "kit-validation, windows-latest render job" }
+      ],
+      "tests": [],
+      "notes": "Expectations are parsed from each config (ID prefix, first deploy CLI, owner login) rather than hardcoded, so a starter config is checked against its own identity. Two assertions were hardcoded to the fixture before this and failed the examples rather than the kit."
+    },
+    {
       "id": "VC-28",
       "control": "Open Knowledge retrieval can serve cited answers without becoming the source of truth",
       "tier": "process",

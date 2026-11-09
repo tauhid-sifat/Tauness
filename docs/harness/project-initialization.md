@@ -1,6 +1,6 @@
 # AIDLC Harness — Project Initialization
 
-> ${1}harness 1.2.0 · 2026-11-09. Defines how any new project starts with zero manual editing of core content.
+> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Defines how any new project starts with zero manual editing of core content.
 
 ## 1. What initialization produces
 

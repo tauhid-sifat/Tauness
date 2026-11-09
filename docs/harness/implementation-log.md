@@ -1,6 +1,6 @@
 # Harness Implementation Log
 
-> ${1}harness 1.2.0 · Rule: evidence only. Approval is not implementation; implementation is not verification.
+> **Status:** Active · harness 1.2.1 · Rule: evidence only. Approval is not implementation; implementation is not verification.
 
 ## Environment (verified 2026-11-09)
 

@@ -127,10 +127,11 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
         <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.2.0</span></div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.2.1</span></div>
   </div>
 
   <h2>Start here</h2>
+  <a href="walkthrough.html">Worked example</a>
   <a href="#what">What it is</a>
   <a href="#why">Why use it</a>
   <a href="#built-on">What it's built on</a>
@@ -423,7 +424,7 @@ and say yes, and a blank remote is a valid answer - you can fill it in later.</p
 <ol class="steps">
   <li>
     <h3>Clone the kit at a version you can pin</h3>
-<pre><code>git clone --branch v1.2.0 https://github.com/tauhid-sifat/Tauness.git harness-kit
+<pre><code>git clone --branch v1.2.1 https://github.com/tauhid-sifat/Tauness.git harness-kit
 cd harness-kit
 pwsh -File tests/check-sources.ps1        # optional: prove the kit you just cloned is intact</code></pre>
     <p>Pin the tag rather than tracking <code>main</code>: instances record which kit commit rendered them
@@ -434,8 +435,16 @@ pwsh -File tests/check-sources.ps1        # optional: prove the kit you just clo
 <pre><code>pwsh -File harness/scripts/init-project.ps1 -Target "../acme-app"
 pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo -DryRun</code></pre>
     <p>The first conducts the interview; the second only prints what it <em>would</em> write, which is the safe way to
-    look at an existing repository first. If you already know your answers, write a <code>project.yaml</code> and pass
-    <code>-Config &lt;path&gt;</code> to skip the questions - that is how the self-test renders its variants.</p>
+    look at an existing repository first. If you would rather edit than answer 27 questions, start from a starter
+    configuration - three ship with the kit, and the self-test renders all of them:</p>
+<pre><code>pwsh -File harness/scripts/init-project.ps1 -Target "../acme-console" -Config examples/nextjs-web.yaml
+pwsh -File harness/scripts/init-project.ps1 -Target "../ledger-svc"   -Config examples/python-api.yaml
+pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo     -Config examples/brownfield-internal.yaml</code></pre>
+    <p>They are named for their shape, not their stack: <code>nextjs-web.yaml</code> (full profile, personal data,
+    design tools and live browser on), <code>python-api.yaml</code> (headless, business data, no browser),
+    <code>brownfield-internal.yaml</code> (assess-first adoption on a long-lived codebase). Every value in them is a
+    placeholder - <code>example-owner</code>, an empty remote, model IDs that do not exist - so copy one and change it,
+    do not point a project straight at it.</p>
   </li>
   <li>
     <h3>Read the diff, then say yes</h3>
@@ -445,8 +454,8 @@ pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo -DryRun</code>
   </li>
   <li>
     <h3>Know what you got</h3>
-    <p>A fresh render is 64 generated files, plus 95 copied ones - the 20 core documents and the 75-file kit copy that
-    lets this instance re-apply upgrades offline - so 159 in total. Measured inventory of the generated part:</p>
+    <p>A fresh render is 64 generated files, plus 96 written alongside them - <code>project.yaml</code> itself, the 20 core documents,
+    and the 75-file kit copy that lets this instance re-apply upgrades offline - so 160 files in total. Measured inventory of the generated part:</p>
 <pre><code>root                       5   AGENTS.md, opencode.jsonc, project.yaml, .gitignore, README.md
 .opencode/agents           7   one per role, each with its own allow-lists and step budget
 .opencode/commands        16   PM: /pm /plan /status /issue /phase /ops /init-project /improve-harness
@@ -471,7 +480,7 @@ pwsh -File harness/scripts/validate-harness.ps1</code></pre>
     <h3>Put it under git and push</h3>
 <pre><code>git init -b main
 git add -A
-git commit -m "Initialize from AIDLC harness 1.2.0"
+git commit -m "Initialize from AIDLC harness 1.2.1"
 gh repo create acme-app --private --source=. --remote=origin --push</code></pre>
     <p>Create the empty private repository first if you prefer; an empty remote URL in step 2 is fine and you can fill
     it into <code>project.yaml</code> afterwards.</p>
@@ -822,7 +831,7 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 <thead><tr><th>Check</th><th>What it proves</th></tr></thead>
 <tbody>
 <tr><td>Source policy</td><td>Every <code>.ps1</code> is ASCII-only with no BOM and tokenizes cleanly; no BOM in the kit or docs; every <code>&#123;&#123;TOKEN&#125;&#125;</code> a template uses has a producer in the renderer; the kit contract holds by exact filename and count — 7 agent templates, 16 command templates, 5 profiles, 13 core docs, a semantic <code>HARNESS-VERSION</code></td></tr>
-<tr><td>Render and validate</td><td>Renders a throwaway instance for all five profiles plus an all-integrations variant, asserts artifact names and counts, that each integration toggle changes <em>rendered enforcement</em> rather than only docs, that deploy CLIs reach both the permission and the policy layer, and that governance artifacts (<code>.github/CODEOWNERS</code>, the PR template, attested provenance stamps) actually exist - then requires <code>validate-harness.ps1</code> to exit clean <strong>and</strong> to have recorded nine named checks as PASS</td></tr>
+<tr><td>Render and validate</td><td>Renders a throwaway instance for all five profiles, an all-integrations variant and every starter configuration in <code>examples/</code> (9 variants), asserts artifact names and counts, that each integration toggle changes <em>rendered enforcement</em> rather than only docs, that deploy CLIs reach both the permission and the policy layer, and that governance artifacts (<code>.github/CODEOWNERS</code>, the PR template, attested provenance stamps) actually exist - then requires <code>validate-harness.ps1</code> to exit clean <strong>and</strong> to have recorded nine named checks as PASS</td></tr>
 <tr><td>Upgrade path</td><td>Each variant then runs <code>apply-harness-change.ps1 -DryRun</code> and <code>-Force</code>: the promised backup of every overwritten file must exist, re-rendering must be stable once generated dates are ignored, and the instance must still validate afterwards. "Upgrades propagate mechanically" is the kit's central promise, and until 1.1.0 it had no test at all</td></tr>
 <tr><td>Reachability audit</td><td>Every file under <code>harness/kit/</code> must be reachable from <code>Get-RenderPlan</code> itself - the check calls the renderer instead of re-implementing its patterns - or be a declared non-rendered input with a stated reason. This is what turns "a template that ships, is documented, and is never generated" into a build failure</td></tr>
 <tr><td>Interview-template audit</td><td><code>kit/project.yaml.tmpl</code> is substituted by <code>init-project.ps1</code>'s interview rather than by <code>Expand-Template</code>, so it sat outside every slot check. Auditing it against the interview's producer set found <code>&#123;&#123;KIT_COMMIT&#125;&#125;</code> leaking into every instance built through the guided path</td></tr>
@@ -866,7 +875,7 @@ nothing parsed the rendered <code>.github</code> files, and <code>harness-valida
 <p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
 real only when a test has shown it blocking. These are the harness's own audit findings, restated plainly.</p>
 <p>The machine-readable <a href="https://github.com/tauhid-sifat/Tauness/blob/main/docs/harness/verification-ledger.json">verification ledger</a>
-is what backs that sentence: the ledger records 31 controls: 6 verified, 19 implemented, 6 designed.
+is what backs that sentence: the ledger records 32 controls: 7 verified, 19 implemented, 6 designed.
 <code>validate-harness.ps1</code> re-reads that file inside every instance and fails any
 <code>verified</code> claim that carries no evidence, and <code>tests/check-site.ps1</code> refuses to publish this
 page if its counts drift from it - so the numbers here cannot be inflated by editing prose.</p>
@@ -927,7 +936,7 @@ production Environment) → data policy and lifecycle profile confirmed in <code
 → Phase 1 via <code>/pm</code>. While readiness is <code>gated</code>, operate read-only and propose.</p>
 
 <footer>
-<p><strong>AIDLC Harness</strong> · kit <code>1.2.0</code> · released under the <a href="LICENSE">MIT License</a> ·
+<p><strong>AIDLC Harness</strong> · kit <code>1.2.1</code> · released under the <a href="LICENSE">MIT License</a> ·
 handbook generated from <code>harness/README.md</code> and
 <code>docs/harness/</code> in <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>.
 Every count on this page is asserted by <code>tests/check-sources.ps1</code> in CI, and the statements about what does

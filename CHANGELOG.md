@@ -4,6 +4,28 @@ All notable changes to the AIDLC Harness kit. Version is `harness/HARNESS-VERSIO
 entry here, and material changes (permissions, policies, gates, approvals - OD-18) also get an ADR in
 [`docs/harness/adr/`](docs/harness/adr/INDEX.md).
 
+## [1.2.1] - 2026-11-09
+
+### Added
+
+- **`examples/` starter configurations** - `nextjs-web.yaml` (full profile, personal data, design tools and live
+  browser on), `python-api.yaml` (headless, business data), `brownfield-internal.yaml` (assess-first adoption inside an
+  existing repository). Each is a complete, commented `project.yaml` you can copy, and each is rendered and validated by
+  the self-test as its own variant (9 variants now), so a starter config that no longer works fails the build rather
+  than being discovered by the next person. They ship as placeholders: `example-owner`, empty remote, model IDs that do
+  not exist, `kit_version: "0.0.0"`.
+- **Worked example page** - `site/walkthrough.html`: one project from `git clone --branch v1.2.0` to operations, with
+  measured file counts, the interview as it actually runs, staging verdicts, a phase gate, a material change, the
+  concrete list of what agents cannot do, and a candid "where it cost time" section. It states inside the page that
+  runtime enforcement has never been observed.
+- Ledger VC-32 records the starter-config guarantee; the handbook's verification counts now come from the file.
+
+### Fixed
+
+- Two self-test assertions were hardcoded to the fixture's identity (its `vercel` deploy CLI and `FIX-REQ` prefix), so
+  they failed valid starter configs instead of testing them. Expectations are now parsed from the config under test -
+  ID prefix, first deploy command, owner login - which is both stricter and correct for every project shape.
+
 ## [1.2.0] - 2026-11-09
 
 ### Added

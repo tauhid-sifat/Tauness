@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme Console, start to finish - AIDLC Harness worked example</title>
+<meta name="description" content="A worked example of the AIDLC Harness: adopting the kit, running a project through owner-gated phases, staging knowledge, and where the controls stop agents.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b5bd3'/%3E%3Cpath d='M8 22l4-12 4 12M9.6 18.4h4.8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20 10h4v12h-4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f9fc; --surface-2:#edf1f8; --text:#0f1723; --muted:#5a6b82;
+  --border:#dbe3ee; --accent:#2b5bd3; --accent-ink:#1c3f96; --accent-soft:#eaf0fe;
+  --warn-bg:#fdf3df; --warn-ink:#8a5206; --danger:#b42318; --ok:#166534; --code-bg:#f1f5fa;
+  --shadow:0 1px 2px rgba(15,23,35,.05),0 10px 26px rgba(15,23,35,.06);
+  --mark:#2b5bd3;
+  --dg-proc:#dbe6fb; --dg-proc-s:#7597d6; --dg-gate:#fdeccc; --dg-gate-s:#c9a227;
+  --dg-par:#dff0e4; --dg-par-s:#7fae8c; --dg-rv:#e9def7; --dg-rv-s:#9a7bc0;
+  --dg-opt:#f3f4f6; --dg-opt-s:#9aa2ae; --dg-lane:#ffffff; --dg-lane-h:#f2f5fa;
+  --dg-badge:#9a6d0b; --dg-edge:#5a6b82; --dg-guard:#eaf0fe;
+  --mono:ui-monospace,'Cascadia Mono','SF Mono',Consolas,'Liberation Mono',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a1120; --surface:#111b2e; --surface-2:#17233a; --text:#e3e9f4; --muted:#93a2ba;
+    --border:#2a3956; --accent:#7aa2ff; --accent-ink:#a9c3ff; --accent-soft:#122744;
+    --warn-bg:#3a2d0f; --warn-ink:#f3c265; --danger:#f87171; --ok:#4ade80; --code-bg:#0e1a2d;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.35);
+    --dg-proc:#1a2c4d; --dg-proc-s:#7ea3e0; --dg-gate:#3b3013; --dg-gate-s:#d9b64b;
+    --dg-par:#132f22; --dg-par-s:#7fb392; --dg-rv:#2a2040; --dg-rv-s:#b39ad6;
+    --dg-opt:#161f31; --dg-opt-s:#7c8798; --dg-lane:#0d1626; --dg-lane-h:#16223a;
+    --dg-badge:#e6c367; --dg-edge:#93a2ba; --dg-guard:#122744;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.62;font-size:16px}
+.layout{display:grid;grid-template-columns:274px minmax(0,1fr);max-width:1460px;margin:0 auto}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:26px 20px;border-right:1px solid var(--border);background:var(--surface)}
+nav h2{font-size:.71rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:22px 0 8px}
+nav h2:first-of-type{margin-top:0}
+nav a{display:block;padding:5px 10px;margin:1px -10px;color:var(--text);text-decoration:none;border-radius:6px;font-size:.87rem}
+nav a:hover{background:var(--surface-2);color:var(--accent)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand .mark svg{display:block;width:34px;height:34px}
+.brand strong{font-size:1rem;letter-spacing:-.01em;display:block}
+.brand span{font-size:.72rem;color:var(--muted)}
+main{padding:44px 50px 96px;min-width:0}
+h1{font-size:2.15rem;line-height:1.18;margin:0 0 .5rem;letter-spacing:-.025em}
+.lede{font-size:1.08rem;color:var(--muted);margin:0 0 1rem;max-width:74ch}
+.lede:last-of-type{margin-bottom:2.2rem}
+h2{font-size:1.46rem;margin:3.1rem 0 .9rem;padding-top:.7rem;letter-spacing:-.018em;border-top:1px solid var(--border)}
+h3{font-size:1.08rem;margin:1.9rem 0 .6rem}
+h4{font-size:.98rem;margin:1.5rem 0 .4rem}
+p,li{max-width:84ch}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .38em;border-radius:4px;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:.85rem;line-height:1.55}
+pre code{background:none;border:none;padding:0;font-size:1em}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.77rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+tbody tr:hover{background:var(--surface)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:1.1rem 0;box-shadow:var(--shadow)}
+.card h3{margin:0 0 .4rem}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;padding:14px 18px;margin:1.2rem 0}
+.callout.warn{border-left-color:var(--warn-ink);background:var(--warn-bg);color:var(--warn-ink)}
+.callout.bad{border-left-color:var(--danger);background:var(--surface);color:var(--text)}
+.callout p{margin:.35rem 0}
+.callout strong{color:inherit}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));margin:1.2rem 0}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.tile h4{margin:0 0 .3rem;font-size:.95rem}
+.tile p{margin:0;font-size:.87rem;color:var(--muted)}
+.tile .n{font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--accent);display:block;line-height:1.1;letter-spacing:-.02em}
+.pill{display:inline-block;font-size:.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--border);white-space:nowrap}
+.pill.stop{background:var(--warn-bg);color:var(--warn-ink)}
+.pill.read{background:var(--surface-2);color:var(--muted)}
+.pill.no{background:transparent;border-color:var(--danger);color:var(--danger)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1.3rem 0}
+.steps>li{counter-increment:s;position:relative;padding:0 0 1.5rem 3rem;border-left:2px solid var(--border);margin-left:14px}
+.steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps>li::before{content:counter(s);position:absolute;left:-15px;top:-2px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.steps h3{margin:0 0 .4rem}
+main a{color:var(--accent);text-underline-offset:2px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:1rem 0;font-family:var(--mono);font-size:.82rem}
+.flow span{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 11px}
+.flow em{color:var(--muted);font-style:normal}
+.dg-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px;margin:1.2rem 0}
+.dg{display:block;width:100%;min-width:900px;height:auto;font-family:var(--sans)}
+.dg-lane{fill:var(--dg-lane);stroke:var(--border)}
+.dg-lane-h{fill:var(--dg-lane-h);stroke:var(--border)}
+.dg-n{stroke-width:1.3}
+.dg-proc{fill:var(--dg-proc);stroke:var(--dg-proc-s)}
+.dg-gate{fill:var(--dg-gate);stroke:var(--dg-gate-s);stroke-width:2}
+.dg-par{fill:var(--dg-par);stroke:var(--dg-par-s)}
+.dg-rv{fill:var(--dg-rv);stroke:var(--dg-rv-s);stroke-width:2}
+.dg-opt{fill:var(--dg-opt);stroke:var(--dg-opt-s)}
+.dg-note{fill:var(--dg-lane-h);stroke:var(--dg-opt-s);stroke-dasharray:4 3}
+.dg-guard{fill:var(--dg-guard);stroke:var(--accent)}
+.dg-e{stroke:var(--dg-edge);stroke-width:1.4;fill:none}
+.dg-dash{stroke-dasharray:3 3}
+.dg-ah{fill:var(--dg-edge)}
+.dg-h{font-size:15px;font-weight:700;fill:var(--text)}
+.dg-lg{font-size:11px;fill:var(--muted)}
+.dg-lt{font-size:12.5px;font-weight:700;fill:var(--text)}
+.dg-lc{font-size:9.5px;fill:var(--muted);font-family:var(--mono)}
+.dg-t{font-size:10.5px;font-weight:600;fill:var(--text)}
+.dg-s{font-size:9.5px;fill:var(--muted)}
+.dg-badge{font-size:7.5px;font-weight:800;letter-spacing:.06em;fill:var(--dg-badge)}
+footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.84rem}
+@media (max-width:920px){
+  .layout{grid-template-columns:1fr}
+  nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  main{padding:28px 16px 64px}
+  h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="Sections">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="34" height="34" role="img">
+        <rect width="32" height="32" rx="7" fill="var(--mark)"/>
+        <path d="M8 22l4-12 4 12M9.6 18.4h4.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div><strong>AIDLC Harness</strong><span>worked example · kit 1.2.1</span></div>
+  </div>
+
+  <h2>This example</h2>
+  <a href="#what-this-is">What this page is</a>
+  <a href="#project">The project</a>
+  <a href="#adopt">Day 0 · adopt</a>
+  <a href="#discovery">Phase 1 · discovery</a>
+  <a href="#gate">The first gate</a>
+  <a href="#build">Phase 4-5 · build and verify</a>
+  <a href="#material">A material change</a>
+  <a href="#ship">Phase 6-7 · ship and operate</a>
+  <a href="#cannot">What the agents cannot do</a>
+  <a href="#upgrade">Upgrading the harness</a>
+  <a href="#friction">Where it cost time</a>
+
+  <h2>Handbook</h2>
+  <a href="index.html">Set up a project</a>
+  <a href="index.html#roles">The seven roles</a>
+  <a href="index.html#commands">The fifteen commands</a>
+  <a href="index.html#enforcement">Enforcement</a>
+  <a href="index.html#gaps">What is not yet proven</a>
+</nav>
+
+<main>
+<h1>Acme Console, start to finish</h1>
+<p class="lede">One worked example of the AIDLC Harness: a real configuration, the commands you would type, what each
+step produces, and where you stop and decide. The project is fictional. The commands, file counts, generated
+filenames and validation results are what the shipped kit actually does on this machine.</p>
+<p class="lede">Read the <a href="index.html">handbook</a> for what things are for; read this page for how a project
+actually goes. Where a claim depends on runtime behaviour that has never been demonstrated, this page says so - the
+list is in <a href="index.html#gaps">What is not yet proven</a>.</p>
+
+<h2 id="what-this-is">What this page is</h2>
+<table>
+<thead><tr><th>Real</th><th>Fictional</th></tr></thead>
+<tbody>
+<tr><td>Every command line, file path, file count and validation number below was produced by running the kit at tag <code>v1.2.1</code> on Windows</td><td>Acme Console, its team, its feature and its ticket numbers</td></tr>
+<tr><td>The generated inventory: 64 files, 7 role agents, 16 commands, 12 issue templates, 4 workflows, 18 <code>docs/project</code> documents</td><td>The content of requirements, decisions and review findings (illustrative, in the shape the harness produces)</td></tr>
+<tr><td>The deny rules and where an agent is stopped in principle</td><td>Whether OpenCode stopped it - no runtime test has ever been run, so nothing on this page demonstrates enforcement happening</td></tr>
+</tbody>
+</table>
+
+<h2 id="project">The project</h2>
+<p><strong>Acme Console</strong> - a customer-facing web app: marketing pages, a booking flow, and an admin area for
+support staff. Next.js App Router with Supabase (Postgres and auth), deployed on Vercel. One owner, a handful of
+agents. Support and finance data makes it personal-sensitive. It starts from the kit's
+<code>examples/nextjs-web.yaml</code>, which is <code>full</code> profile - all seven phases.</p>
+<table>
+<thead><tr><th>Decision</th><th>Value</th><th>Consequence</th></tr></thead>
+<tbody>
+<tr><td>Lifecycle profile</td><td><code>full</code></td><td>Discovery, Design, Architecture, Development, QA, Deployment, Operations - each owner-gated</td></tr>
+<tr><td>Areas</td><td><code>web, booking, admin, cms, auth, data, infra, docs</code></td><td>Each becomes an <code>area:</code> label; issues must pick one</td></tr>
+<tr><td>ID prefix</td><td><code>ACM</code></td><td>Every artifact is addressable: <code>ACM-REQ-014</code>, <code>ACM-TC-007</code>, <code>ACM-DEC-003</code></td></tr>
+<tr><td>Deploy CLIs</td><td><code>vercel</code>, <code>supabase</code></td><td>Denied in the permission layer <em>and</em> hard-denied in policies - no deploys from a laptop, by agent or by accident</td></tr>
+<tr><td>Data sensitivity</td><td><code>personal</code></td><td>Every agent carries the sentence that personal data stays inside Git and approved tools; web research renders as deny, not ask</td></tr>
+<tr><td>Model readiness</td><td><code>gated</code> at first</td><td>Propose-only until the owner verifies provider privacy; flip to <code>verified</code> deliberately</td></tr>
+</tbody>
+</table>
+
+<h2 id="adopt">Day 0 - adopt the harness</h2>
+<p>Twenty minutes, mostly reading. Plan it as part of the first working day, not as a ritual afterwards - a project
+adopted late has no decision register and no traceability for the decisions already made.</p>
+<pre><code>git clone --branch v1.2.1 https://github.com/tauhid-sifat/Tauness.git harness-kit
+copy harness-kit\examples\nextjs-web.yaml .\acme-console.yaml
+notepad acme-console.yaml            # name, slug, prefix, owner login, areas, models, readiness
+pwsh -File harness-kit\harness\scripts\init-project.ps1 -Target ..\acme-console -Config .\acme-console.yaml</code></pre>
+<p>The render prints its plan first if you add <code>-DryRun</code>; without it, it writes new files, skips anything
+already present, and reports conflicts rather than overwriting. What lands (measured):</p>
+<pre><code>root                     5   AGENTS.md, opencode.jsonc, project.yaml, .gitignore, README.md
+.opencode/agents         7   project-manager, business-analyst, designer, developer, qa-engineer,
+                              code-reviewer, security-monitor
+.opencode/commands      16   8 PM-run, 8 specialist-run
+.github                 17   11 issue forms + config, 4 workflows, labels.json, CODEOWNERS, PR template
+docs/project            18   seven phase dirs, knowledge base + templates, decision register,
+                              phase-state, traceability, working notes
+docs/harness            20   copied: specifications, ADRs, dated evidence, verification ledger
+harness                 75   copied: the kit, so upgrades can be re-applied inside this repo</code></pre>
+<p>The generated <code>AGENTS.md</code> is stamped with what it came from, which is what makes an upgrade reviewable
+later:</p>
+<pre><code>&gt; **Status:** Owner-approved harness instructions - Generated 2026-11-09 from harness kit 1.2.1 (commit e20aaca).</code></pre>
+<p>Then read two files before writing any code. <code>opencode.jsonc</code> is the complete list of what the agents may
+run - it is shorter than people expect. <code>docs/project/status/phase-state.md</code> says where you are, and a fresh
+instance starts honestly before Phase 1:</p>
+<pre><code>current_phase: "0-harness-setup"
+status:        not_started
+profile:       "full"</code></pre>
+<pre><code>cd ..\acme-console
+pwsh -File harness\scripts\validate-harness.ps1          # 56 PASS / 0 WARN / 0 FAIL
+git init -b main; git add -A; git commit -m "Initialize from AIDLC harness 1.2.1"
+gh repo create acme-console --private --source=. --remote=origin --push
+pwsh -File harness\scripts\sync-labels.ps1 -Repo you/acme-console</code></pre>
+<div class="callout warn"><p><strong>Then do the part only you can do.</strong> Branch protection on <code>main</code>,
+CODEOWNERS review required (the file is already generated), a <code>production</code> Environment with you as required
+reviewer. Until those exist, everything the harness enforces is enforced by OpenCode's config on your machine - which
+is the level of protection the ledger calls <em>implemented, not verified</em>. And <code>sync-labels.ps1</code>'s
+<code>gh label create</code> path has never been run in CI, so read its output the first time.</p></div>
+
+<h2 id="discovery">Phase 1 - discovery, and the first knowledge</h2>
+<p>Open OpenCode in the repository. One command starts the phase, and it does not start building.</p>
+<pre><code>/status
+/pm Bookings must not double-book a technician; support needs to see why a booking changed</code></pre>
+<p><code>/pm</code> restates the goal with a definition of done, checks the phase, profile and decision register, and
+opens Discovery issues. Then the material arrives through <code>/intake</code> - the kickoff notes, the support backlog,
+whoever's spreadsheet:</p>
+<pre><code>/intake docs/project/working/business-analyst/inbox/2026-11-09-kickoff.md</code></pre>
+<p>Nothing is written to the knowledge base yet. Five things happen, and the fourth is the one that costs you time:</p>
+<div class="flow"><span>extract, each item quoted</span><em>→</em><span>judge against the KB</span><em>→</em><span>stage a proposal file</span><em>→</em><span>critic, read-only, fresh context</span><em>→</em><span>you, item by item</span><em>→</em><span>apply + commit</span></div>
+<p>Each staged item carries a verdict, which is the discipline the whole knowledge base rests on:</p>
+<table>
+<thead><tr><th>Verdict</th><th>Example from the kickoff notes</th><th>What happens</th></tr></thead>
+<tbody>
+<tr><td><code>new</code></td><td>"a booking can be moved by support without a reason only under 15 minutes"</td><td>Becomes a business rule on a capability page once you accept it</td></tr>
+<tr><td><code>confirms</code></td><td>the existing <code>ACM-CAP-002</code> behaviour, restated</td><td>Adds the kickoff note as a source; no new rule</td></tr>
+<tr><td><code>contradicts</code></td><td>a stakeholder says category-A waits escalate in 2 hours, a confirmed rule says 4</td><td>Nothing is overwritten. It becomes an open question to the owner of that rule, and the confirmed text stands</td></tr>
+<tr><td><code>answers</code></td><td>the question the gate issue has been carrying</td><td>The question is marked answered, with the quote and speaker</td></tr>
+<tr><td><code>duplicate</code> / <code>extends</code></td><td>the same rule from a second document; a narrower case of an existing one</td><td>Merged as a source, or written as a new rule linked to the old one</td></tr>
+</tbody>
+</table>
+<p>Authority is checked, not assumed. The scheduler's sentence becomes <code>ACM-DEC-003</code> because
+<code>stakeholders.md</code> says that role decides booking rules; the pilot customer's wish for two hours becomes a
+question, because they do not. A second-hand "we agreed it at stand-up" keeps a page at
+<code>confirmed</code>, never <code>approved</code>.</p>
+<p>The critic is the reviewer agent, delegated read-only by the BA - the one thing in the flow that reads the batch with
+fresh eyes. It finds missing items, quotes that do not match, authority not checked, and data that should be redacted.
+It never approves. Its notes go on top of the file, above your tickboxes.</p>
+<p><code>/ask</code> is the read side, and it is the reason to let the rest of the team clone this repository:</p>
+<pre><code>/ask what decides whether a booking escalation goes to the depot channel?</code></pre>
+<p>Cited pages, statuses shown, <code>draft</code> marked as unconfirmed - and when the project genuinely does not
+know, it says so and drafts the question for the right person instead of filling the gap with something plausible.</p>
+
+<h2 id="gate">The first gate</h2>
+<p>When Discovery looks finished, the PM packs the evidence; it does not close the phase.</p>
+<pre><code>/phase 1-discovery</code></pre>
+<p>You get <code>docs/project/status/gates/1-discovery-booking-rules.md</code>: a criteria table with a
+<em>reproducible</em> link per row - command and output, CI run, review thread, artifact path, screenshots only where
+the criterion is visual - plus unresolved risks, stated assumptions, and one explicit decision request. It opens a
+<code>phase-gate</code> issue and sends a pull request that moves <code>phase-state.md</code> to
+<code>awaiting_approval</code> on <code>phase/1-discovery</code>.</p>
+<div class="callout"><p><code>approved_by</code> and <code>approved_at</code> are not for the agent to fill. Those two
+fields are set by your merged commit and nothing else, which is the whole design in two column names. If a gate is
+missing evidence, the command marks the gate <em>blocked</em> and stops instead of dressing up a weak pack.</p></div>
+
+<h2 id="build">Phases 4 and 5 - build it, then verify it independently</h2>
+<p><code>/plan</code> breaks the approved scope into dependency-ordered items, each tagged with a change class. Class A
+is internal - no approval, PM checks evidence. B and C are material requirements and material architecture or security
+changes, and they stop for you <em>before</em> implementation. D is the emergency path.</p>
+<pre><code>/dev ACM-REQ-014 - support can reassign a booking within 15 minutes without a reason</code></pre>
+<p>The developer works on <code>feat/14-reassign-window</code>, writes tests, and opens a PR that must satisfy the
+generated policy check: a <code>Closes #</code> line, a <code>Req:</code> reference or an explicit
+<code>Req: N/A</code>, plus <code>type:</code> and <code>phase-</code> labels. It can push its branch. It cannot merge.
+If the change alters an architectural commitment, it stops and proposes an ADR instead of quietly deciding.</p>
+<pre><code>/review 41        # advisory verdict on the diff; no edits, no approval
+/qa            # independent verification of ACM-AC-021 against preview, with evidence
+/security      # only because the diff touches auth and support access to other people's bookings</code></pre>
+<p>QA cannot fix what it tests, and cannot reach production - its fetch rules allow localhost and preview and deny the
+public internet. The reviewer has no write scope outside its own working folder at all. Neither can approve: they
+produce verdicts, you produce the merge.</p>
+
+<h2 id="material">A material change, mid-flight</h2>
+<p>Two weeks in, finance asks that the escalation window be configurable per depot rather than fixed. That is material
+by definition - it alters a business rule and a data-shape commitment - so it cannot be handled as a nice tweak inside
+an open story.</p>
+<ol class="steps">
+<li><h3>Stop</h3><p>Whoever is holding the work files a <code>change-request</code> issue (the form is generated for
+them); PM records the change class as C. Nothing is built yet.</p></li>
+<li><h3>Impact, not opinion</h3><p>The BA traces it: which capabilities and rules touch the window, which stories
+reference them, which tests assert it, what it does to support's current behaviour. The trace file is what makes this
+list mechanical rather than a guess.</p></li>
+<li><h3>You decide</h3><p>Approve, reject, or approve a narrower version. The register gets a <em>new</em> entry with
+<code>supersedes:</code> pointing at the old one; history is append-only, so six weeks later you can still see what
+was believed before.</p></li>
+<li><h3>Then the chain updates</h3><p>Requirement document, acceptance criteria, the affected stories, and the QA
+evidence plan. Where a rule contradicts confirmed content and the speaker cannot decide it, it goes back to being a
+question instead of a change.</p></li>
+</ol>
+
+<h2 id="ship">Phases 6 and 7 - ship it, then live with it</h2>
+<p>The deployment gate closes like the others - evidence pack, phase-gate issue, your merge. What differs is where the
+work happens: deployment runs in CI behind the <code>production</code> Environment with you as required reviewer.
+<code>vercel</code> and <code>supabase</code> are denied twice over on a laptop, so "just push it quickly" is not
+available as a shortcut, which is the point.</p>
+<p>Operations is a phase, not an afterthought. <code>/ops</code> runs the rhythm: incidents, releases, health checks,
+stale-draft reporting, overdue questions. An emergency hotfix (class D) needs your authorisation, gets a post-hoc
+review within 24 hours, and forces a retro. Retros that find the harness at fault turn into proposals -
+<code>/improve-harness</code> writes the proposal, classifies it, and drafts the issue. It applies nothing.</p>
+
+<h2 id="cannot">What the agents cannot do</h2>
+<p>The concrete list, from the generated <code>opencode.jsonc</code> in this very project:</p>
+<table>
+<thead><tr><th>Blocked</th><th>Layer</th><th>Why it is there</th></tr></thead>
+<tbody>
+<tr><td><code>git push</code> to <code>main</code>, <code>--force</code>, <code>--delete</code>, <code>--mirror</code>, <code>reset --hard</code>, <code>clean</code>, <code>branch -D</code>, <code>filter-branch</code></td><td>permissions + policies</td><td>History rewriting is the one mistake you cannot review afterwards</td></tr>
+<tr><td><code>gh pr merge</code>, <code>gh pr review --approve</code>, <code>gh api</code>, <code>gh secret</code>, <code>gh variable</code>, <code>gh repo</code>, <code>gh release</code>, <code>gh workflow</code></td><td>policies</td><td>Authority verbs stay human. An agent that can approve its own review has no gate</td></tr>
+<tr><td>Any shell write: <code>Set-Content</code>, <code>Add-Content</code>, <code>Out-File</code>, <code>Remove-Item</code>, <code>Move-Item</code>, <code>Copy-Item</code>, <code>New-Item</code>, <code>rm</code>, <code>del</code>, <code>mv</code>, <code>cp</code></td><td>policies</td><td>File changes go through the audited edit tool, so "what changed" stays answerable</td></tr>
+<tr><td>Nested runtimes: <code>pwsh</code>, <code>powershell</code>, <code>cmd</code>, <code>bash</code>, <code>wsl</code>, <code>sh</code>, <code>opencode</code></td><td>policies</td><td>A shell is not a side door around the rules</td></tr>
+<tr><td>Publishing: <code>npm publish</code>, <code>docker push</code>, <code>twine upload</code>, <code>cargo publish</code>, plus this project's <code>vercel</code> and <code>supabase</code></td><td>permissions + policies</td><td>Artifacts and environments ship through the pipeline or not at all</td></tr>
+<tr><td>Reading or writing <code>.env*</code>, <code>*.pem</code>, <code>*.key</code>, <code>*.p12</code>, <code>*.pfx</code>, <code>.ssh/**</code>, <code>id_rsa*</code>, <code>id_ed25519*</code></td><td>permissions</td><td>Secrets are not context. <code>.env.example</code> stays readable, deliberately</td></tr>
+<tr><td>Editing <code>AGENTS.md</code>, <code>opencode.jsonc</code>, <code>.opencode/</code>, <code>.github/</code>, <code>harness/</code>, <code>docs/harness/</code></td><td>permissions</td><td>Agents propose, the owner applies. This is the rule that stops governance drifting by degrees</td></tr>
+<tr><td>Delegating to the built-in <code>general</code> or <code>explore</code> agents, deeper than two levels, or carrying approval with a delegation</td><td>permissions</td><td>Built-ins inherit no role rules, so they are how a scoped agent becomes an unscoped one</td></tr>
+<tr><td>Loading a skill that <code>project.yaml</code> does not declare</td><td>permissions + validator</td><td>Grants are project configuration; an undeclared one fails the build rather than working quietly</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><p><strong>Configuration is not observation.</strong> Every row above is generated and
+statically checked - and none of it has ever been watched refusing a real request. The runtime matrix
+(N-01 to N-30, G-01 to G-04) has not been run, and the assumption that the policy layer is evaluated last is recorded
+in the ledger as <em>designed</em>. Until you run those cases, the honest sentence is: the harness is set up so that
+these things should stop, and your own approvals are the control that is known to work.</p></div>
+
+<h2 id="upgrade">Upgrading the harness later</h2>
+<p>The instance carries its own copy of the kit, which is what makes this boring:</p>
+<pre><code>pwsh -File harness\scripts\apply-harness-change.ps1 -DryRun    # what would change, file by file
+pwsh -File harness\scripts\apply-harness-change.ps1 -Force     # timestamped backup, then regenerate
+pwsh -File harness\scripts\validate-harness.ps1                # must still pass</code></pre>
+<p>Only the generated set is rewritten - <code>AGENTS.md</code>, <code>opencode.jsonc</code>, the agents, commands,
+issue forms, workflows, governance files. Your requirements, decisions, knowledge and code are init-scope and never
+touched. Where you disagree with a generated rule, the path is a proposal upstream, not a local edit: a hand-patched
+instance is exactly the drift the kit exists to prevent.</p>
+
+<h2 id="friction">Where it cost time</h2>
+<p>Not a sales page. What this project actually paid for:</p>
+<ul>
+<li><strong>The interview is 27 questions.</strong> Copying a starter config took eleven minutes; the interview took
+most of an afternoon, because a few answers (ID prefix, areas, what counts as a deploy CLI) needed a decision rather
+than a keystroke. Those are the right questions to answer once - they are just not quick.</li>
+<li><strong>Accepting staged knowledge is real work.</strong> The first <code>/intake</code> produced 31 items across
+four files and needed every one ticked. It got shorter after that, and the critic caught two overreaches and one
+missing answer on the first batch, which is what it is for.</li>
+<li><strong>Labels and Environments are on you.</strong> The taxonomy script is generated and the GitHub-side controls
+are documented, but nothing here can turn branch protection on for a repository it has no authority over.</li>
+<li><strong>You re-read what the agent wrote.</strong> Verdicts are advisory and requirements come with quotes; the
+first week felt slower than prompting freely, and that is the trade the harness is explicitly making.</li>
+<li><strong>Windows only, for now.</strong> Rendering and validation want Windows today because the renderer uses
+Windows path separators. The static policy jobs run everywhere; instance work does not yet.</li>
+</ul>
+<p class="lede">Continue: <a href="index.html">the handbook</a> - setup, roles, commands, lifecycle, enforcement,
+knowledge, GitHub integration, and the honesty table of everything not yet proven.</p>
+
+<footer>
+<p><strong>Acme Console</strong> is a fictional project used to exercise the <strong>AIDLC Harness</strong> kit
+<code>1.2.1</code> under the <a href="LICENSE">MIT License</a>. Commands, counts and generated files are from a real
+render of <code>examples/nextjs-web.yaml</code>; requirements, tickets and verdicts are illustrative. Kit and
+handbook: <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>. Not affiliated with OpenCode.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

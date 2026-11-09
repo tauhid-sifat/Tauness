@@ -1,6 +1,6 @@
 # AIDLC Harness — Workflow and Governance
 
-> ${1}harness 1.2.0 · 2026-11-09. Generalizes the 2026-11-04 phase/gate model; all OD-approved mechanics preserved.
+> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Generalizes the 2026-11-04 phase/gate model; all OD-approved mechanics preserved.
 > **Depends on:** `architecture-specification.md`, `agent-specifications.md`, `security-and-permissions.md`
 
 ---

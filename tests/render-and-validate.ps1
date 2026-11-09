@@ -57,8 +57,20 @@ try {
     $fixtureText = Get-Text $fixturePath
 
     $variants = @()
-    foreach ($p in $Profiles) { $variants += [pscustomobject]@{ Name = 'profile-' + $p; Profile = $p; AllIntegrations = $false } }
-    $variants += [pscustomobject]@{ Name = 'profile-full-all-integrations'; Profile = 'full'; AllIntegrations = $true }
+    foreach ($p in $Profiles) { $variants += [pscustomobject]@{ Name = 'profile-' + $p; Profile = $p; AllIntegrations = $false; ConfigPath = '' } }
+    $variants += [pscustomobject]@{ Name = 'profile-full-all-integrations'; Profile = 'full'; AllIntegrations = $true; ConfigPath = '' }
+
+    # Starter configurations have to work through the documented -Config path, or they are marketing
+    # material instead of documentation. Each examples/*.yaml becomes its own variant, using its own
+    # profile and integration choices, with no fixture substitution applied to it.
+    foreach ($ex in @(Get-ChildItem -File (Join-Path $repoRoot 'examples') -Filter *.yaml -ErrorAction SilentlyContinue)) {
+        $exProfile = 'full'
+        foreach ($ln in ((Get-Text $ex.FullName) -split "`r?`n")) {
+            if ($ln -match '^\s*profile:\s*"?([a-z]+)"?') { $exProfile = $Matches[1]; break }
+        }
+        $variants += [pscustomobject]@{ Name = 'example-' + $ex.BaseName; Profile = $exProfile; AllIntegrations = $false; ConfigPath = $ex.FullName }
+        Write-Host ("starter config: {0} (profile {1})" -f $ex.Name, $exProfile)
+    }
 
     $requiredFiles = @(
         'AGENTS.md', 'opencode.jsonc', 'project.yaml', '.gitignore', 'README.md',
@@ -90,13 +102,16 @@ try {
         $dir = Join-Path $workRoot $tag
         $cfg = Join-Path $workRoot ($tag + '.project.yaml')
 
-        $text = $fixtureText.Replace('profile: "full"', ('profile: "' + $v.Profile + '"'))
-        # The fixture states a literal kit version because project.yaml is copied verbatim into the
-        # instance (an unresolved placeholder there is a leak). The runner rewrites it to the real
-        # version and the instance stamp is asserted below, so bumping HARNESS-VERSION needs no
-        # fixture edit and a mismatch still fails.
+        # The kit version and commit are resolved once per run; init normalises the instance copy
+        # so a starter config's placeholder stamps can never survive into a real instance.
         $kitVersion = (Get-Content (Join-Path $repoRoot 'harness/HARNESS-VERSION') -Raw).Trim()
-        $text = $text.Replace('kit_version: "1.0.0"', ('kit_version: "' + $kitVersion + '"'))
+        if ($v.ConfigPath) {
+            # Render a starter config exactly as shipped: what CI proves is the file a person copies.
+            $text = Get-Text $v.ConfigPath
+        } else {
+            $text = $fixtureText.Replace('profile: "full"', ('profile: "' + $v.Profile + '"'))
+            $text = $text.Replace('kit_version: "1.0.0"', ('kit_version: "' + $kitVersion + '"'))
+        }
         if ($v.AllIntegrations) {
             foreach ($k in @('github_projects_v2', 'open_knowledge', 'browser_live', 'web_research', 'design_system_tools')) {
                 $text = $text.Replace(($k + ': false'), ($k + ': true'))
@@ -197,19 +212,32 @@ try {
             if ($openCode -notmatch 'firecrawl_\*.*"deny"') { $fails += ("{0}: web_research=false must render firecrawl_* as deny" -f $v.Name) }
         }
 
+        # Expectations are read from the config under test rather than hardcoded, so every starter
+        # configuration is checked against its own identity, profile and deploy CLIs.
+        $projPrefix = 'FIX'
+        $deployCli = ''
+        $ownerLogin = 'example-owner'
+        foreach ($ln in ($text -split "`r?`n")) {
+            if ($ln -match '^\s*id_prefix:\s*"?([A-Z0-9]{2,4})"?') { $projPrefix = $Matches[1] }
+            if ($ln -match '^\s*deploy_commands:\s*\[\s*"?([^",\]]+)"?') { $deployCli = $Matches[1].Trim() }
+            if ($ln -match '^\s*login:\s*"?([^"\r\n]+)"?') { $ownerLogin = $Matches[1].Trim() }
+        }
+
         # deploy CLIs must reach both the permission and the delegation-proof policy layer
         $openCodeAll = Get-TextSafe (Join-Path $dir 'opencode.jsonc')
-        if ($openCodeAll -notmatch 'vercel') { $fails += ("{0}: stack.deploy_commands did not render vercel denies" -f $v.Name) }
-        if ($openCodeAll -notmatch 'tool.use.*shell:vercel') { $fails += ("{0}: deploy CLI missing from the policies (tool.use) layer" -f $v.Name) }
+        if ($deployCli) {
+            if ($openCodeAll -notmatch [regex]::Escape($deployCli)) { $fails += ("{0}: stack.deploy_commands ({1}) did not render as denies" -f $v.Name, $deployCli) }
+            if ($openCodeAll -notmatch ('tool.use.*shell:' + [regex]::Escape($deployCli))) { $fails += ("{0}: deploy CLI {1} missing from the policies (tool.use) layer" -f $v.Name, $deployCli) }
+        }
 
         # ---- governance artifacts the documentation promises must actually be produced. CODEOWNERS
         #      is what makes "only the owner merges" a GitHub-side control (negative test G-02); both
         #      files sat in the kit and were rendered into nothing until the render plan was audited.
         $ownersText = Get-TextSafe (Join-Path $dir '.github/CODEOWNERS')
-        if ($ownersText -notmatch '@example-owner') { $fails += ("{0}: CODEOWNERS missing or does not name the project owner" -f $v.Name) }
+        if ($ownersText -notmatch ('@' + [regex]::Escape($ownerLogin))) { $fails += ("{0}: CODEOWNERS missing or does not name the project owner ({1})" -f $v.Name, $ownerLogin) }
         if ($ownersText -notmatch '/docs/project/decisions/') { $fails += ("{0}: CODEOWNERS does not route decision history to the owner" -f $v.Name) }
         $prTpl = Get-TextSafe (Join-Path $dir '.github/pull_request_template.md')
-        if ($prTpl -notmatch 'Req: FIX-REQ-') { $fails += ("{0}: PR template missing or rendered without the project ID prefix" -f $v.Name) }
+        if ($prTpl -notmatch ('Req: ' + [regex]::Escape($projPrefix) + '-REQ-')) { $fails += ("{0}: PR template missing or rendered without the {1}-REQ prefix" -f $v.Name, $projPrefix) }
         $projYaml = Get-TextSafe (Join-Path $dir 'project.yaml')
         if ($projYaml -notmatch ('kit_version: "' + [regex]::Escape($kitVersion) + '"')) { $fails += ("{0}: instance kit_version stamp is not {1}" -f $v.Name, $kitVersion) }
         # Provenance must be attested and must match between the record and the generated files.

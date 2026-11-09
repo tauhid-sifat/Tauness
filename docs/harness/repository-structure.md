@@ -1,6 +1,6 @@
 # AIDLC Harness — Repository Structure
 
-> ${1}harness 1.2.0 · 2026-11-09. Defines the three-layer physical layout of every instance; generalizes the 2026-11-02 project-scoped structure.
+> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Defines the three-layer physical layout of every instance; generalizes the 2026-11-02 project-scoped structure.
 
 ## 1. Target layout (every harness repository)
 

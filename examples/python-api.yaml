@@ -1,0 +1,77 @@
+# project.yaml — Example: Python API service, no UI
+# Starter configuration for `pwsh -File harness/scripts/init-project.ps1 -Target <path> -Config examples/python-api.yaml`
+# Edit every value before real use; the CI self-test renders this file to prove the shape works.
+
+project:
+  name: "Ledger Service"
+  slug: "ledger-service"
+  id_prefix: "LDG"
+  description: "Internal HTTP API and worker for double-entry ledger operations"
+
+owner:
+  login: "example-owner"
+
+repository:
+  host: github.com
+  visibility: private
+  remote: ""
+  default_branch: main
+
+lifecycle:
+  profile: "headless"                   # no UI/UX phase; design duty becomes contract design
+  gates: owner-approved
+  areas: [api, worker, data, auth, infra, docs]
+
+stack:
+  name: "Python 3.12 + FastAPI + Postgres, packaged with uv, deployed as a container"
+  source_dirs: ["src/**", "tests/**"]
+  dev_commands: ["uv sync", "uv run pytest", "uv run ruff check", "uv run mypy", "uv run uvicorn"]
+  qa_commands: ["uv run pytest", "uv run uvicorn", "docker build"]
+  reviewer_commands: ["uv run pytest", "uv run ruff check"]
+  security_commands: ["pip-audit"]
+  hard_deny_commands: ["docker system prune", "rm -rf"]
+  deploy_commands: ["docker push", "helm"]
+  browser: ""                           # nothing to browse; the renderer falls back to a localhost probe URL
+  agent_skills: []
+
+skills:
+  shared: []
+  project-manager: []
+  business-analyst: []
+  designer: []
+  developer: []
+  qa-engineer: []
+  code-reviewer: []
+  security-monitor: []
+
+data_policy:
+  sensitivity: "business"
+  rules:
+    - "Ledger records are business-sensitive: keep them inside Git and approved tools."
+
+integrations:
+  github_issues: true
+  github_projects_v2: false
+  open_knowledge: false
+  open_knowledge_path: "okn"
+  browser_live: false
+  web_research: false
+  design_system_tools: false
+  mcp_deny: ["composio_*", "jira_*", "pencil_*"]
+
+models:
+  default: "opencode-go/example-work-model"
+  reviewer: "opencode-go/example-review-model"
+  security_focused: "opencode-go/example-review-model"
+  security_extensive: "opencode-go/example-work-model"
+  readiness: "gated"
+
+workspace:
+  docs_dir: docs/project
+  knowledge_dir: docs/project/knowledge
+  working_notes_dir: docs/project/working
+
+harness:
+  kit_version: "0.0.0"
+  rendered_from_commit: "unset"
+  rendered_at: "1970-01-01T00:00:00"

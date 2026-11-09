@@ -47,6 +47,14 @@ Add the harness to an existing repository:
 pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo
 ```
 
+Or start from a commented example and edit it:
+
+```powershell
+pwsh -File harness/scripts/init-project.ps1 -Target "../my-app" -Config examples/nextjs-web.yaml
+```
+
+`examples/` holds three starter configurations (a full web product, a headless API, and adopting an existing codebase); the self-test renders every one of them, so they cannot rot silently.
+
 Both are guided interviews that write `project.yaml`, then render the instance from the kit. From OpenCode, `/init-project` conducts the same interview and runs the script. Neither script ever deletes anything: existing files are skipped, conflicts are reported, and choices are left to you.
 
 Validate an instance at any time (read-only, exits non-zero on failure):
