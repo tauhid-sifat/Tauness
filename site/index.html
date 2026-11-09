@@ -137,6 +137,10 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
   <a href="#map">Harness map</a>
   <a href="#prereq">Prerequisites</a>
   <a href="#setup">Set up a project</a>
+  <a class="sub" href="#setup-ask">What you will be asked</a>
+  <a class="sub" href="#setup-steps">The steps</a>
+  <a class="sub" href="#setup-settings">Settings you can change</a>
+  <a class="sub" href="#setup-change">Changing the harness</a>
 
   <h2>How it works</h2>
   <a href="#roles">The seven roles</a>
@@ -382,71 +386,160 @@ git --version
 gh --version; gh auth status</code></pre>
 
 <h2 id="setup">Set up a project</h2>
-<p>Two commands take an empty folder or an existing repository to a governed project. The scripts never delete anything:
-they write new files, report conflicts, skip existing targets unless you pass <code>-Force</code>, and show a plan first
-with <code>-DryRun</code>.</p>
+<p>One pass, about twenty minutes: clone the pinned kit, answer an interview of 27 questions, review the
+<code>project.yaml</code> diff, and get a governed instance. The scripts never delete anything - they write new files,
+report conflicts, skip anything that already exists unless you pass <code>-Force</code>, and show a plan first with
+<code>-DryRun</code>. Everything below is the real behaviour of the shipped scripts, with the file counts measured
+from a fresh render.</p>
 
-<div class="callout warn"><p><strong>Readiness gate first.</strong> <code>project.yaml</code> carries
-<code>models.readiness: verified | gated</code>. While it is <code>gated</code>, the harness's own instruction is to
-operate read-only and propose rather than run live sessions, until provider privacy, retention and structured-output
-behaviour have been checked. <code>gated</code> is the honest default for a new provider binding.</p></div>
+<div class="callout warn"><p><strong>Render on Windows today.</strong> The renderer addresses files with Windows
+separators, so <code>init-project.ps1</code> and <code>validate-harness.ps1</code> need Windows or Windows PowerShell
+5.1+ / PowerShell 7 on Windows. The static source-policy jobs run on all three platforms; rendering is the gap
+(ledger VC-11's neighbouring limitation, listed under <a href="#gaps">What is not yet proven</a>).</p></div>
 
+<div class="callout warn"><p><strong>Do not open OpenCode in the folder before it is rendered.</strong> Enforcement lives
+in the instance's <code>opencode.jsonc</code>, which does not exist until step 3 - and <code>--auto</code> approves
+anything not explicitly denied. Start OpenCode only after step 7, and never answer "always allow" to a shell prompt
+the harness would have asked about anyway.</p></div>
+
+<h3 id="setup-ask">What you will be asked</h3>
+<p>The interview runs in this order, one question at a time. Nothing is written until you see the whole file as a diff
+and say yes, and a blank remote is a valid answer - you can fill it in later.</p>
+<table>
+<thead><tr><th>Round</th><th>Questions</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td><strong>Identity</strong></td><td>Project name · repository/branch slug (kebab-case) · ID prefix (2-4 uppercase letters) · one-line description</td><td>The prefix labels every requirement, story, test case and decision (<code>ACME-REQ-014</code>), so it cannot change casually. The slug drives branch and path naming</td></tr>
+<tr><td><strong>Authority</strong></td><td>GitHub owner login · git remote URL (blank for now)</td><td>The owner login becomes CODEOWNERS on every governance path - the single human who approves, merges and deploys</td></tr>
+<tr><td><strong>Lifecycle</strong></td><td>Profile (<code>full</code> <code>lean</code> <code>headless</code> <code>brownfield</code> <code>micro</code>) · areas, comma-separated</td><td>The profile picks which phases are active; areas become issue labels. Changing the profile after Phase 1 closes is a material decision (OD-18)</td></tr>
+<tr><td><strong>Stack</strong></td><td>Stack description · source dirs · developer commands · QA commands · reviewer commands · security audit commands · extra hard-denied prefixes · deploy CLIs · local browser URL</td><td>These are the allow-lists. Each command prefix you give becomes exactly what that role may run; each deploy CLI becomes a deny in <em>both</em> tiers, so nothing ships from a laptop</td></tr>
+<tr><td><strong>Skills</strong></td><td>Extra developer skill IDs · skills every role may load</td><td>Skill grants are project configuration now - the kit ships none. An agent granting anything outside your declaration fails validation, so declare only what is installed here</td></tr>
+<tr><td><strong>Data</strong></td><td>Sensitivity (<code>public</code> <code>business</code> <code>personal</code> <code>regulated</code>) · sensitive data label</td><td>Chooses the protection sentence every agent carries, and whether external research or live browsing is allowed at all</td></tr>
+<tr><td><strong>Integrations</strong></td><td>Use GitHub Projects v2? · enable live browser? · enable design-system tools?</td><td><code>true</code> renders those tools as <em>ask</em> and grants the matching skills; <code>false</code> renders a deny. This is why the table is in the interview and not in the kit</td></tr>
+<tr><td><strong>Models</strong></td><td>Work model ID · review model ID · readiness (<code>verified</code> <code>gated</code>)</td><td>The reviewer deliberately runs a different model from the developer, so independence is structural rather than a promise. <code>gated</code> keeps live sessions off until you have checked provider privacy and structured-output behaviour</td></tr>
+</tbody>
+</table>
+
+<h3 id="setup-steps">The steps</h3>
 <ol class="steps">
   <li>
-    <h3>Render the instance</h3>
-    <p>New project folder, or an existing repository:</p>
+    <h3>Clone the kit at a version you can pin</h3>
+<pre><code>git clone --branch v1.2.0 https://github.com/tauhid-sifat/Tauness.git harness-kit
+cd harness-kit
+pwsh -File tests/check-sources.ps1        # optional: prove the kit you just cloned is intact</code></pre>
+    <p>Pin the tag rather than tracking <code>main</code>: instances record which kit commit rendered them
+    (<code>rendered_from_commit</code> in <code>project.yaml</code>), and tags are what makes that line mean something.</p>
+  </li>
+  <li>
+    <h3>Render a new project, or configure a repository you already have</h3>
 <pre><code>pwsh -File harness/scripts/init-project.ps1 -Target "../acme-app"
-pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo</code></pre>
-    <p>With no <code>-Config</code> it conducts a guided interview and writes <code>project.yaml</code> — project name,
-    slug, ID prefix, owner login, lifecycle profile, areas, stack commands, deploy CLIs, data sensitivity, integration
-    toggles and model bindings. With <code>-Config</code> it renders silently, which is what the self-test uses. It then
-    generates seven agents, sixteen commands, the issue forms, the workflows, the docs tree, <code>AGENTS.md</code> and
-    <code>opencode.jsonc</code>, copies the core docs and the kit itself in so the instance can re-apply upgrades later.
-    Any unresolved <code>&#123;&#123;TOKEN&#125;&#125;</code> is reported and exits non-zero rather than being left in a file.</p>
+pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo -DryRun</code></pre>
+    <p>The first conducts the interview; the second only prints what it <em>would</em> write, which is the safe way to
+    look at an existing repository first. If you already know your answers, write a <code>project.yaml</code> and pass
+    <code>-Config &lt;path&gt;</code> to skip the questions - that is how the self-test renders its variants.</p>
   </li>
   <li>
-    <h3>Review what it chose for you, then commit</h3>
+    <h3>Read the diff, then say yes</h3>
+    <p>The assembled <code>project.yaml</code> is printed whole. This is the stop that matters: every permission an
+    agent will hold is derived from this file, so a wrong command prefix here becomes a real grant later. Nothing is
+    written until you type yes; anything already in the target folder is skipped and reported, never overwritten.</p>
+  </li>
+  <li>
+    <h3>Know what you got</h3>
+    <p>A fresh render is 64 generated files, plus 95 copied ones - the 20 core documents and the 75-file kit copy that
+    lets this instance re-apply upgrades offline - so 159 in total. Measured inventory of the generated part:</p>
+<pre><code>root                       5   AGENTS.md, opencode.jsonc, project.yaml, .gitignore, README.md
+.opencode/agents           7   one per role, each with its own allow-lists and step budget
+.opencode/commands        16   PM: /pm /plan /status /issue /phase /ops /init-project /improve-harness
+                               Specialists: /ba /intake /ask /design /dev /qa /review /security
+.github/ISSUE_TEMPLATE    12   11 forms + config.yml (blank issues disabled)
+.github/workflows          4   ci, security, pr-policy, harness-validation
+.github misc               3   labels.json, CODEOWNERS, pull_request_template.md
+docs/project              18   seven phase dirs with owning-role READMEs, knowledge base + templates,
+                               decision register, phase-state bound to your profile, traceability, working/
+copied in: docs/harness   20   the core specifications, ADRs, dated evidence, verification ledger
+copied in: harness/       75   the kit itself, so this instance can re-apply upgrades offline</code></pre>
+  </li>
+  <li>
+    <h3>Validate, and read what it can do</h3>
 <pre><code>cd ../acme-app
-git init -b main
-git add -A
-git commit -m "Initialize from AIDLC harness 1.0.1"
 pwsh -File harness/scripts/validate-harness.ps1</code></pre>
-    <p>The validator is read-only and safe to run any time; it exits non-zero on a FAIL and writes a report to
-    <code>harness/reports/</code>. Read the rendered <code>opencode.jsonc</code> before you commit anything else: it is
-    the list of what your agents can and cannot do.</p>
+    <p>Read-only, exits non-zero on a FAIL, and writes a report under <code>harness/reports/</code>. A clean run today
+    is 56 checks. Open <code>opencode.jsonc</code> before you go further: it is the complete list of what your agents may
+    and may not do, and it is easier to read once here than to rediscover mid-task.</p>
   </li>
   <li>
-    <h3>Create the repository and apply the label taxonomy</h3>
-<pre><code>gh repo create acme-app --private --source=. --remote=origin --push
-pwsh -File harness/scripts/sync-labels.ps1 -Repo owner/acme-app</code></pre>
-    <p>Labels carry type, priority, risk, phase and area. <strong>Status is deliberately not a label</strong> (OD-06):
-    it lives in GitHub Projects v2, so a card cannot disagree with a label.</p>
+    <h3>Put it under git and push</h3>
+<pre><code>git init -b main
+git add -A
+git commit -m "Initialize from AIDLC harness 1.2.0"
+gh repo create acme-app --private --source=. --remote=origin --push</code></pre>
+    <p>Create the empty private repository first if you prefer; an empty remote URL in step 2 is fine and you can fill
+    it into <code>project.yaml</code> afterwards.</p>
+  </li>
+  <li>
+    <h3>Sync the label taxonomy</h3>
+<pre><code>pwsh -File harness/scripts/sync-labels.ps1 -DryRun
+pwsh -File harness/scripts/sync-labels.ps1 -Repo you/acme-app</code></pre>
+    <p>Creates <code>type:</code>, <code>priority:p0-p3</code>, <code>risk-</code>, the statusless labels, one
+    <code>phase-</code> label per active phase and one <code>area:</code> per area. Honest caveat: the parsing bug that
+    made this script unloadable is fixed, but the <code>gh label create</code> path itself has never been run in CI -
+    there is no credential or repository there - so check the first run's output rather than assuming it.</p>
   </li>
   <li>
     <h3>Turn on the controls the agent cannot reach</h3>
-    <p>Branch protection on <code>main</code> requiring the validation checks; CODEOWNERS routing governance paths to
-    you; a <code>production</code> Environment with a required reviewer, plus any data-destructive gate. These are
-    owner-side actions in the GitHub UI or API, and until they exist the harness is enforcing only what OpenCode
-    enforces locally.</p>
+    <p>These are owner-side, in the GitHub UI or API, and until they exist the harness enforces only what OpenCode
+    enforces locally:</p>
+    <ul>
+    <li>Branch protection on <code>main</code>: require the generated checks, require a PR, forbid force-push and deletion</li>
+    <li><code>.github/CODEOWNERS</code> is generated for you - route governance paths to yourself and require review</li>
+    <li>A <code>production</code> Environment with you as required reviewer (and one for any data-destructive step)</li>
+    <li>Token scopes if you want Projects v2 status (OD-06): <code>project</code>, <code>read:project</code>, <code>workflow</code></li>
+    </ul>
   </li>
   <li>
-    <h3>Open it in OpenCode and start</h3>
+    <h3>Open OpenCode and start</h3>
 <pre><code>/status
-/pm &lt;what you actually want to build&gt;</code></pre>
+/pm &lt;what you actually want built&gt;</code></pre>
     <p><code>/status</code> reads <code>docs/project/status/phase-state.md</code> and <code>blockers.md</code> and gives
-    you one screen of truth plus the single next decision that is yours to make. <code>/pm</code> opens Phase 1 issues
-    and a task plan. Phase 1 does not close until you merge its gate.</p>
+    you one screen of truth plus the single decision that is yours. <code>/pm</code> opens Phase 1 issues and a task
+    plan. Phase 1 does not close until you merge its gate - the lifecycle is the point of the harness, so run it from
+    the first hour rather than retrofitting it.</p>
+  </li>
+  <li>
+    <h3>Let the rest of the team ask</h3>
+    <p>Anyone can clone the instance and run <code>/ask &lt;question&gt;</code>: read-only, cited to the knowledge base,
+    marks draft pages as unconfirmed, and says plainly when the project does not know something. They need nothing
+    installed and can change nothing - which is what makes it safe to hand out the URL on day one.</p>
   </li>
 </ol>
 
-<h3>Changing the harness afterwards</h3>
+<h3 id="setup-settings">Settings you can change later</h3>
+<p>All of it lives in <code>project.yaml</code>. Edit it, commit it as a PR, then re-apply - never hand-edit the
+generated files.</p>
+<table>
+<thead><tr><th>Key</th><th>Effect</th><th>Change class</th></tr></thead>
+<tbody>
+<tr><td><code>lifecycle.profile</code></td><td>Which phases are active; regenerates <code>phase-state.md</code> and the phase labels</td><td><span class="pill stop">material after Phase 1</span></td></tr>
+<tr><td><code>models.readiness</code></td><td><code>gated</code> keeps live sessions off; <code>verified</code> turns them on once provider privacy is checked</td><td>Owner decision</td></tr>
+<tr><td><code>stack.dev_commands</code> / <code>qa_commands</code> / <code>reviewer_commands</code> / <code>security_commands</code></td><td>The exact shell prefixes each role may run</td><td><span class="pill stop">widening is material</span></td></tr>
+<tr><td><code>stack.deploy_commands</code> / <code>hard_deny_commands</code></td><td>Rendered as denies in both tiers; adding here is safe, removing is not</td><td>Adding: internal · removing: material</td></tr>
+<tr><td><code>skills.shared</code> and <code>skills.&lt;role&gt;</code></td><td>Which skills each role may load; an undeclared grant fails validation</td><td>Internal, if installed</td></tr>
+<tr><td><code>integrations.*</code></td><td>Projects v2, live browser, design tools, web research, Open Knowledge - ask or deny, never silent allow</td><td>Enabling external tools with sensitive data: material</td></tr>
+<tr><td><code>data_policy.sensitivity</code></td><td>The protection sentence every agent carries</td><td><span class="pill stop">material</span></td></tr>
+<tr><td><code>repository.remote</code></td><td>Recorded provenance; no enforcement effect</td><td>Internal</td></tr>
+</tbody>
+</table>
+
+<h3 id="setup-change">Changing the harness afterwards</h3>
 <p>Agents propose harness changes into the kit and stage the rendered result; they do not edit protected paths, and this
 harness's own agents cannot edit <code>AGENTS.md</code>, <code>opencode.jsonc</code>, <code>.opencode/</code>,
 <code>.github/</code> or <code>docs/harness/</code>. The owner applies:</p>
 <pre><code>pwsh -File harness/scripts/apply-harness-change.ps1 -DryRun   # plan only
 pwsh -File harness/scripts/apply-harness-change.ps1 -Force    # back up, then regenerate</code></pre>
-<p>Every overwritten file is backed up to a timestamped directory first. That command <em>is</em> the owner-approval
-mechanism for harness changes: agents draft, the owner applies, CI verifies.</p>
+<p>Every overwritten file is copied to a timestamped backup first, the generated set is re-rendered from the kit copy
+inside your instance, and the instance must still validate afterwards - that whole path is asserted by the kit's own
+self-test on every pull request. Use <code>/improve-harness</code> in the instance when the friction is the
+harness's fault: it writes the proposal, classifies it, and drafts the issue. It cannot apply anything, by design.</p>
 
 <h2 id="roles">The seven roles</h2>
 <p>One primary orchestrator and six specialists. Mode, step budget and model come from the template; duties are
