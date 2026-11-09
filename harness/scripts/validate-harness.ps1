@@ -207,6 +207,31 @@ if ($IncludeRuntime) {
     if ($LASTEXITCODE -eq 0) { Pass 'runtime:debug-config' 'parses' } else { Fail 'runtime:debug-config' 'parse error' }
 }
 
+# ---- 11. Verification ledger: the instance ships the kit's own statement of what is proven, and the
+#        validator refuses to let a "verified" claim travel without evidence. It reports the status mix
+#        on every run, so an instance cannot quietly assume enforcement it has never seen.
+$ledgerPath = Join-Path $Root 'docs\harness\verification-ledger.json'
+if (Test-Path $ledgerPath) {
+    Pass 'ledger:present' 'verification ledger shipped with the instance'
+    $ledger = $null
+    try { $ledger = (Read-TextRaw $ledgerPath) | ConvertFrom-Json } catch { Fail 'ledger:evidence' ("cannot parse ledger: " + $_.Exception.Message) }
+    if ($ledger) {
+        $rows = @($ledger.controls)
+        $unprovenVerified = @($rows | Where-Object { $_.status -eq 'verified' -and @($_.evidence).Count -eq 0 } | ForEach-Object { $_.id })
+        if ($unprovenVerified.Count -eq 0) {
+            Pass 'ledger:evidence' ("no verified claim lacks evidence (" + $rows.Count + " controls)")
+        } else {
+            Fail 'ledger:evidence' ('verified without evidence: ' + ($unprovenVerified -join ', '))
+        }
+        $tally = @{}
+        foreach ($st in @('designed', 'implemented', 'verified')) { $tally[$st] = @($rows | Where-Object { $_.status -eq $st }).Count }
+        $open = @($rows | Where-Object { $_.status -ne 'verified' }).Count
+        Pass 'ledger:summary' ("{0} designed / {1} implemented / {2} verified; {3} of {4} controls still unproven (runtime matrix pending)" -f $tally.designed, $tally.implemented, $tally.verified, $open, $rows.Count)
+    }
+} else {
+    Fail 'ledger:present' 'verification ledger missing from the instance (docs/harness/verification-ledger.json)'
+}
+
 # ---- report
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 if (-not $ReportPath) { $ReportPath = Join-Path $Root "harness\reports\validate-$stamp.md" }

@@ -47,7 +47,7 @@ PM is the default primary (`/pm`, `/plan`, `/status`, `/issue`, `/phase`, `/ops`
 
 ## 6. Keeping the harness honest
 
-After any permission/config change re-run `validate-harness.ps1` (static) and, when model readiness allows, `negative-tests.md` (runtime). CI runs `harness-validation.yml`. The rule that closes every gap: **approved ≠ implemented ≠ verified** — a control is real only when a test proves it blocks. Log evidence in `implementation-log.md`; record choices in ADRs and the register.
+After any permission/config change re-run `validate-harness.ps1` (static) and, when model readiness allows, `negative-tests.md` (runtime). CI runs `harness-validation.yml`. The rule that closes every gap: **approved ≠ implemented ≠ verified** — a control is real only when a test proves it blocks. That mapping is not prose: `docs/harness/verification-ledger.json` records every control as designed, implemented or verified with its evidence, the validator fails a verified claim that carries none, and the handbook's counts are checked against it. Log evidence in `implementation-log.md`; record choices in ADRs and the register.
 
 ## 7. Start here checklist (new instance)
 

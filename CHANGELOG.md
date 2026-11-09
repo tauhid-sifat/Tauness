@@ -6,6 +6,20 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
 
 ## [1.2.0] - in progress
 
+### Added
+
+- **Verification ledger** - `docs/harness/verification-ledger.json`: 31 controls across the permission,
+  policy, GitHub, process and kit-development tiers, each `designed`, `implemented` or `verified`. It is
+  consumed rather than admired: `validate-harness.ps1` reads it inside every instance and FAILs a
+  `verified` row with no evidence; `tests/check-sources.ps1` enforces schema, unique ids, the status
+  vocabulary and a two-way join with `negative-tests.md` (every cited `N-`/`G-` id must exist, and every
+  runtime test must be claimed by a control); `tests/check-site.ps1` refuses to publish the handbook if
+  its printed counts drift from the file. Statuses assigned conservatively - configuration and
+  kit-development work verified, runtime enforcement left `implemented` or `designed`, including VC-11,
+  the `policies`-evaluated-last assumption everything else leans on. Proven by attack: a verified row
+  with no evidence and a dangling test citation each failed `check-sources` naming the control, and a
+  tampered ledger inside a rendered instance made `validate-harness` exit 1 before restoring returned it
+  to passing. Three more required PASS markers in the self-test; checks per instance now 56.
 - **Skill allow-lists moved out of the kit and into `project.yaml`** (`skills.shared`, `skills.<role>`).
   The agent templates carried 42 hardcoded grants naming one machine's installed set, so every fresh
   instance reported 41 identical "skill not found" warnings and a genuinely missing skill could not be
@@ -18,10 +32,11 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
   `HEAD` and from the working tree and comparing per-role grants shows all 7 roles identical - the first
   attempt over-granted `opencode`, `research` and `writing-for-agents` to six roles through
   `skills.shared`, which that comparison caught.
+- **MIT license** (`LICENSE`), chosen by the owner; the README now links versions to tags and changelog
+  entries, and the handbook footer states it.
 
 ### Changed
 
-- **MIT license** (`LICENSE`), chosen by the owner; README links versions to tags and the changelog.
 - **Layer A purity enforcement** in `tests/check-sources.ps1`: the kit, the live core docs and `tests/` are
   scanned for project identity and the build fails on a hit. The check carries a positive control, because the
   first version of it was a vacuous no-op: `@('a' + 'b', 'c')` makes PowerShell concatenate the comma list into

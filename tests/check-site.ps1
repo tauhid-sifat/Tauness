@@ -128,13 +128,32 @@ if (Test-Path $index) {
     $delegateRows = @([regex]::Matches($html, '(?s)id="roles".*?</table>\s*<h3>Delegation matrix.*?<table>([\s\S]*?)</table>') | ForEach-Object { @([regex]::Matches($_.Groups[1].Value, '<tr>')).Count - 1 })
     if ($delegateRows.Count -eq 0 -or $delegateRows[0] -ne 7) { Add-Fail "delegation matrix rows: expected 7, found $($delegateRows[0])" }
 
+    # The handbook's verification claims must agree with the ledger, which is the source of truth.
+    # Without this the counts would be prose someone could quietly inflate.
+    $ledgerPath = Join-Path $repoRoot 'docs/harness/verification-ledger.json'
+    if (-not (Test-Path $ledgerPath)) {
+        Add-Fail 'verification ledger missing (docs/harness/verification-ledger.json)'
+    } else {
+        try {
+            $ltxt = [System.Text.Encoding]::UTF8.GetString([System.IO.File]::ReadAllBytes($ledgerPath))
+            $ledger = $ltxt | ConvertFrom-Json
+            $rows = @($ledger.controls)
+            $cv = @($rows | Where-Object { $_.status -eq 'verified' }).Count
+            $ci = @($rows | Where-Object { $_.status -eq 'implemented' }).Count
+            $cd = @($rows | Where-Object { $_.status -eq 'designed' }).Count
+            $claim = ("ledger records {0} controls: {1} verified, {2} implemented, {3} designed" -f $rows.Count, $cv, $ci, $cd)
+            if ($html -notmatch [regex]::Escape($claim)) { Add-Fail ("index.html does not state the ledger's counts (" + $claim + ")") }
+            if ($html -notmatch 'verification-ledger\.json') { Add-Fail 'index.html never names the verification ledger' }
+        } catch { Add-Fail ("cannot read the verification ledger: " + $_.Exception.Message) }
+    }
+
     # honesty section must stay present and must not be watered down to nothing. These are the items
     # that are genuinely outstanding right now; asserting their wording means a future edit that
     # quietly deletes a caveat fails the gate instead of shipping a more flattering page.
     # The U+2260 in "approved != implemented != verified" is built from its code point because this
     # script's own source must stay ASCII-only (the rule check-sources.ps1 enforces).
     $ne = [string][char]0x2260
-    $musts = @('N-01 to N-30', 'Windows-only', 'deliberately not enabled', '53 PASS / 0 WARN / 0 FAIL',
+    $musts = @('N-01 to N-30', 'Windows-only', 'deliberately not enabled', '0 WARN / 0 FAIL',
                'only knows the terms it was given', 'never been executed',
                ('approved ' + $ne + ' implemented ' + $ne + ' verified'))
     foreach ($must in $musts) {

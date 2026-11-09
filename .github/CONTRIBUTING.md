@@ -9,7 +9,7 @@ that distinction is the whole design (see *The three layers* in [`harness/README
 Read, in this order:
 
 1. [`harness/README.md`](harness/README.md) - the kit contract and the three layers.
-2. [`docs/harness/adr/INDEX.md`](../docs/harness/adr/INDEX.md) - fourteen decisions already made, with the
+2. [`docs/harness/adr/INDEX.md`](../docs/harness/adr/INDEX.md) - sixteen decisions already made, with the
    reasons and the alternatives rejected. Re-litigating one needs a new ADR that supersedes it.
 3. [`docs/harness/security-and-permissions.md`](../docs/harness/security-and-permissions.md) - why the
    enforcement model is two-tiered.

@@ -1,6 +1,8 @@
 # Runtime Negative-Test Protocol (owner-run)
 
-Static validation (`validate-harness.ps1`) proves configuration. These runtime tests prove **enforcement** — that OpenCode actually blocks what governance promises. They require model sessions, so they are gated by `models.readiness = verified` in `project.yaml` (OD-25): verify the provider workspace privacy settings and structured-output claims with the owner first.
+Static validation (`validate-harness.ps1`) proves configuration. These runtime tests prove **enforcement** - that OpenCode actually blocks what governance promises. They require model sessions, so they are gated by `models.readiness = verified` in `project.yaml` (OD-25): verify the provider workspace privacy settings and structured-output claims with the owner first.
+
+Each `N-xx` / `G-xx` case is claimed by at least one control in `docs/harness/verification-ledger.json`, which records whether that control is designed, implemented, or verified. `tests/check-sources.ps1` enforces the join both ways: a ledger row citing a test that does not exist fails the build, and a test claimed by no control fails it too. Run a case, then move its control to `verified` with the run recorded as evidence - a status change without evidence is a validator failure, not an edit away.
 
 ## How to run
 

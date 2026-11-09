@@ -153,6 +153,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
   <h2>Reference</h2>
   <a href="#kit">Developing the kit</a>
   <a href="#gaps">What is not yet proven</a>
+  <a href="https://github.com/tauhid-sifat/Tauness/blob/main/docs/harness/verification-ledger.json">Verification ledger (JSON)</a>
   <a href="#trouble">Troubleshooting</a>
   <a href="#cheat">Cheat sheet</a>
   <a href="https://github.com/tauhid-sifat/Tauness">Repository</a>
@@ -734,7 +735,8 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 <tr><td>Interview-template audit</td><td><code>kit/project.yaml.tmpl</code> is substituted by <code>init-project.ps1</code>'s interview rather than by <code>Expand-Template</code>, so it sat outside every slot check. Auditing it against the interview's producer set found <code>&#123;&#123;KIT_COMMIT&#125;&#125;</code> leaking into every instance built through the guided path</td></tr>
 <tr><td>Data-format contract</td><td>Every <code>kit/**/*.json</code> must parse as JSON. <code>labels.json</code> shipped as commented YAML and was piped straight into <code>ConvertFrom-Json</code></td></tr>
 <tr><td>Workflow YAML shape</td><td>Rendered <code>.github/**/*.yml</code> must contain no flow mapping holding an Actions expression and no unresolved slot, and all 16 files must be present. Added after <code>pr-policy.yml</code> was found ending a step with <code>env: { GH_TOKEN: ${{ ... }} }</code> - unparseable YAML, so the PR policy gate had never been loadable in any instance</td></tr>
-<tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy and handbook checks on Windows, Linux and macOS. Currently 53 PASS / 0 WARN / 0 FAIL per variant</td></tr>
+<tr><td>Verification ledger</td><td><code>docs/harness/verification-ledger.json</code> is the single statement of what is proven. Checked like code: schema, status vocabulary, unique ids, no <code>verified</code> row without evidence, and a two-way join with <code>negative-tests.md</code> - every cited runtime test must exist, and every test in the protocol must be claimed by a control. Consumed by <code>validate-harness.ps1</code> per instance and by <code>tests/check-site.ps1</code> against the counts printed above</td></tr>
+<tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy and handbook checks on Windows, Linux and macOS. Currently 56 PASS / 0 WARN / 0 FAIL per variant</td></tr>
 </tbody>
 </table>
 <h3>Why the checks are this specific</h3>
@@ -770,6 +772,11 @@ nothing parsed the rendered <code>.github</code> files, and <code>harness-valida
 <h2 id="gaps">What is not yet proven</h2>
 <p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
 real only when a test has shown it blocking. These are the harness's own audit findings, restated plainly.</p>
+<p>The machine-readable <a href="https://github.com/tauhid-sifat/Tauness/blob/main/docs/harness/verification-ledger.json">verification ledger</a>
+is what backs that sentence: the ledger records 31 controls: 6 verified, 19 implemented, 6 designed.
+<code>validate-harness.ps1</code> re-reads that file inside every instance and fails any
+<code>verified</code> claim that carries no evidence, and <code>tests/check-site.ps1</code> refuses to publish this
+page if its counts drift from it - so the numbers here cannot be inflated by editing prose.</p>
 <table>
 <thead><tr><th>Status</th><th>Item</th></tr></thead>
 <tbody>

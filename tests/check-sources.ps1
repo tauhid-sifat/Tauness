@@ -55,7 +55,7 @@ foreach ($f in $scripts) {
         Add-Fail ("{0}: parse error at line {1}, column {2}: {3}" -f $f.Name, $first.Token.StartLine, $first.Token.StartColumn, $first.Message)
     }
 }
-Write-Host ("[1/9] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
+Write-Host ("[1/10] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
 
 # ---- 2. Data files: no BOM in the kit, core docs, or fixtures
 $dataRoots = @('harness', 'docs/harness', 'tests')
@@ -71,7 +71,7 @@ foreach ($rel in $dataRoots) {
         }
     }
 }
-Write-Host ("[2/9] data: {0} files scanned for BOM" -f $dataScanned)
+Write-Host ("[2/10] data: {0} files scanned for BOM" -f $dataScanned)
 
 # ---- 3. Template slot audit
 # Produced slots: $ctx['X'] = ... / $slots['X'] = ... in the renderer, plus the tokens
@@ -137,7 +137,7 @@ foreach ($tok in ($interviewUnknown | Sort-Object -Unique)) {
     Add-Fail ("project.yaml.tmpl slot {" + $tok + "} has no producer in init-project.ps1's interview")
 }
 
-Write-Host ("[3/9] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
+Write-Host ("[3/10] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
 if ($unused.Count -gt 0) { Write-Host ("       produced but not referenced by rendered templates (project.yaml.tmpl consumes these at interview time): " + ($unused -join ', ')) }
 
 # ---- 4. Core kit contract, asserted by name
@@ -189,7 +189,7 @@ if (Test-Path $profilesPath) { $profilesText = Get-Text $profilesPath }
 foreach ($profile in @('full', 'lean', 'headless', 'brownfield', 'micro')) {
     if ($profilesText -notmatch "(?m)^  $([regex]::Escape($profile)):\s*$") { Add-Fail "lifecycle profile '$profile' missing from profiles.yaml" }
 }
-Write-Host ("[4/9] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
+Write-Host ("[4/10] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
 
 # Kit file names must be truncation-safe: the renderer strips the .tmpl suffix by character count,
 # so anything left over must be a real, expected extension (CODEOWNERS.tmpl correctly leaves no
@@ -202,7 +202,7 @@ $mangled = @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit') -E
     return -not ($allowedExt -contains $ext.ToLowerInvariant())
 })
 foreach ($m in $mangled) { Add-Fail ("unexpected file extension: " + $m.Name) }
-Write-Host ("[5/9] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
+Write-Host ("[5/10] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
 
 # ---- 6. Reachability: every kit file must be rendered, or be a declared non-rendered input.
 #      Get-RenderPlan is the renderer's own statement of what it can reach, so it is called here
@@ -237,7 +237,7 @@ foreach ($f in ($kitFiles | Sort-Object)) {
 foreach ($f in @($notRendered.Keys | Sort-Object)) {
     if ($kitFiles -notcontains $f) { Add-Fail "declared non-rendered input is missing from the kit: $f" }
 }
-Write-Host ("[6/9] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
+Write-Host ("[6/10] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
 
 # ---- 7. Data format contract: kit JSON must be JSON (sync-labels.ps1 pipes labels.json to
 #      ConvertFrom-Json; the file shipped as commented YAML and no check could see that).
@@ -246,7 +246,7 @@ foreach ($f in $jsonFiles) {
     try { $null = (Get-Text $f.FullName) | ConvertFrom-Json }
     catch { Add-Fail ("{0} is not valid JSON ({1})" -f $f.Name, $_.Exception.Message) }
 }
-Write-Host ("[7/9] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
+Write-Host ("[7/10] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
 
 # ---- 8. Layer A purity: the core kit must never name a project.
 #      Stated in harness/README.md for three versions and checked nowhere, which is how nine core
@@ -294,7 +294,7 @@ foreach ($root in $purityRoots) {
         }
     }
 }
-Write-Host ("[8/9] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
+Write-Host ("[8/10] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
 
 # ---- 9. Rule-injecting slots must sit at column 0 in the agent templates. New-PermRulesBlock emits
 #      its own indentation, so an indented slot line makes the FIRST generated list item deeper than
@@ -307,7 +307,60 @@ foreach ($f in (Get-ChildItem -File (Join-Path $repoRoot 'harness/kit/agents') -
         }
     }
 }
-Write-Host "[9/9] slots at column 0 in the agent templates"
+Write-Host "[9/10] slots at column 0 in the agent templates"
+
+# ---- 10. Verification ledger. This file is the only place that says what is actually proven, so it
+#      is checked like code: schema, status vocabulary, no verified-without-evidence, unique ids, and
+#      a two-way join with the runtime negative-test protocol so neither side can drift into wishful
+#      prose. validate-harness.ps1 re-reads it per instance and check-site.ps1 compares its counts
+#      against the numbers printed in the handbook.
+$ledgerPath = Join-Path $repoRoot 'docs/harness/verification-ledger.json'
+if (-not (Test-Path $ledgerPath)) {
+    Add-Fail 'verification ledger missing: docs/harness/verification-ledger.json'
+    Write-Host '[10/10] ledger: missing'
+} else {
+    $ledger = $null
+    try { $ledger = (Get-Text $ledgerPath) | ConvertFrom-Json } catch { Add-Fail ("ledger is not valid JSON: " + $_.Exception.Message) }
+    $tallies = @{ designed = 0; implemented = 0; verified = 0 }
+    if ($ledger) {
+        if ($ledger.schema -ne 'aidlc.verification-ledger/1') { Add-Fail ("ledger schema unexpected: '$($ledger.schema)'") }
+        $seenIds = @{}
+        $claimed = @{}
+        foreach ($c in @($ledger.controls)) {
+            if (-not $c.id -or -not $c.control -or -not $c.tier -or -not $c.status) {
+                Add-Fail ("ledger row missing required fields (id/control/tier/status): " + $c.id); continue
+            }
+            if ($seenIds.ContainsKey($c.id)) { Add-Fail ("duplicate ledger id " + $c.id) }
+            $seenIds[$c.id] = $true
+            if ('designed', 'implemented', 'verified' -notcontains $c.status) {
+                Add-Fail ("ledger {0} has unknown status '{1}'" -f $c.id, $c.status)
+            } else {
+                $tallies[$c.status] = $tallies[$c.status] + 1
+            }
+            $ev = @($c.evidence)
+            if ($c.status -eq 'verified' -and $ev.Count -eq 0) {
+                Add-Fail ("ledger {0} claims verified with no evidence" -f $c.id)
+            }
+            foreach ($e in $ev) {
+                if (-not $e.kind -or -not $e.ref) { Add-Fail ("ledger {0} evidence entry needs kind and ref" -f $c.id) }
+                elseif ('check', 'ci', 'run' -notcontains $e.kind) { Add-Fail ("ledger {0} evidence kind '{1}' is not check|ci|run" -f $c.id, $e.kind) }
+            }
+            foreach ($tid in @($c.tests)) { if ($tid) { $claimed[$tid] = $true } }
+        }
+        $negPath = Join-Path $repoRoot 'harness/scripts/negative-tests.md'
+        $protocol = @()
+        if (Test-Path $negPath) {
+            $protocol = @([regex]::Matches((Get-Text $negPath), '\b([NG]-\d{2})\b') |
+                ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        } else { Add-Fail 'negative-tests.md missing; the ledger has nothing to cross-reference' }
+        foreach ($tid in @($claimed.Keys | Sort-Object)) {
+            if ($protocol -notcontains $tid) { Add-Fail ("ledger cites runtime test {0} which does not exist in negative-tests.md" -f $tid) }
+        }
+        $orphans = @($protocol | Where-Object { -not $claimed.ContainsKey($_) })
+        if ($orphans.Count -gt 0) { Add-Fail ("runtime tests claimed by no ledger control: " + ($orphans -join ', ')) }
+    }
+    Write-Host ("[10/10] ledger: {0} controls (verified {1}, implemented {2}, designed {3}); {4} runtime tests claimed both ways" -f $seenIds.Count, $tallies.verified, $tallies.implemented, $tallies.designed, $protocol.Count)
+}
 
 if ($fails.Count -gt 0) {
     Write-Host ""

@@ -81,7 +81,8 @@ try {
         '[PASS] agents:count', '[PASS] commands:count', '[PASS] placeholders',
         '[PASS] phase-state', '[PASS] config:policies', '[PASS] config:shell-deny',
         '[PASS] encoding:bom', '[PASS] secrets:scan', '[PASS] doc:architecture-specification',
-        '[PASS] skills:declared', '[PASS] skills:installed'
+        '[PASS] skills:declared', '[PASS] skills:installed',
+        '[PASS] ledger:present', '[PASS] ledger:evidence', '[PASS] ledger:summary'
     )
 
     foreach ($v in $variants) {

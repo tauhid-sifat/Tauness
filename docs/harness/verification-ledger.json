@@ -1,0 +1,308 @@
+{
+  "schema": "aidlc.verification-ledger/1",
+  "updated": "2026-11-09",
+  "statusVocabulary": {
+    "designed": "Written into governance; nothing executes it yet.",
+    "implemented": "Generated into every instance and statically checked, but the behaviour itself has not been observed.",
+    "verified": "An automated check, or a recorded run, demonstrates it. Verified rows MUST carry evidence."
+  },
+  "evidenceKinds": {
+    "check": "A named check in validate-harness.ps1 or tests/ that fails when the control breaks.",
+    "ci": "A specific CI run whose log is the proof.",
+    "run": "A recorded manual execution, with date and result in docs/harness/implementation-log.md."
+  },
+  "controls": [
+    {
+      "id": "VC-01",
+      "control": "Shell access is deny-by-default in every instance's opencode.jsonc",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:shell-deny" }],
+      "tests": ["N-25", "N-26", "N-27"],
+      "notes": "The configuration check proves the rule exists and is ordered first. Only the runtime matrix proves OpenCode refuses the call."
+    },
+    {
+      "id": "VC-02",
+      "control": "Governance paths (harness, AGENTS.md, opencode.jsonc, .opencode, .github, docs/harness, .git) are edit-denied to every role",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:protect:*" }],
+      "tests": ["N-01", "N-09"],
+      "notes": ""
+    },
+    {
+      "id": "VC-03",
+      "control": "Secrets and key material are read-denied and edit-denied (.env*, *.pem, *.key, .ssh, id_*)",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:json" }, { "kind": "check", "ref": "validate-harness.ps1 secrets:scan" }],
+      "tests": ["N-18"],
+      "notes": "secrets:scan proves no secret VALUES are committed; it does not prove the read deny is enforced."
+    },
+    {
+      "id": "VC-04",
+      "control": "Delegation is allow-listed per role and built-in agents (general, explore) are denied",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 agent:*:delegation matrix" }],
+      "tests": ["N-19", "N-20", "N-21"],
+      "notes": "The matrix is re-derived from expected values on every validate run; built-in removal is a runtime question."
+    },
+    {
+      "id": "VC-05",
+      "control": "Subagent depth is capped at 2 and depth-2 children launch nothing",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:depth" }],
+      "tests": ["N-22"],
+      "notes": "OpenCode must honour subagent_depth; unproven at runtime."
+    },
+    {
+      "id": "VC-06",
+      "control": "Skill grants are declared in project.yaml and undeclared grants fail the build (configuration authority)",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "validate-harness.ps1 skills:declared + skills:installed" },
+        { "kind": "check", "ref": "tests/render-and-validate.ps1 required PASS markers" },
+        { "kind": "run", "ref": "implementation-log 2026-11-09: undeclared grant injected, validator failed by name" }
+      ],
+      "tests": [],
+      "notes": "Scope: what the configuration permits. Runtime refusal of an undeclared skill is VC-07."
+    },
+    {
+      "id": "VC-07",
+      "control": "OpenCode refuses a skill an agent is not allowed to load",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [],
+      "tests": ["N-23"],
+      "notes": "Depends on OD-14 phantom-skill exclusion; needs a live session."
+    },
+    {
+      "id": "VC-08",
+      "control": "Disabled integrations render as MCP denies and enabled ones as ask, never as silent allow",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 toggle assertions (firecrawl_*/browseros_* ask vs deny)" }],
+      "tests": ["N-24"],
+      "notes": ""
+    },
+    {
+      "id": "VC-09",
+      "control": "Publishing and deploy CLIs are denied in both the permission and the policy layer",
+      "tier": "policies",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 deploy CLI reaches tool.use policies" }],
+      "tests": ["N-07", "N-08"],
+      "notes": ""
+    },
+    {
+      "id": "VC-10",
+      "control": "GitHub authority verbs (merge, approve, gh api/secret/repo/workflow) are hard-denied to agents",
+      "tier": "policies",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:policies" }],
+      "tests": ["N-05", "N-06", "N-30"],
+      "notes": ""
+    },
+    {
+      "id": "VC-11",
+      "control": "The policies layer is evaluated after permissions, saved approvals and agent rules, so a role cannot re-open a hard deny",
+      "tier": "policies",
+      "status": "designed",
+      "evidence": [],
+      "tests": ["N-24", "N-25", "N-26"],
+      "notes": "The single most load-bearing assumption in the design (ADR-H-004) and the least proven: documented semantics, never demonstrated on a live session. Highest-value item in this table."
+    },
+    {
+      "id": "VC-12",
+      "control": "Feature-branch pushes are permitted by scoped allow-list while main and irreversible shapes are denied",
+      "tier": "policies",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:permissions" }],
+      "tests": ["N-03", "N-10", "N-11"],
+      "notes": "ADR-H-009."
+    },
+    {
+      "id": "VC-13",
+      "control": "Reviewer and QA cannot write what they assess; QA cannot reach production hosts",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 agent:*:delegation + config:protect" }],
+      "tests": ["N-12", "N-13", "N-14", "N-15"],
+      "notes": ""
+    },
+    {
+      "id": "VC-14",
+      "control": "Only the PM creates repository issues; specialists draft",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [],
+      "tests": ["N-04"],
+      "notes": ""
+    },
+    {
+      "id": "VC-15",
+      "control": "Phase approval fields (approved_by/approved_at) can only be authored by the owner's merged commit",
+      "tier": "process",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 phase-state shape" }],
+      "tests": ["N-29"],
+      "notes": "Agents may edit status/phase-state; the field is protected by convention plus GitHub review (VC-19)."
+    },
+    {
+      "id": "VC-16",
+      "control": "Branch protection rejects pushes to main at the host, whatever the agent config says",
+      "tier": "github",
+      "status": "designed",
+      "evidence": [],
+      "tests": ["G-01"],
+      "notes": "Requires owner activation. In the kit home repository this is a deliberate, recorded exception (ADR-H-014)."
+    },
+    {
+      "id": "VC-17",
+      "control": "PRs require a linked issue, a requirement reference and type/phase labels",
+      "tier": "github",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 workflow YAML shape gate" }],
+      "tests": [],
+      "notes": "The workflow is generated and parses; it has never run against a real PR."
+    },
+    {
+      "id": "VC-18",
+      "control": "Codeowners review is required on governance paths",
+      "tier": "github",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 CODEOWNERS rendered with the project owner" }],
+      "tests": ["G-02"],
+      "notes": "Generation is verified; enforcement is not (needs branch protection + a real PR)."
+    },
+    {
+      "id": "VC-19",
+      "control": "Production deploys require an Environment reviewer at the host",
+      "tier": "github",
+      "status": "designed",
+      "evidence": [],
+      "tests": ["G-03"],
+      "notes": ""
+    },
+    {
+      "id": "VC-20",
+      "control": "An agent advisory comment cannot satisfy a required review",
+      "tier": "github",
+      "status": "designed",
+      "evidence": [],
+      "tests": ["G-04"],
+      "notes": ""
+    },
+    {
+      "id": "VC-21",
+      "control": "Every rendered instance is structurally valid: 7 agents, 16 commands, 12 issue templates, 4 workflows, valid frontmatter and YAML",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "tests/render-and-validate.ps1 6 variants x (render, validate, re-apply, re-validate)" },
+        { "kind": "ci", "ref": "kit-validation 'Render and validate every lifecycle profile', runs for a90b144..b78ffbb" }
+      ],
+      "tests": [],
+      "notes": "53 PASS / 0 WARN / 0 FAIL per variant."
+    },
+    {
+      "id": "VC-22",
+      "control": "Kit sources are ASCII-only, BOM-free and parseable; every template slot has a live producer; every kit JSON parses; agent slots sit at column 0",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "tests/check-sources.ps1 sections 1-9" },
+        { "kind": "run", "ref": "implementation-log 2026-11-09: vacuous ban-list and indented-slot defects both reproduced and then caught" }
+      ],
+      "tests": [],
+      "notes": ""
+    },
+    {
+      "id": "VC-23",
+      "control": "Upgrades re-apply cleanly: every overwritten file is backed up, re-rendering is deterministic, and the instance still validates afterwards",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 apply -DryRun / -Force + backup + determinism + re-validate" }],
+      "tests": [],
+      "notes": ""
+    },
+    {
+      "id": "VC-24",
+      "control": "Instance provenance records the kit it was built from, and cannot be silently rewritten by an upgrade",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "tests/render-and-validate.ps1 rendered_from_commit attestation + kit_version stamp" },
+        { "kind": "run", "ref": "implementation-log 2026-11-09: provenance defect found by the determinism assertion, then fixed" }
+      ],
+      "tests": [],
+      "notes": ""
+    },
+    {
+      "id": "VC-25",
+      "control": "Layer A stays project-agnostic: no project identity in the kit, live core docs or tests",
+      "tier": "kit-dev",
+      "status": "verified",
+      "evidence": [{ "kind": "check", "ref": "tests/check-sources.ps1 section 8 (with positive control)" }],
+      "tests": [],
+      "notes": "Ban list is hand-maintained; deriving project vocabulary is open work (see the handbook)."
+    },
+    {
+      "id": "VC-26",
+      "control": "Knowledge changes only through staging, an independent critic, and item-by-item acceptance",
+      "tier": "process",
+      "status": "designed",
+      "evidence": [],
+      "tests": [],
+      "notes": "Enforced by prompts plus edit denies on docs/project subtrees; no runtime demonstration yet."
+    },
+    {
+      "id": "VC-27",
+      "control": "Decision history is append-only; reversals add a new entry with supersedes rather than editing the old one",
+      "tier": "process",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 decision-register presence + CODEOWNERS routing to the owner" }],
+      "tests": [],
+      "notes": "No check yet detects an edited historical row."
+    },
+    {
+      "id": "VC-29",
+      "control": "The Security Monitor cannot attack or edit what it assesses without owner authorisation",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 agent:security-monitor delegation matrix" }],
+      "tests": ["N-16", "N-17"],
+      "notes": "Tooling denies plus boundary prose; runtime behaviour unproven."
+    },
+    {
+      "id": "VC-30",
+      "control": "Writes and reads outside the project directory require an explicit ask",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:permissions (external_directory ask)" }],
+      "tests": ["N-28"],
+      "notes": "OpenCode 2.2.5 lacks the 2.2.6 external-directory approval fix; see the session-move rule in AGENTS.md."
+    },
+    {
+      "id": "VC-31",
+      "control": "Roles cannot write outside their duty - the orchestrator in particular cannot edit application code, tests, migrations or the design system",
+      "tier": "permissions",
+      "status": "implemented",
+      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:protect + agent permission frontmatter parse" }],
+      "tests": ["N-02"],
+      "notes": "Edit denies are per role subtree; the runtime refusal is what N-02 exercises."
+    },
+    {
+      "id": "VC-28",
+      "control": "Open Knowledge retrieval can serve cited answers without becoming the source of truth",
+      "tier": "process",
+      "status": "designed",
+      "evidence": [],
+      "tests": [],
+      "notes": "Module off by default; handshake never tested (P-10)."
+    }
+  ]
+}
