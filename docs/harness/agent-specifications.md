@@ -1,6 +1,6 @@
 # AIDLC Harness — Agent Specifications
 
-> **Status:** Core harness specification (Layer A) · harness 1.0.0 · 2026-11-09. Supersedes the project-scoped agent baseline for all general use.
+> **Status:** Core harness specification (Layer A) · harness 1.1.0 · 2026-11-09. Supersedes the project-scoped agent baseline for all general use.
 > **Depends on:** `architecture-specification.md`, `workflow-and-governance.md`, `security-and-permissions.md`
 > **Note:** the executable source of truth for each agent is `harness/kit/agents/<id>.md.tmpl` (rendered into `.opencode/agents/`). This document carries the contracts; templates carry the enforceable configuration. Permission blocks here are intent summaries; generated files are authoritative.
 

@@ -1,9 +1,9 @@
 # Open Decisions — AIDLC Harness Registry
 
-> **Status:** Core harness registry (Layer A) · harness 1.0.0 · updated 2026-11-09.
+> **Status:** Core harness registry (Layer A) · harness 1.1.0 · updated 2026-11-09.
 > **Purpose:** Every decision that could not be resolved from the brief, the repositories, or verified OpenCode behavior. Options, evidence, recommendation, disposition, and blocking status. The instance-level owner mirror is `docs/project/decisions/decision-register.md`.
 > **History rule:** OD-01…OD-20 carry their full option/evidence histories in Git history (WP-0 baseline, approved 2026-11-04) and in the dated audit/finalization documents. This registry preserves dispositions and adds new decisions; nothing approved is rewritten.
-> **Approval basis:** OD-01–OD-20 explicitly approved by the owner 2026-11-04. OD-21–OD-25 dispositions recorded 2026-11-09 under the generalization mission (owner directive: complete the harness; preserve approved decisions). OD-26 resolved by mission instruction. OD-27–OD-34 are new decisions from the generalization mission; dispositions below.
+> **Approval basis:** OD-01–OD-20 explicitly approved by the owner 2026-11-04. OD-21–OD-25 dispositions recorded 2026-11-09 under the generalization mission (owner directive: complete the harness; preserve approved decisions). OD-26 resolved by mission instruction. OD-27-OD-32 are new decisions from the generalization mission; dispositions below.
 
 ---
 

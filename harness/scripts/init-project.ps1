@@ -77,6 +77,10 @@ if (-not $Config) {
     }
     $text = $text.Replace('{{KIT_VERSION}}', (Read-TextRaw (Join-Path $homeRoot 'HARNESS-VERSION')).Trim())
     $text = $text.Replace('{{RENDER_TIMESTAMP}}', (Get-Date -Format 's'))
+    # KIT_COMMIT lives in project.yaml.tmpl but was never substituted here, so every instance created
+    # through this interview shipped a literal {{KIT_COMMIT}} in its project.yaml - which
+    # validate-harness.ps1 then reported as a placeholder leak.
+    $text = $text.Replace('{{KIT_COMMIT}}', (Get-KitCommit -KitDir $kitDir -TargetDir $Target))
     Write-Host "`n--- project.yaml preview ---`n"
     Write-Host $text
     $yes = Read-Host "`nWrite this project.yaml to the target? (yes/no)"
@@ -90,6 +94,17 @@ $result = Invoke-HarnessRender -KitDir $kitDir -ProjectYamlPath $Config -TargetD
 if (-not $DryRun) {
     if (-not (Test-Path (Join-Path $Target 'project.yaml'))) {
         Copy-Item $Config (Join-Path $Target 'project.yaml')
+    }
+    # Make the instance's own record match what its generated files were actually rendered from.
+    # Without this, a -Config file carrying any kit_version / rendered_from_commit value would be
+    # copied verbatim while opencode.jsonc was stamped with the real ones - two provenances in one
+    # instance, and re-apply would then preserve the wrong one.
+    $pyDst = Join-Path $Target 'project.yaml'
+    if (Test-Path $pyDst) {
+        $pyText = Read-TextRaw $pyDst
+        $pyText = $pyText -replace '(?m)^(\s*rendered_from_commit:\s*).+$', ('$1"' + $result.Commit + '"')
+        $pyText = $pyText -replace '(?m)^(\s*kit_version:\s*).+$', ('$1"' + $result.KitVersion + '"')
+        Write-TextUtf8 -Path $pyDst -Text $pyText
     }
     Write-Host "`nRendered kit into: $Target ($($result.Rendered) files, $($result.Skipped) skipped)"
     if ($result.Leaks.Count -gt 0) {

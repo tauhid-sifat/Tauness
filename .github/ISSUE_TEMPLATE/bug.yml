@@ -1,0 +1,59 @@
+name: Bug report
+description: A defect in the kit, its renderer, scripts, templates, or documentation
+title: "[Bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Actual behaviour, quoted exactly where possible.
+      placeholder: The rendered instance contains ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: Which file, rule, or documented promise this contradicts.
+      placeholder: harness/README.md says ..., so I expected ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Exact commands and the kit version. Prefer a failing test over prose.
+      placeholder: |
+        pwsh -File tests/render-and-validate.ps1 -Profiles full
+        HARNESS-VERSION: 1.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      multiple: true
+      options:
+        - renderer (lib-render / lib-apply)
+        - scripts (init / apply / validate / sync-labels)
+        - templates (agents / commands / github / docs)
+        - core documentation
+        - kit self-test (tests/)
+        - handbook site (site/)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Output, file paths, or a validation report excerpt. Text, not description.
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I ran `tests/check-sources.ps1` and `tests/render-and-validate.ps1` and included the result
+          required: true
+        - label: This is a defect, not a change request (use "Harness improvement" for those)
+          required: true

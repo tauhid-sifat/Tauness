@@ -1,6 +1,6 @@
 # AIDLC Harness — Implementation Roadmap
 
-> **Status:** Core harness document · harness 1.0.0 · 2026-11-09. Records both the original WP-0…WP-10 program (statuses as of today) and the generalization program (WP-G series). Approval ≠ implementation ≠ verification — each package tracks all three.
+> **Status:** Core harness document · harness 1.1.0 · 2026-11-09. Records both the original WP-0…WP-10 program (statuses as of today) and the generalization program (WP-G series). Approval ≠ implementation ≠ verification — each package tracks all three.
 
 ## 1. Current package status
 

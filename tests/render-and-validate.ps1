@@ -34,6 +34,12 @@ function Get-TextSafe([string]$Path) {
     if (-not (Test-Path $Path)) { return '' }
     return Get-Text $Path
 }
+function Get-StableText([string]$Path) {
+    # Content with generated date stamps removed and newlines normalized, so "re-render produced the
+    # same instance" can be asserted without the test failing at midnight.
+    $t = Get-TextSafe $Path
+    return (($t -split "`r?`n" | Where-Object { $_ -notmatch '\d{4}-\d{2}-\d{2}' }) -join "`n")
+}
 function Write-Utf8NoBom([string]$Path, [string]$Text) {
     $dir = Split-Path -Parent $Path
     if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
@@ -65,6 +71,8 @@ try {
         (Join-Path '.github/ISSUE_TEMPLATE' 'bug.yml'),
         (Join-Path '.github/workflows' 'ci.yml'),
         (Join-Path '.github/workflows' 'harness-validation.yml'),
+        (Join-Path '.github' 'CODEOWNERS'),
+        (Join-Path '.github' 'pull_request_template.md'),
         (Join-Path '.opencode/agents' 'project-manager.md'),
         (Join-Path '.opencode/commands' 'pm.md'),
         (Join-Path '.opencode/commands' 'improve-harness.md')
@@ -81,6 +89,12 @@ try {
         $cfg = Join-Path $workRoot ($tag + '.project.yaml')
 
         $text = $fixtureText.Replace('profile: "full"', ('profile: "' + $v.Profile + '"'))
+        # The fixture states a literal kit version because project.yaml is copied verbatim into the
+        # instance (an unresolved placeholder there is a leak). The runner rewrites it to the real
+        # version and the instance stamp is asserted below, so bumping HARNESS-VERSION needs no
+        # fixture edit and a mismatch still fails.
+        $kitVersion = (Get-Content (Join-Path $repoRoot 'harness/HARNESS-VERSION') -Raw).Trim()
+        $text = $text.Replace('kit_version: "1.0.0"', ('kit_version: "' + $kitVersion + '"'))
         if ($v.AllIntegrations) {
             foreach ($k in @('github_projects_v2', 'open_knowledge', 'browser_live', 'web_research', 'design_system_tools')) {
                 $text = $text.Replace(($k + ': false'), ($k + ': true'))
@@ -158,6 +172,21 @@ try {
         if ($openCodeAll -notmatch 'vercel') { $fails += ("{0}: stack.deploy_commands did not render vercel denies" -f $v.Name) }
         if ($openCodeAll -notmatch 'tool.use.*shell:vercel') { $fails += ("{0}: deploy CLI missing from the policies (tool.use) layer" -f $v.Name) }
 
+        # ---- governance artifacts the documentation promises must actually be produced. CODEOWNERS
+        #      is what makes "only the owner merges" a GitHub-side control (negative test G-02); both
+        #      files sat in the kit and were rendered into nothing until the render plan was audited.
+        $ownersText = Get-TextSafe (Join-Path $dir '.github/CODEOWNERS')
+        if ($ownersText -notmatch '@example-owner') { $fails += ("{0}: CODEOWNERS missing or does not name the project owner" -f $v.Name) }
+        if ($ownersText -notmatch '/docs/project/decisions/') { $fails += ("{0}: CODEOWNERS does not route decision history to the owner" -f $v.Name) }
+        $prTpl = Get-TextSafe (Join-Path $dir '.github/pull_request_template.md')
+        if ($prTpl -notmatch 'Req: FIX-REQ-') { $fails += ("{0}: PR template missing or rendered without the project ID prefix" -f $v.Name) }
+        $projYaml = Get-TextSafe (Join-Path $dir 'project.yaml')
+        if ($projYaml -notmatch ('kit_version: "' + [regex]::Escape($kitVersion) + '"')) { $fails += ("{0}: instance kit_version stamp is not {1}" -f $v.Name, $kitVersion) }
+        # Provenance must be attested and must match between the record and the generated files.
+        if ($projYaml -match 'rendered_from_commit:\s*\{\{') { $fails += ("{0}: project.yaml still carries an unsubstituted commit placeholder" -f $v.Name) }
+        if ($projYaml -notmatch '(?m)^\s*rendered_from_commit: "?[a-f0-9]{7,40}"?\s*$') { $fails += ("{0}: project.yaml does not record an attested kit commit" -f $v.Name) }
+        if ((Get-TextSafe (Join-Path $dir 'opencode.jsonc')) -notmatch 'commit [a-f0-9]{7,40}') { $fails += ("{0}: opencode.jsonc baseline does not name a kit commit" -f $v.Name) }
+
         # ---- validate with the kit's own validator; results come from the report it writes
         $before = $fails.Count
         $resultLine = ''
@@ -192,6 +221,39 @@ try {
             foreach ($marker in $requiredPassMarkers) {
                 if ($rep -notmatch [regex]::Escape($marker)) { $fails += ("{0}: validator recorded no '{1}' - that check was skipped, not passed" -f $v.Name, $marker) }
             }
+        }
+
+        # ---- upgrade path: apply-harness-change.ps1 re-renders an instance from the kit. "Upgrades
+        #      propagate mechanically" is the kit's central promise and this path had zero coverage.
+        $applyBackup = Join-Path $workRoot ($tag + '.apply-backup')
+        $agentsBefore = Get-StableText (Join-Path $dir 'AGENTS.md')
+        $configBefore = Get-StableText (Join-Path $dir 'opencode.jsonc')
+        $applyDryExit = -1
+        $applyThrew = $false
+        Push-Location $dir
+        try {
+            & (Join-Path $scriptsDir 'apply-harness-change.ps1') -DryRun 6>&1 2>&1 | Out-Null
+            $applyDryExit = $LASTEXITCODE
+            & (Join-Path $scriptsDir 'apply-harness-change.ps1') -Force -BackupDir $applyBackup 6>&1 2>&1 | Out-Null
+        } catch {
+            $applyThrew = $true
+            $fails += ("{0}: apply-harness-change.ps1 threw: {1}" -f $v.Name, $_.Exception.Message)
+        } finally { Pop-Location }
+        if ($applyDryExit -ne 0) { $fails += ("{0}: apply -DryRun exit {1}" -f $v.Name, $applyDryExit) }
+        if (-not $applyThrew) {
+            # The success path sets no exit code, so completion is proven from the artifacts the
+            # script promises: a backup copy of every file it overwrites.
+            foreach ($b in @('AGENTS.md', 'opencode.jsonc', (Join-Path '.opencode\agents' 'project-manager.md'), (Join-Path '.github' 'CODEOWNERS'), (Join-Path '.github' 'pull_request_template.md'))) {
+                if (-not (Test-Path (Join-Path $applyBackup $b))) { $fails += ("{0}: apply overwrote {1} without backing it up first" -f $v.Name, $b) }
+            }
+            if ((Get-StableText (Join-Path $dir 'AGENTS.md')) -ne $agentsBefore) { $fails += ("{0}: re-apply changed AGENTS.md - rendering is not deterministic" -f $v.Name) }
+            if ((Get-StableText (Join-Path $dir 'opencode.jsonc')) -ne $configBefore) { $fails += ("{0}: re-apply changed opencode.jsonc - rendering is not deterministic" -f $v.Name) }
+            # an upgrade must not degrade the instance
+            & (Join-Path $scriptsDir 'validate-harness.ps1') -Root $dir 6>&1 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) { $fails += ("{0}: instance no longer validates after re-apply (exit {1})" -f $v.Name, $LASTEXITCODE) }
+            $afterCmds = @(Get-ChildItem -File (Join-Path $dir '.opencode/commands') -Filter *.md -ErrorAction SilentlyContinue).Count
+            if ($afterCmds -ne 16) { $fails += ("{0}: after re-apply the instance has {1} commands, expected 16" -f $v.Name, $afterCmds) }
+            if (-not (Test-Path (Join-Path $dir '.github/CODEOWNERS'))) { $fails += ("{0}: re-apply removed CODEOWNERS" -f $v.Name) }
         }
 
         if ($fails.Count -eq $before) { $lines += ("  [ok]   {0}: {1}" -f $v.Name, $resultLine) }

@@ -229,6 +229,40 @@ function Get-StackPolicyDenies { param([hashtable]$Cfg)
     return $out
 }
 
+function Get-KitCommit {
+    param([string]$KitDir, [string]$TargetDir)
+    # Provenance rule. Only the kit's own repository can attest which kit commit is being rendered.
+    # A rendered instance contains a *copy* of the kit, so git there reports the instance commit -
+    # stamping that as the kit commit would make two instances of the same kit claim different
+    # provenance, and re-applying an upgrade would silently rewrite its own history. So: inside an
+    # instance, carry forward the stamp it already recorded; otherwise resolve from the kit repo;
+    # otherwise say 'unknown' rather than invent something.
+    $recorded = 'unknown'
+    if ($TargetDir) {
+        $py = Join-Path $TargetDir 'project.yaml'
+        if (Test-Path $py) {
+            foreach ($line in ((Read-TextRaw $py) -split "`r?`n")) {
+                if ($line -match '^\s*rendered_from_commit:\s*(.+?)\s*$') {
+                    $v = ($Matches[1] -replace '^["\x27]|["\x27]$', '').Trim()
+                    if ($v -and $v -notmatch '\{\{') { $recorded = $v }
+                }
+            }
+        }
+    }
+    if ($recorded -ne 'unknown') { return $recorded }
+
+    $probeDir = Split-Path -Parent $KitDir
+    $sha = ''
+    $top = ''
+    try { $sha = (& git -C $probeDir rev-parse --short HEAD 2>$null) } catch { $sha = '' }
+    try { $top = (& git -C $probeDir rev-parse --show-toplevel 2>$null) } catch { $top = '' }
+    if (-not $sha) { return 'unknown' }
+    # A repository whose root holds project.yaml is an instance, not the kit home: its HEAD says
+    # nothing about the kit. Refuse to attribute it.
+    if ($top -and (Test-Path (Join-Path $top 'project.yaml'))) { return 'unknown' }
+    return ([string]$sha).Trim()
+}
+
 function Expand-Template { param([string]$Text, [hashtable]$Ctx, [ref]$LeakList)
     $result = $Text
     foreach ($k in $Ctx.Keys) { $result = $result.Replace('{{' + $k + '}}', [string]$Ctx[$k]) }

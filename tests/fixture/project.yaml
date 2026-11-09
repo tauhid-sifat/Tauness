@@ -68,9 +68,10 @@ workspace:
   knowledge_dir: docs/project/knowledge
   working_notes_dir: docs/project/working
 
-# harness bookkeeping - the real scripts write these; a fixture states them literally because
-# project.yaml is copied verbatim into the instance, and an unresolved double-brace placeholder
-# left in it would be reported as a template leak by validate-harness.ps1.
+# harness bookkeeping - the real scripts write these. A fixture states them literally because
+# project.yaml is copied verbatim into the instance and an unresolved double-brace placeholder left
+# in it would be reported as a template leak by validate-harness.ps1. init-project.ps1 rewrites both
+# stamps to the values the instance was actually rendered from, so these literals never propagate.
 harness:
   kit_version: "1.0.0"
   rendered_from_commit: "fixture"

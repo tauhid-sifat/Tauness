@@ -1,6 +1,6 @@
 # AIDLC Harness — GitHub Governance
 
-> **Status:** Core harness specification (Layer A) · harness 1.0.0 · 2026-11-09. Mechanically generated instance artifacts live in `harness/kit/github/`; this document governs their meaning.
+> **Status:** Core harness specification (Layer A) · harness 1.1.0 · 2026-11-09. Mechanically generated instance artifacts live in `harness/kit/github/`; this document governs their meaning.
 > **Depends on:** `workflow-and-governance.md`, `security-and-permissions.md`
 
 ---
@@ -34,7 +34,7 @@ Generated from `harness/kit/github/ISSUE_TEMPLATE/*.tmpl` with project prefix, a
 
 ## 6. Labels
 
-Taxonomy in `harness/kit/github/labels.json` → `sync-labels.ps1` creates/updates: `type:*` (exactly one), `phase-*` (profile-derived, exactly one), `area:*` (from `project.yaml`), `priority:p0-p3`, `risk-*`, plus `blocked`, `needs-approval`, `security`, `experimental`, `good-first-task`. **Status is not a label** (Projects v2 owns it, OD-06). No ad-hoc labels: extend the taxonomy doc first.
+Taxonomy in `harness/kit/github/labels.json` → `sync-labels.ps1` creates/updates: `type:*` (exactly one), `phase-*` (profile-derived, exactly one), `area:*` (from `project.yaml`), `priority:p0-p3`, `risk-*`, plus `blocked`, `needs-approval`, `security`, `experimental`, `good-first-task`. **Status is not a label** (Projects v2 owns it, OD-06). No ad-hoc labels: extend the taxonomy doc first. The file is machine-read with `ConvertFrom-Json`, so it must stay comment-free JSON — `tests/check-sources.ps1` parses every `kit/**/*.json` to enforce that.
 
 ## 7. Projects v2 (when enabled)
 

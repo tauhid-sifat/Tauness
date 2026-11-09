@@ -112,7 +112,7 @@ if (Test-Path $index) {
         @{ id = 'roles';      want = 7;  label = 'role agents in the roles table' },
         @{ id = 'commands';   want = 16; label = 'commands in the commands table' },
         @{ id = 'lifecycle';  want = 8;  label = 'phases in the lifecycle table (7 canonical + 0-intake)' },
-        @{ id = 'gaps';       want = 8;  label = 'rows in the not-yet-proven table' }
+        @{ id = 'gaps';       want = 10; label = 'rows in the not-yet-proven table' }
     )
     foreach ($c in $claims) {
         $rows = Get-FirstTableRows $c.id
@@ -124,11 +124,13 @@ if (Test-Path $index) {
     $delegateRows = @([regex]::Matches($html, '(?s)id="roles".*?</table>\s*<h3>Delegation matrix.*?<table>([\s\S]*?)</table>') | ForEach-Object { @([regex]::Matches($_.Groups[1].Value, '<tr>')).Count - 1 })
     if ($delegateRows.Count -eq 0 -or $delegateRows[0] -ne 7) { Add-Fail "delegation matrix rows: expected 7, found $($delegateRows[0])" }
 
-    # honesty section must stay present and must not be watered down to nothing.
+    # honesty section must stay present and must not be watered down to nothing. These are the items
+    # that are genuinely outstanding right now; asserting their wording means a future edit that
+    # quietly deletes a caveat fails the gate instead of shipping a more flattering page.
     # The U+2260 in "approved != implemented != verified" is built from its code point because this
     # script's own source must stay ASCII-only (the rule check-sources.ps1 enforces).
     $ne = [string][char]0x2260
-    $musts = @('N-01 to N-30', 'ConvertFrom-Json', 'pull_request_template.md.tmpl', 'Windows-only',
+    $musts = @('N-01 to N-30', 'Windows-only', 'no LICENSE file', '41 WARNs', 'never been executed',
                ('approved ' + $ne + ' implemented ' + $ne + ' verified'))
     foreach ($must in $musts) {
         if ($html -notmatch [regex]::Escape($must)) { Add-Fail "index.html no longer states: $must" }

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security issue
+    url: https://github.com/tauhid-sifat/Tauness/security/advisories/new
+    about: Please do not open a public issue. Report vulnerabilities privately through a GitHub security advisory.
+  - name: Kit documentation
+    url: https://github.com/tauhid-sifat/Tauness/tree/main/docs/harness
+    about: Specifications, decision records, and audits that describe how the harness is meant to work.
+  - name: Engineering handbook
+    url: https://tauhid-sifat.github.io/Tauness/
+    about: The browsable handbook, including what the harness does not yet prove.

@@ -1,0 +1,92 @@
+# Changelog
+
+All notable changes to the AIDLC Harness kit. Version is `harness/HARNESS-VERSION`; every bump gets an
+entry here, and material changes (permissions, policies, gates, approvals - OD-18) also get an ADR in
+[`docs/harness/adr/`](docs/harness/adr/INDEX.md).
+
+## [1.1.0] - 2026-11-09
+
+Rendering output changed: instances are now more complete and self-consistent than before.
+
+### Added
+
+- **`/improve-harness`** (16th command, PM-bound): evidence-backed harness-change proposal with a
+  duplicate check, change classification, version-bump mapping, and a drafted `harness-improvement`
+  issue. Proposes only - applying stays with the owner and `apply-harness-change.ps1`. Writes inside
+  the PM's existing `docs/project/working/project-manager/**` scope, so no permission was widened.
+  (ADR-H-012)
+- **`.github/CODEOWNERS` and `.github/pull_request_template.md` are now rendered into instances.**
+  Both existed as templates and were absent from `Get-RenderPlan`, so no instance ever had them -
+  while `project-initialization.md` claimed they did and the GitHub-side control test G-02 depends on
+  CODEOWNERS review.
+- **Render-plan reachability audit** in `tests/check-sources.ps1`: every file under `harness/kit/`
+  must be rendered by `Get-RenderPlan` or be a declared non-rendered input with a stated reason. This
+  is the check that turns the above class of defect into a build failure.
+- **Kit JSON validation** in `tests/check-sources.ps1`: every `kit/**/*.json` must parse as JSON.
+- **Interview-template slot audit**: `kit/project.yaml.tmpl` is substituted by `init-project.ps1`'s
+  interview, not `Expand-Template`, so it had been outside every slot check.
+- **Upgrade coverage in the self-test**: each variant now runs `apply-harness-change.ps1 -DryRun` and
+  `-Force`, asserts the promised backup of every overwritten file, asserts re-rendering is
+  deterministic, and re-validates afterwards. The kit's central promise had no test at all.
+- **Governance files for this repository**: issue forms (bug, harness-improvement), issue config with
+  a private security contact path, `CONTRIBUTING.md`, `SECURITY.md`, `CODEOWNERS`.
+
+### Fixed
+
+- **`sync-labels.ps1` could not run.** `harness/kit/github/labels.json` was commented YAML while the
+  script parsed it with `ConvertFrom-Json`, so the label step of setup failed on every instance. The
+  taxonomy is now real JSON and its prose notes live in `docs/harness/github-governance.md`.
+- **`project.yaml` shipped an unresolved placeholder.** The interview path substituted every token but
+  `{{KIT_COMMIT}}`, so an instance created through the documented onboarding route failed
+  `validate-harness.ps1`'s own placeholder check on its own configuration file.
+- **Ambiguous provenance.** `rendered_from_commit` used to be whatever git reported for the directory
+  holding the kit copy - which inside an instance is the *instance* commit, making two instances of
+  one kit claim different provenance and letting a re-apply rewrite its own history. Resolution now:
+  inside an instance the recorded stamp is carried forward; otherwise it is attested by the kit
+  repository; otherwise `unknown`. `init-project.ps1` writes the same value the templates were
+  rendered with, so record and generated files can no longer disagree.
+
+### Changed
+
+- `validate-harness.ps1` expects 16 commands (was 15).
+- Documentation stamps updated to `harness 1.1.0` (13 files); `open-decisions.md` header claimed
+  OD-27-OD-34 when the index ends at OD-32.
+- `docs/harness/repository-structure.md` reconciled on `harness/reports/`: committed as gate evidence
+  in an instance, ignored in the kit home repository, where it is regenerated on every run.
+- `kit/github/ISSUE_TEMPLATE/spec.yaml` (a "removed" tombstone) deleted.
+- Handbook: sixteen commands, new command row, `What is not yet proven` updated to match what is now
+  fixed versus genuinely outstanding.
+
+## [1.0.1] - 2026-11-09
+
+### Fixed
+
+Five defects that were live simultaneously, all found by building the first automated kit self-test:
+
+- `lib-render.ps1` was unparseable under Windows PowerShell 5.1 (non-ASCII literals in BOM-less
+  UTF-8; `U+2192` decodes to bytes containing an apostrophe). All six scripts are now ASCII-only, and
+  glyphs needed in rendered output are emitted from code points.
+- A stray quote in `Get-StackPolicyDenies` broke parsing independently of encoding - the renderer had
+  never run.
+- `New-RenderContext` looked for `HARNESS-VERSION` inside `kit/`, where it does not live.
+- `init-project.ps1` assigned `$Target` from `Resolve-Path`, which returns nothing for a directory
+  that does not exist yet, so creating a new project always failed.
+- `lib-apply.ps1` stripped the 5-character `.tmpl` suffix by removing 6 characters, truncating every
+  generated file's extension (`business-analyst.m`, `bug.ym`, `phase-state.m`).
+
+`validate-harness.ps1` was also corrected: the placeholder sweep no longer flags the substitution code
+and core docs as leaks, and `Set-StrictMode` `Count` errors can no longer make the agent-count and
+command-count checks silently skip.
+
+### Added
+
+- Kit self-test: `tests/check-sources.ps1`, `tests/render-and-validate.ps1`,
+  `.github/workflows/kit-validation.yml`.
+
+## [1.0.0] - 2026-11-09
+
+- Initial project-agnostic AIDLC core kit: 7 role agents, 15 commands, 5 lifecycle profiles over 7
+  phases, two-tier enforcement (deny-by-default permissions + delegation-proof `policies`), Git-markdown
+  knowledge base with staging/critic/acceptance, GitHub governance assets, renderer (`lib-render.ps1`,
+  `lib-apply.ps1`), and the init/apply/validate/sync-labels scripts. Extracted from the first instance,
+  which was built project-specifically and then generalized (ADR-H-001).

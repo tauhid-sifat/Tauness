@@ -24,6 +24,13 @@ function Get-Text([string]$Path) {
     return [System.Text.Encoding]::UTF8.GetString([System.IO.File]::ReadAllBytes($Path))
 }
 
+function Get-CodeOnly([string]$Text) {
+    # Remove whole-line comments so commented-out code cannot masquerade as a live statement, while
+    # still matching assignments that sit mid-line inside if/switch bodies.
+    $kept = @($Text -split "`r?`n" | Where-Object { $_ -notmatch '^\s*#' })
+    return ($kept -join "`n")
+}
+
 # ---- 1. Script sources: ASCII-only, no BOM, parse cleanly (kit scripts and test scripts alike)
 $allowedExt = @('md', 'yml', 'yaml', 'json', 'jsonc', 'ps1', 'txt')
 $scriptDirs = @((Join-Path $repoRoot 'harness/scripts'), $PSScriptRoot)
@@ -48,7 +55,7 @@ foreach ($f in $scripts) {
         Add-Fail ("{0}: parse error at line {1}, column {2}: {3}" -f $f.Name, $first.Token.StartLine, $first.Token.StartColumn, $first.Message)
     }
 }
-Write-Host ("[1/5] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
+Write-Host ("[1/7] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
 
 # ---- 2. Data files: no BOM in the kit, core docs, or fixtures
 $dataRoots = @('harness', 'docs/harness', 'tests')
@@ -64,7 +71,7 @@ foreach ($rel in $dataRoots) {
         }
     }
 }
-Write-Host ("[2/5] data: {0} files scanned for BOM" -f $dataScanned)
+Write-Host ("[2/7] data: {0} files scanned for BOM" -f $dataScanned)
 
 # ---- 3. Template slot audit
 # Produced slots: $ctx['X'] = ... / $slots['X'] = ... in the renderer, plus the tokens
@@ -73,13 +80,16 @@ $produced = @{}
 foreach ($lib in @('lib-render.ps1', 'lib-apply.ps1')) {
     $libPath = Join-Path $repoRoot ('harness/scripts/' + $lib)
     if (-not (Test-Path $libPath)) { Add-Fail "missing renderer library: $lib"; continue }
-    foreach ($m in [regex]::Matches((Get-Text $libPath), '\$(?:ctx|slots)\[''([A-Z0-9_]+)'']\s*\+?=')) {
+    # Only a live assignment counts as a producer. Whole-line comments are stripped first so
+    # commented-out code cannot hide the defect this audit exists to find, while assignments that
+    # sit mid-line inside if/switch bodies (BROWSER_BASE_URL, DATA_PROTECTION_RULE) are still seen.
+    foreach ($m in [regex]::Matches((Get-CodeOnly (Get-Text $libPath)), '\$(?:ctx|slots)\[''([A-Z0-9_]+)'']\s*\+?=')) {
         $produced[$m.Groups[1].Value] = $lib
     }
 }
 $initPath = Join-Path $repoRoot 'harness/scripts/init-project.ps1'
 if (Test-Path $initPath) {
-    foreach ($m in [regex]::Matches((Get-Text $initPath), "'\{\{([A-Z0-9_]+)\}\}'")) {
+    foreach ($m in [regex]::Matches((Get-CodeOnly (Get-Text $initPath)), '\$\w+\s*=\s*\$\w+\.Replace\(''\{\{([A-Z0-9_]+)\}\}''')) {
         $produced[$m.Groups[1].Value] = 'init-project.ps1'
     }
 }
@@ -104,7 +114,30 @@ foreach ($tok in $unknown) {
     Add-Fail ("template slot {{{0}}} has no producer in the renderer (used by: {1})" -f $tok, (($used[$tok] | Sort-Object -Unique) -join ', '))
 }
 $unused = @($produced.Keys | Where-Object { -not $used.ContainsKey($_) } | Sort-Object)
-Write-Host ("[3/5] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced" -f $used.Count, $unknown.Count, $unused.Count)
+# kit/project.yaml.tmpl is not rendered by Expand-Template: init-project.ps1's interview substitutes
+# its tokens directly, so the audit above deliberately skips it. That skip hid a real defect - the
+# template used {{KIT_COMMIT}} while the interview never replaced it, so every instance created
+# through the documented onboarding path shipped a literal placeholder in its own project.yaml.
+# Audit it here against the interview's actual producer set.
+$interview = @{}
+if (Test-Path $initPath) {
+    $itText = Get-Text $initPath
+    foreach ($m in [regex]::Matches($itText, '^\s+([A-Z][A-Z0-9_]*)\s*=\s*Read-Host', 'Multiline')) { $interview[$m.Groups[1].Value] = $true }
+    foreach ($m in [regex]::Matches((Get-CodeOnly $itText), '\$\w+\s*=\s*\$\w+\.Replace\(''\{\{([A-Z0-9_]+)\}\}''')) { $interview[$m.Groups[1].Value] = $true }
+}
+$interviewTmpl = Join-Path $repoRoot 'harness/kit/project.yaml.tmpl'
+$interviewUnknown = @()
+if (Test-Path $interviewTmpl) {
+    foreach ($m in [regex]::Matches((Get-Text $interviewTmpl), '\{\{([A-Z0-9_]+)\}\}')) {
+        $tok = $m.Groups[1].Value
+        if (-not $interview.ContainsKey($tok)) { $interviewUnknown += $tok }
+    }
+}
+foreach ($tok in ($interviewUnknown | Sort-Object -Unique)) {
+    Add-Fail ("project.yaml.tmpl slot {" + $tok + "} has no producer in init-project.ps1's interview")
+}
+
+Write-Host ("[3/7] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
 if ($unused.Count -gt 0) { Write-Host ("       produced but not referenced by rendered templates (project.yaml.tmpl consumes these at interview time): " + ($unused -join ', ')) }
 
 # ---- 4. Core kit contract, asserted by name
@@ -156,7 +189,7 @@ if (Test-Path $profilesPath) { $profilesText = Get-Text $profilesPath }
 foreach ($profile in @('full', 'lean', 'headless', 'brownfield', 'micro')) {
     if ($profilesText -notmatch "(?m)^  $([regex]::Escape($profile)):\s*$") { Add-Fail "lifecycle profile '$profile' missing from profiles.yaml" }
 }
-Write-Host ("[4/5] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
+Write-Host ("[4/7] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
 
 # Kit file names must be truncation-safe: the renderer strips the .tmpl suffix by character count,
 # so anything left over must be a real, expected extension (CODEOWNERS.tmpl correctly leaves no
@@ -169,7 +202,51 @@ $mangled = @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit') -E
     return -not ($allowedExt -contains $ext.ToLowerInvariant())
 })
 foreach ($m in $mangled) { Add-Fail ("unexpected file extension: " + $m.Name) }
-Write-Host ("[5/5] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
+Write-Host ("[5/7] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
+
+# ---- 6. Reachability: every kit file must be rendered, or be a declared non-rendered input.
+#      Get-RenderPlan is the renderer's own statement of what it can reach, so it is called here
+#      rather than re-implemented. This is the check that would have caught CODEOWNERS.tmpl and
+#      pull_request_template.md.tmpl living in the kit, being asserted on by the docs, and never
+#      rendered into a single instance.
+. (Join-Path $repoRoot 'harness/scripts/lib-render.ps1')
+. (Join-Path $repoRoot 'harness/scripts/lib-apply.ps1')
+$kitPath = Join-Path $repoRoot 'harness/kit'
+$planTarget = Join-Path ([System.IO.Path]::GetTempPath()) ('render-plan-audit-' + [Guid]::NewGuid().ToString('N').Substring(0, 8))
+$plan = @(Get-RenderPlan -KitDir $kitPath -TargetDir $planTarget)
+$reachable = @{}
+foreach ($item in $plan) {
+    # Get-RenderPlan stores Src as a FileInfo for wildcard matches and a string for explicit singletons;
+    # [string] normalizes both (FileInfo renders as its full path).
+    $srcPath = [string]$item.Src
+    $rel = ($srcPath.Substring($kitPath.Length + 1)) -replace '\\', '/'
+    $reachable[$rel] = $true
+    if (-not (Test-Path $srcPath)) { Add-Fail ("render plan points at a missing source: $rel") }
+}
+# Files the renderer never touches. Each needs a stated reason, so an exemption is a decision,
+# not an oversight that nobody noticed.
+$notRendered = @{}
+$notRendered['project.yaml.tmpl'] = 'interview script substituted by init-project.ps1, not Expand-Template'
+$notRendered['lifecycle/profiles.yaml'] = 'data input read by Get-ProfilePhases at render and label time'
+$kitFiles = @(Get-ChildItem -File -Recurse $kitPath | ForEach-Object { ($_.FullName.Substring($kitPath.Length + 1)) -replace '\\', '/' })
+foreach ($f in ($kitFiles | Sort-Object)) {
+    if (-not $reachable.ContainsKey($f) -and -not $notRendered.ContainsKey($f)) {
+        Add-Fail "kit file is unreachable from the render plan and has no declared exemption: $f"
+    }
+}
+foreach ($f in @($notRendered.Keys | Sort-Object)) {
+    if ($kitFiles -notcontains $f) { Add-Fail "declared non-rendered input is missing from the kit: $f" }
+}
+Write-Host ("[6/7] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
+
+# ---- 7. Data format contract: kit JSON must be JSON (sync-labels.ps1 pipes labels.json to
+#      ConvertFrom-Json; the file shipped as commented YAML and no check could see that).
+$jsonFiles = @(Get-ChildItem -File -Recurse $kitPath -Filter *.json -ErrorAction SilentlyContinue)
+foreach ($f in $jsonFiles) {
+    try { $null = (Get-Text $f.FullName) | ConvertFrom-Json }
+    catch { Add-Fail ("{0} is not valid JSON ({1})" -f $f.Name, $_.Exception.Message) }
+}
+Write-Host ("[7/7] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
 
 if ($fails.Count -gt 0) {
     Write-Host ""

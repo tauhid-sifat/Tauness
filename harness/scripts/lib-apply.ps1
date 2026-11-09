@@ -56,6 +56,11 @@ function Get-RenderPlan { param([string]$KitDir, [string]$TargetDir, [string]$Do
     AddItem @(Get-ChildItem -File (Join-Path $k 'github\workflows\*.tmpl')) '.github\workflows' $true 'instance'
     AddItem @((Join-Path $k 'github\workflows\harness-validation.yml')) '.github\workflows' $false 'instance'
     AddItem @((Join-Path $k 'github\labels.json')) '.github' $false 'instance'
+    # Governance files GitHub reads from .github/ directly. These two were absent from the plan,
+    # so instances silently lacked the CODEOWNERS review requirement that the GitHub-side controls
+    # (negative test G-02) and project-initialization.md both assume exists.
+    AddItem @((Join-Path $k 'github\CODEOWNERS.tmpl')) '.github' $true 'instance'
+    AddItem @((Join-Path $k 'github\pull_request_template.md.tmpl')) '.github' $true 'instance'
     # docs/project tree (mirror structure; strip .tmpl) - init only
     $docsRoot = Join-Path $k 'docs\project'
     foreach ($f in (Get-ChildItem -File -Recurse $docsRoot)) {
@@ -104,8 +109,7 @@ function Invoke-HarnessRender {
     }
     $ctx['MCP_SERVERS'] = if ($srvRef) { $srvRef } else { '' }
     $ctx['STACK_POLICY_DENY_RULES'] = Get-StackPolicyDenies $cfg
-    $ctx['KIT_COMMIT'] = 'local'
-    try { $ctx['KIT_COMMIT'] = (& git -C (Split-Path -Parent $KitDir) rev-parse --short HEAD) 2>$null } catch {}
+    $ctx['KIT_COMMIT'] = Get-KitCommit -KitDir $KitDir -TargetDir $TargetDir
     $ctx['CI_STACK_STEPS'] = ''
     $ctx['SECURITY_STACK_STEPS'] = ''
 
@@ -147,5 +151,5 @@ function Invoke-HarnessRender {
             Copy-Item -Path (Join-Path $srcRoot 'README.md') -Destination (Join-Path $kitDstRoot 'README.md') -Force
         }
     }
-    [pscustomobject]@{ Files = $plan.Count; Rendered = if ($DryRun) { $created } else { $created + $overwritten }; Skipped = $skipped; Leaks = $leaks }
+    [pscustomobject]@{ Files = $plan.Count; Rendered = if ($DryRun) { $created } else { $created + $overwritten }; Skipped = $skipped; Leaks = $leaks; Commit = $ctx['KIT_COMMIT']; KitVersion = $ctx['KIT_VERSION'] }
 }

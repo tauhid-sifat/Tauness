@@ -1,0 +1,59 @@
+name: Harness improvement
+description: Proposal to change the kit, its enforcement model, templates, or governance
+title: "[Harness] "
+labels: ["type:harness-improvement"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Render instance provenance in a way that survives re-apply
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem observed
+      description: What you tried to do, what happened, and the evidence. A named artifact and its behaviour, not a feeling.
+      placeholder: |
+        In kit 1.1.0, apply-harness-change.ps1 rewrites ... , which means ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change (kit file / rule / template)
+      description: Name the file and show the diff or the new content.
+    validations:
+      required: true
+  - type: dropdown
+    id: class
+    attributes:
+      label: Change class
+      description: Determines review depth and version bump. Permission, policy, and governance changes are material (OD-18) and need an ADR.
+      options:
+        - doc-only (patch)
+        - template or command (minor)
+        - permission, policy, or governance rule (minor + ADR)
+        - renderer or script behaviour (minor + self-test run)
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Risk, permissions, and governance impact
+      description: What could this weaken, and how would an agent bypass it if merged as proposed?
+  - type: textarea
+    id: proof
+    attributes:
+      label: What would prove it works
+      description: A self-test assertion, a negative-test row (N-01..N-30), or a validation marker.
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I cannot apply this myself - agents never edit harness/config directly
+          required: true
+        - label: Owner approval and `apply-harness-change.ps1` are required
+          required: true

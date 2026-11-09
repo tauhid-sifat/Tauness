@@ -1,6 +1,6 @@
 # AIDLC Harness — Repository Structure
 
-> **Status:** Core harness specification (Layer A) · harness 1.0.0 · 2026-11-09. Defines the three-layer physical layout of every instance; generalizes the 2026-11-02 project-scoped structure.
+> **Status:** Core harness specification (Layer A) · harness 1.1.0 · 2026-11-09. Defines the three-layer physical layout of every instance; generalizes the 2026-11-02 project-scoped structure.
 
 ## 1. Target layout (every harness repository)
 
@@ -68,4 +68,4 @@
 
 ## 4. Ignore policy
 
-`.env*` (except examples), keys/certs, `.opencode/state|cache|logs|history|tmp|telemetry`, `worktrees/`, `.hallmark/`, `.impeccable/`, `.playwright*`, `.firecrawl/`, `docs/project/working/*/inbox/`, node/build artifacts per stack. Committed: `.opencode/skills|agents|commands`, `.agents/skills` (provenance-locked), `skills-lock.json`, `docs/`, `.github/`, `harness/` (incl. reports as evidence), `project.yaml`.
+`.env*` (except examples), keys/certs, `.opencode/state|cache|logs|history|tmp|telemetry`, `worktrees/`, `.hallmark/`, `.impeccable/`, `.playwright*`, `.firecrawl/`, `docs/project/working/*/inbox/`, node/build artifacts per stack. Committed: `.opencode/skills|agents|commands`, `.agents/skills` (provenance-locked), `skills-lock.json`, `docs/`, `.github/`, `project.yaml`, and in an **instance** also `harness/reports/` (validation output kept as gate evidence). The kit home repository is the exception: it ignores `harness/reports/` and `harness/staging/` because both are regenerated there and staging carries rendered project values that Layer A must not hold.
