@@ -69,7 +69,7 @@ Phase-state file `docs/project/status/phase-state.md` (frontmatter machine-reada
 | Material change (OD-18: behaviour, business rule, AC, data model, auth, security control, integration boundary, scope, timeline, public commitment, new dependency/service, topology, production config, decision reversal) | prepare only | ✅ approval before implementation |
 | Phase transition | prepare gate pack | ✅ approve + merge |
 | Production deploy / destructive data / pen-test / secret rotation | prepare workflow/runbook | ✅ explicit authorization each time |
-| Harness change (kit, AGENTS, config, governance docs, agents/commands) | propose via harness-improvement issue | ✅ approve + apply script |
+| Harness change (kit, AGENTS, config, governance docs, agents/commands) | propose via `/improve-harness` -> harness-improvement issue | ✅ approve + apply script |
 | New integration/MCP/provider/skill enablement | propose with evaluation note | ✅ (OD-18 + security review) |
 | Exception to a deny/ask | never self-serve | ✅ policy change |
 

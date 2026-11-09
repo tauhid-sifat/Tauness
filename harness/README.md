@@ -28,7 +28,7 @@ harness/
 │   ├── README-project.md.tmpl   # instance README
 │   ├── config/opencode.jsonc.tmpl # permission + policy baseline, rendered per project
 │   ├── agents/*.md.tmpl         # 7 role agents (generic bodies; stack slots rendered)
-│   ├── commands/*.md.tmpl       # 15 slash commands
+│   ├── commands/*.md.tmpl       # 16 slash commands
 │   ├── github/**                # issue forms, PR template, CODEOWNERS, workflows, labels.json
 │   ├── docs/**                  # project documentation + knowledge-base templates
 │   └── lifecycle/profiles.yaml  # lifecycle profiles for tailoring

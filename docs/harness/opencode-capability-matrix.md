@@ -27,7 +27,7 @@
 | `external_directory` defaults ALLOW unless configured | 1 | docs | Instance sets `ask` |
 | session_move external-directory approval fix | 6 | v2.2.6 changelog; installed 2.2.5 lacks it | Owner upgrade decision; interim rule: no external session moves |
 | `subagent` action + `experimental.subagent_depth` | 2/6 | configured; runtime depth enforcement unproven | Negative matrix N-19…N-22 before trusting delegation |
-| Commands (`.opencode/commands/*.md`; `agent`, `subagent: false`, `$ARGUMENTS`/`$n`, `!` shell blocks, nested paths) | 1 | docs + runtime | 15 commands; `subagent:false` direct-access pattern (OD-03) |
+| Commands (`.opencode/commands/*.md`; `agent`, `subagent: false`, `$ARGUMENTS`/`$n`, `!` shell blocks, nested paths) | 1 | docs + runtime | 16 commands; `subagent:false` direct-access pattern (OD-03) |
 | **Command shell blocks run outside the tool permission flow** | 1 | docs | No untrusted input in `!` blocks (harness bans issue/PR text in them) |
 | Skills: 3 roots, nested groups, deny via `skill` action + deny-all baseline | 1 | runtime 2.2.5 | Per-role allow-lists; phantom skills neutralized |
 | `/api/skill` project listing unreliable on 2.2.5 (empty while skills load) | — | observed 2026-11-03/09 | Acceptance test = fresh-session skill advertisement, not API listing |

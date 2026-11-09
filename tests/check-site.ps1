@@ -110,7 +110,7 @@ if (Test-Path $index) {
     }
     $claims = @(
         @{ id = 'roles';      want = 7;  label = 'role agents in the roles table' },
-        @{ id = 'commands';   want = 15; label = 'commands in the commands table' },
+        @{ id = 'commands';   want = 16; label = 'commands in the commands table' },
         @{ id = 'lifecycle';  want = 8;  label = 'phases in the lifecycle table (7 canonical + 0-intake)' },
         @{ id = 'gaps';       want = 8;  label = 'rows in the not-yet-proven table' }
     )

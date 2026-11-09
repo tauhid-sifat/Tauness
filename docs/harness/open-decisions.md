@@ -13,7 +13,7 @@
 |---|---|---|---|
 | OD-01 | OpenCode version | **Approved & executed** (2.2.5 verified) | 2.2.6+ upgrade remains an owner action (external-directory/session_move fix); until then governed sessions must not move sessions externally |
 | OD-02 | Hallmark owns `DESIGN.md`; Impeccable read-only | Approved | Implemented as core design-tool ownership rule (kit renders project routing); enforcement now in generated config |
-| OD-03 | Commands with `subagent: false`; no `mode: all` | Approved | Implemented; kit renders 15 commands on this pattern |
+| OD-03 | Commands with `subagent: false`; no `mode: all` | Approved | Implemented; kit renders 16 commands on this pattern |
 | OD-04 | Depth-2 delegation with named allow-lists | Approved | Implemented; runtime enforcement still to be proven (negative matrix) |
 | OD-05 | Role-specific model routing | Approved; conditions open | Models render from `project.yaml`; readiness `gated` until owner verifies privacy + structured output |
 | OD-06 | Projects v2 Status; Done/Closed semantics | Approved | Implementation blocked on `project`/`read:project` scopes (owner action) |

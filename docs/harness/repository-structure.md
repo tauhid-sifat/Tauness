@@ -21,7 +21,7 @@
 │   │   ├── project.yaml.tmpl  AGENTS.md.tmpl  gitignore.tmpl  README-project.md.tmpl
 │   │   ├── config/opencode.jsonc.tmpl
 │   │   ├── agents/*.md.tmpl       # 7 role agents
-│   │   ├── commands/*.md.tmpl     # 15 commands
+│   │   ├── commands/*.md.tmpl     # 16 commands
 │   │   ├── lifecycle/profiles.yaml
 │   │   ├── github/                # CODEOWNERS, PR template, 11 ISSUE_TEMPLATE + config, workflows, labels.json
 │   │   └── docs/project/          # workspace skeleton + KB templates (init-only; never overwritten)

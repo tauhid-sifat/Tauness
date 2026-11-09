@@ -18,11 +18,11 @@ You (owner) state intent → the **PM agent** decomposes it into ledger items an
 | Get a slice built | `/plan <scope>` then let PM run Development; you approve material items before build |
 | Review a PR | Read the **Reviewer advisory verdict** + **Security verdict** (if sensitive); you approve/merge |
 | Ship it | Deployment gate → owner Environment approval; smoke/rollback evidence |
-| Change the harness | open a `harness-improvement` issue; after approval `apply-harness-change.ps1` |
+| Change the harness | `/improve-harness` — writes an evidence-backed proposal and drafts the `harness-improvement` issue; after your approval, `apply-harness-change.ps1` |
 
 ## 2. Agent invocation
 
-PM is the default primary (`/pm`, `/plan`, `/status`, `/issue`, `/phase`, `/ops`). Specialists run in-session via commands (`/ba /design /dev /qa /review /security /intake /ask`, `subagent: false`) or as delegated subagents through the PM. Delegation is allow-listed (`agent-specifications.md` §1.4), depth 2, never transfers approval. A specialist can be addressed directly for a focused task but cannot bypass gates or permissions.
+PM is the default primary (`/pm`, `/plan`, `/status`, `/issue`, `/phase`, `/ops`, `/init-project`, `/improve-harness`). Specialists run in-session via commands (`/ba /design /dev /qa /review /security /intake /ask`, `subagent: false`) or as delegated subagents through the PM. Delegation is allow-listed (`agent-specifications.md` §1.4), depth 2, never transfers approval. A specialist can be addressed directly for a focused task but cannot bypass gates or permissions.
 
 ## 3. A normal work item, end to end
 

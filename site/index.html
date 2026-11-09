@@ -127,7 +127,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
         <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.0.1</span></div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.1.0</span></div>
   </div>
 
   <h2>Start here</h2>
@@ -140,7 +140,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
 
   <h2>How it works</h2>
   <a href="#roles">The seven roles</a>
-  <a href="#commands">The fifteen commands</a>
+  <a href="#commands">The sixteen commands</a>
   <a href="#lifecycle">Lifecycle and profiles</a>
   <a href="#enforcement">Enforcement</a>
   <a href="#kb">Knowledge base</a>
@@ -177,7 +177,7 @@ agent runtime reads.</p>
 
 <div class="grid">
   <div class="tile"><span class="n">7</span><h4>role agents</h4><p>A PM orchestrator plus Business Analyst, Designer, Developer, QA Engineer, Code Reviewer and Security Monitor. Each carries its own allow-list; the reviewer has zero write scope.</p></div>
-  <div class="tile"><span class="n">15</span><h4>slash commands</h4><p><code>/pm</code>, <code>/plan</code>, <code>/status</code>, <code>/issue</code>, <code>/phase</code>, <code>/ops</code>, <code>/init-project</code>, <code>/ba</code>, <code>/intake</code>, <code>/ask</code>, <code>/design</code>, <code>/dev</code>, <code>/qa</code>, <code>/review</code>, <code>/security</code>.</p></div>
+  <div class="tile"><span class="n">16</span><h4>slash commands</h4><p><code>/pm</code>, <code>/plan</code>, <code>/status</code>, <code>/issue</code>, <code>/phase</code>, <code>/ops</code>, <code>/init-project</code>, <code>/ba</code>, <code>/intake</code>, <code>/ask</code>, <code>/design</code>, <code>/dev</code>, <code>/qa</code>, <code>/review</code>, <code>/security</code>, <code>/improve-harness</code>.</p></div>
   <div class="tile"><span class="n">7 × 5</span><h4>phases and profiles</h4><p>Discovery to Operations, tailored by five profiles (<code>full</code>, <code>lean</code>, <code>headless</code>, <code>brownfield</code>, <code>micro</code>). Governance never changes with the profile.</p></div>
   <div class="tile"><span class="n">62</span><h4>hard denies</h4><p><code>tool.use</code> policy entries that survive agent allows, saved approvals and <code>--auto</code>: dangerous git, GitHub authority verbs, shell write-cmdlets, nested runtimes, publishing, secret reads.</p></div>
 </div>
@@ -358,7 +358,7 @@ becomes permanent. The blue strip at the bottom is always on. On a narrow screen
 <text x="130" y="573" class="dg-s">protected paths: AGENTS.md &#183; opencode.jsonc &#183; project.yaml &#183; .opencode/ &#183; .github/ &#183; harness/ &#183; docs/harness/ &#183; .env* unreadable &#183; external_directory = ask</text>
 </svg>
 </div>
-<p>Details for each lane: <a href="#setup">Set up a project</a>, <a href="#commands">The fifteen commands</a>,
+<p>Details for each lane: <a href="#setup">Set up a project</a>, <a href="#commands">The sixteen commands</a>,
 <a href="#lifecycle">Lifecycle and profiles</a>, <a href="#kb">Knowledge base</a>.</p>
 
 <h2 id="prereq">Prerequisites</h2>
@@ -399,7 +399,7 @@ pwsh -File harness/scripts/init-project.ps1 -Target . -InsideRepo</code></pre>
     <p>With no <code>-Config</code> it conducts a guided interview and writes <code>project.yaml</code> — project name,
     slug, ID prefix, owner login, lifecycle profile, areas, stack commands, deploy CLIs, data sensitivity, integration
     toggles and model bindings. With <code>-Config</code> it renders silently, which is what the self-test uses. It then
-    generates seven agents, fifteen commands, the issue forms, the workflows, the docs tree, <code>AGENTS.md</code> and
+    generates seven agents, sixteen commands, the issue forms, the workflows, the docs tree, <code>AGENTS.md</code> and
     <code>opencode.jsonc</code>, copies the core docs and the kit itself in so the instance can re-apply upgrades later.
     Any unresolved <code>&#123;&#123;TOKEN&#125;&#125;</code> is reported and exits non-zero rather than being left in a file.</p>
   </li>
@@ -481,7 +481,7 @@ and <code>explore</code> agents are denied because they inherit no role rules (O
 <p>A delegated task gets an envelope: goal, inputs, constraints, definition of done and the ID it must write back to.
 Two attempts, then one narrower re-delegation, then PM escalation to you. Depth-2 children launch nothing.</p>
 
-<h2 id="commands">The fifteen commands</h2>
+<h2 id="commands">The sixteen commands</h2>
 <p>The PM's seven run in the primary session; the eight specialist commands each bind one role
 (<code>subagent: false</code>, so the role's rules apply to the session you are in).</p>
 <table>
@@ -494,6 +494,7 @@ Two attempts, then one narrower re-delegation, then PM escalation to you. Depth-
 <tr><td><code>/phase</code></td><td>Prepare the phase-gate evidence pack and a transition recommendation</td><td>gate pack, phase-state PR</td><td>recommends only; you approve and merge</td></tr>
 <tr><td><code>/ops</code></td><td>Operations rhythm: incidents, releases, health checks, periodic review</td><td>status, blockers</td><td>deploy only through the pipeline with Environment approval</td></tr>
 <tr><td><code>/init-project</code></td><td>Initialise this repository as a harness-managed project: guided configuration, then render</td><td>the whole instance</td><td>shows the assembled <code>project.yaml</code> as a diff and waits</td></tr>
+<tr><td><code>/improve-harness</code></td><td>Turn observed harness friction into an evidence-backed proposal and a ready-to-file <code>harness-improvement</code> issue</td><td>proposal under <code>working/project-manager/</code>; issue only on your yes</td><td>proposes only: applying needs <code>apply-harness-change.ps1</code></td></tr>
 <tr><td><code>/ba</code></td><td>Business Analyst: requirements, stories, acceptance criteria, knowledge base, glossary, RAID</td><td>context, requirements, knowledge</td><td>stops and escalates a material requirement or scope change</td></tr>
 <tr><td><code>/intake</code></td><td>Knowledge intake: extract from a source, judge against the knowledge base, stage, critic pass, then item-by-item acceptance</td><td><code>knowledge/_staging/</code>, then pages</td><td>nothing becomes knowledge without your decision; a batch over 50 items is split</td></tr>
 <tr><td><code>/ask</code></td><td>Answer a project question from the knowledge base with citations; says so when it does not know</td><td><span class="pill read">read-only, no writes</span></td><td>none</td></tr>
@@ -722,7 +723,7 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 <table>
 <thead><tr><th>Check</th><th>What it proves</th></tr></thead>
 <tbody>
-<tr><td>Source policy</td><td>Every <code>.ps1</code> is ASCII-only with no BOM and tokenizes cleanly; no BOM in the kit or docs; every <code>&#123;&#123;TOKEN&#125;&#125;</code> a template uses has a producer in the renderer; the kit contract holds by exact filename and count — 7 agent templates, 15 command templates, 5 profiles, 13 core docs, a semantic <code>HARNESS-VERSION</code></td></tr>
+<tr><td>Source policy</td><td>Every <code>.ps1</code> is ASCII-only with no BOM and tokenizes cleanly; no BOM in the kit or docs; every <code>&#123;&#123;TOKEN&#125;&#125;</code> a template uses has a producer in the renderer; the kit contract holds by exact filename and count — 7 agent templates, 16 command templates, 5 profiles, 13 core docs, a semantic <code>HARNESS-VERSION</code></td></tr>
 <tr><td>Render and validate</td><td>Renders a throwaway instance for all five profiles plus an all-integrations variant (6 variants, 61 files each), asserts artifact names and counts, that each integration toggle changes <em>rendered enforcement</em> rather than only docs, that deploy CLIs reach both the permission and the policy layer — then requires <code>validate-harness.ps1</code> to exit clean <strong>and</strong> to have recorded nine named checks as PASS</td></tr>
 <tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy on Windows, Linux and macOS. Currently 51 PASS / 0 FAIL per variant</td></tr>
 </tbody>
@@ -758,7 +759,7 @@ real only when a test has shown it blocking. These are the harness's own audit f
 <tr><td><span class="pill stop">open</span></td><td>Model readiness is unset for the fixture bindings: provider privacy, retention and structured-output behaviour must be verified before <code>readiness: verified</code> (OD-05, OD-25)</td></tr>
 <tr><td><span class="pill read">untested</span></td><td>Open Knowledge retrieval is defined but has never been piloted (P-10): the handshake is untested on the installed OpenCode version and the module stays off by default</td></tr>
 <tr><td><span class="pill read">platform gap</span></td><td>Rendering is Windows-only because the renderer uses <code>\</code> path literals, so Linux and macOS CI exercises static checks only</td></tr>
-<tr><td><span class="pill read">drift</span></td><td>Documentation stamps still read <code>harness 1.0.0</code> while <code>HARNESS-VERSION</code> is <code>1.0.1</code>; <code>open-decisions.md</code> references OD-33 and OD-34, which do not exist in its own index</td></tr>
+<tr><td><span class="pill read">drift</span></td><td>Documentation stamps still read <code>harness 1.0.0</code> while <code>HARNESS-VERSION</code> is <code>1.1.0</code>; <code>open-decisions.md</code> references OD-33 and OD-34, which do not exist in its own index</td></tr>
 </tbody>
 </table>
 <p>Treating these as a punch list rather than as caveats is the point of the page: the harness is a design that currently
@@ -803,7 +804,7 @@ production Environment) → data policy and lifecycle profile confirmed in <code
 → Phase 1 via <code>/pm</code>. While readiness is <code>gated</code>, operate read-only and propose.</p>
 
 <footer>
-<p><strong>AIDLC Harness</strong> · kit <code>1.0.1</code> · handbook generated from <code>harness/README.md</code> and
+<p><strong>AIDLC Harness</strong> · kit <code>1.1.0</code> · handbook generated from <code>harness/README.md</code> and
 <code>docs/harness/</code> in <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>.
 Every count on this page is asserted by <code>tests/check-sources.ps1</code> in CI, and the statements about what does
 not yet work are drawn from the harness's own audits. Not affiliated with OpenCode.</p>

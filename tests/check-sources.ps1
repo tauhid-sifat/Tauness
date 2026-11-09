@@ -147,7 +147,7 @@ foreach ($r in @(
 $agentTemplates = @(Get-ChildItem -File (Join-Path $repoRoot 'harness/kit/agents') -Filter *.md.tmpl -ErrorAction SilentlyContinue)
 if ($agentTemplates.Count -ne 7) { Add-Fail "expected 7 role agent templates, found $($agentTemplates.Count)" }
 $commandTemplates = @(Get-ChildItem -File (Join-Path $repoRoot 'harness/kit/commands') -Filter *.md.tmpl -ErrorAction SilentlyContinue)
-if ($commandTemplates.Count -lt 15) { Add-Fail "expected at least 15 command templates, found $($commandTemplates.Count)" }
+if ($commandTemplates.Count -lt 16) { Add-Fail "expected at least 16 command templates, found $($commandTemplates.Count)" }
 $version = (Get-Content (Join-Path $repoRoot 'harness/HARNESS-VERSION') -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$') { Add-Fail "HARNESS-VERSION is not a semantic version: '$version'" }
 $profilesText = ''

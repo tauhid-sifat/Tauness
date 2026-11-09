@@ -156,7 +156,7 @@ foreach ($cf in (Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md')
     }
 }
 $cmdCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md') -ErrorAction SilentlyContinue).Count
-if ($cmdCount -ge 15) { Pass 'commands:count' "$cmdCount commands" } else { Warn 'commands:count' "$cmdCount (< 15 expected after full generation)" }
+if ($cmdCount -ge 16) { Pass 'commands:count' "$cmdCount commands" } else { Warn 'commands:count' "$cmdCount (< 16 expected after full generation)" }
 
 # ---- 7. Core docs completeness (instance copies)
 foreach ($d in @('architecture-specification','agent-specifications','workflow-and-governance','security-and-permissions','github-governance','knowledge-management','project-initialization','using-the-harness','open-decisions','implementation-roadmap','skills-inventory','opencode-capability-matrix','repository-structure')) {

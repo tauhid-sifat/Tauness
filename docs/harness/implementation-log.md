@@ -1,6 +1,6 @@
 # Harness Implementation Log
 
-> **Status:** Active · harness 1.0.1 · Rule: evidence only. Approval is not implementation; implementation is not verification.
+> **Status:** Active · harness 1.1.0 · Rule: evidence only. Approval is not implementation; implementation is not verification.
 
 ## Environment (verified 2026-11-09)
 
@@ -38,6 +38,10 @@ OpenCode `2.2.5` (npm global) · Node `v22.19.0` · Chrome 156 at `C:\Program Fi
 | Kit self-test added (ADR-H-011) | `tests/check-sources.ps1` (ASCII-only sources, tokenizer parse, template-slot producer audit, kit contract by name/count) + `tests/render-and-validate.ps1` (5 lifecycle profiles + all-integrations variant; asserts artifacts, toggle effects, policy/permission denies, then requires validator exit 0 and named PASS markers) + `.github/workflows/kit-validation.yml`. 6/6 variants clean at 51 PASS / 0 FAIL; teeth verified by re-injecting defect (5): 14 diagnostics, exit 1 |
 | Version | `HARNESS-VERSION` 1.0.0 -> 1.0.1 (rendered output materially changed: correct filenames, working init path) |
 | Known gap open | Renderer addresses files with Windows separators, so `init-project.ps1`/`validate-harness.ps1` remain Windows-only; Linux/macOS exercise the static policy only |
+| `/improve-harness` added (kit 1.1.0) | New `harness/kit/commands/improve-harness.md.tmpl` (PM-bound, proposes only: 3-question interview with examples, duplicate check against decision register + open-decisions + adr/ + open `type:harness-improvement` issues, classification -> version bump + ADR requirement, proposal file, drafted issue body, issue created only on owner yes, never applies). Proposal home `docs/project/working/project-manager/harness-feedback/` chosen deliberately: it sits inside the PM's existing edit scope, so **no permission rule was widened**. PM duty line and `AGENTS.md.tmpl` PM row updated - the row also now lists `/init-project`, which was missing from that table while existing as a PM command |
+| Command count 15 -> 16 asserted everywhere | `tests/check-sources.ps1`, `tests/render-and-validate.ps1` (+ new required-file assertion for `.opencode/commands/improve-harness.md`), `harness/scripts/validate-harness.ps1`, `tests/check-site.ps1`, `harness/README.md`, `site/index.html` (nav, tile, setup text, table row, contract claim, stamps). Docs refreshed: `using-the-harness` (owner row + PM list), `workflow-and-governance` (harness-change path), `repository-structure`, `project-initialization`, `opencode-capability-matrix`, `open-decisions` OD-03 status cell |
+| Version | `HARNESS-VERSION` 1.0.1 -> 1.1.0 (new capability; rendered instances gain one command). Doc stamps elsewhere still read 1.0.0 - unchanged drift, recorded in the handbook's honesty table |
+| Decision record | ADR-H-012; rejected: a `/setup` command (duplicates `/init-project`), writing to `harness/staging/` from an instance, a new `harness-feedback/**` allow-rule, and local kit patching as a trial |
 
 ## Outstanding evidence (unchanged unless marked)
 

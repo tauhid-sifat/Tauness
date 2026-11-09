@@ -66,7 +66,8 @@ try {
         (Join-Path '.github/workflows' 'ci.yml'),
         (Join-Path '.github/workflows' 'harness-validation.yml'),
         (Join-Path '.opencode/agents' 'project-manager.md'),
-        (Join-Path '.opencode/commands' 'pm.md')
+        (Join-Path '.opencode/commands' 'pm.md'),
+        (Join-Path '.opencode/commands' 'improve-harness.md')
     )
     $requiredPassMarkers = @(
         '[PASS] agents:count', '[PASS] commands:count', '[PASS] placeholders',
@@ -122,7 +123,7 @@ try {
         $agentCount = @(Get-ChildItem -File (Join-Path $dir '.opencode/agents') -Filter *.md -ErrorAction SilentlyContinue).Count
         if ($agentCount -ne 7) { $fails += ("{0}: expected 7 rendered role agents, found {1}" -f $v.Name, $agentCount) }
         $cmdCount = @(Get-ChildItem -File (Join-Path $dir '.opencode/commands') -Filter *.md -ErrorAction SilentlyContinue).Count
-        if ($cmdCount -ne 15) { $fails += ("{0}: expected 15 rendered commands, found {1}" -f $v.Name, $cmdCount) }
+        if ($cmdCount -ne 16) { $fails += ("{0}: expected 16 rendered commands, found {1}" -f $v.Name, $cmdCount) }
         $issueCount = @(Get-ChildItem -File (Join-Path $dir '.github/ISSUE_TEMPLATE') -Filter *.yml -ErrorAction SilentlyContinue).Count
         if ($issueCount -lt 11) { $fails += ("{0}: expected at least 11 issue forms, found {1}" -f $v.Name, $issueCount) }
         $coreDocCount = @(Get-ChildItem -File (Join-Path $dir 'docs/harness') -Filter *.md -ErrorAction SilentlyContinue).Count
