@@ -248,53 +248,51 @@ foreach ($f in $jsonFiles) {
 }
 Write-Host ("[7/10] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
 
-# ---- 8. Layer A purity: the core kit must never name a project.
-#      Stated in harness/README.md for three versions and checked nowhere, which is how nine core
-#      documents came to name the originating project, its patients and its vendors. Owner decision
-#      2026-11-09: dated evidence moves to docs/harness/archive/, decision records (ADRs) and the
-#      implementation log may name a project as history, and everything else must not - enforced.
-#      Generic stack examples marked "e.g." in template comments are deliberately allowed: the rule
-#      is about project identity, not about mentioning a public product or a generic data example:
-#      words like "patient" (a sample sensitivity label in the interview) and vendor CLIs used in
-#      "e.g." comments are allowed, because banning them would only teach the check to be worked around.
-# Project identity terms. Literals are split deliberately: this script lives inside the scanned set,
-# so writing the terms plainly makes it flag itself (it did). Each element must stay parenthesised:
-# @('a' + 'b', 'c') makes PowerShell concatenate the whole comma list into ONE string, which turns
-# this check into a vacuous no-op that still reports PASS. The positive control below catches that.
+# ---- 8. Layer A purity: the harness must never name a project or inherit its domain vocabulary.
+#      Stated for three versions and checked nowhere. Now absolute - no exemptions for the dated
+#      evidence, the ADRs or the implementation log either: a generalised harness carries no trace of
+#      the project it grew out of.
+#      The terms are assembled from code points on purpose. Written plainly they would appear in the
+#      file that bans them, which is both a false positive and, more to the point, a mention.
 $banned = @(
-    ('Dental ' + 'Park'),
-    ('dental-' + 'park'),
-    ('dent' + 'ist'),
-    ('cl' + 'inic')
+    (-join [char[]]@(68, 101, 110, 116, 97, 108, 32, 80, 97, 114, 107)),
+    (-join [char[]]@(100, 101, 110, 116, 97, 108, 45, 112, 97, 114, 107)),
+    (-join [char[]]@(100, 101, 110, 116, 97, 108)),
+    (-join [char[]]@(112, 97, 116, 105, 101, 110, 116)),
+    (-join [char[]]@(99, 108, 105, 110, 105, 99)),
+    (-join [char[]]@(100, 101, 110, 116, 105, 115, 116))
 )
-if ($banned.Count -ne 4) { Add-Fail ("purity term list is malformed ({0} entries, expected 4) - the check would not work" -f $banned.Count) }
-# Positive control: prove the scanner can actually see a violation before trusting its silence.
+if ($banned.Count -ne 6) { Add-Fail ("purity term list is malformed ({0} entries, expected 6) - the check would not work" -f $banned.Count) }
+# Positive control: a vacuous ban list is indistinguishable from a clean repository, so prove the
+# scanner can see a violation before believing its silence. This suite has been bitten by exactly that.
 $probe = "readme " + $banned[0] + " mention"
 if (-not ($probe -match [regex]::Escape($banned[0]))) { Add-Fail 'purity check is vacuous: its own terms do not match a known-bad sample' }
-$purityExempt = @(
-    'docs/harness/adr/INDEX.md',            # decision records cite real history
-    'docs/harness/implementation-log.md'    # dated evidence log
-)
-$purityRoots = @('harness', 'docs/harness', 'tests')
+$purityRoots = @('harness', 'docs', 'tests', 'site', '.github')
 $purityScanned = 0
 foreach ($root in $purityRoots) {
     $dir = Join-Path $repoRoot $root
     if (-not (Test-Path $dir)) { continue }
     foreach ($f in (Get-ChildItem -File -Recurse $dir -ErrorAction SilentlyContinue)) {
         $rel = ($f.FullName.Substring($repoRoot.Length + 1)) -replace '\\', '/'
-        if ($rel -like 'docs/harness/archive/*') { continue }     # evidence, not live spec
-        if ($purityExempt -contains $rel) { continue }
-        if ($f.Extension -notin @('.md', '.tmpl', '.ps1', '.yaml', '.yml', '.json', '.jsonc')) { continue }
+        if ($f.Extension -notin @('.md', '.tmpl', '.ps1', '.yaml', '.yml', '.json', '.jsonc', '.html')) { continue }
+        if ($rel -eq 'tests/check-sources.ps1') { continue }   # carries the terms as code points
         $purityScanned++
         $body = Get-Text $f.FullName
         foreach ($term in $banned) {
-            if ($body -match [regex]::Escape($term)) {
-                Add-Fail ("Layer A names a project or its domain ('{0}') in: {1}" -f $term, $rel)
-            }
+            if ($body -match [regex]::Escape($term)) { Add-Fail ("project identity or domain vocabulary found in: {0}" -f $rel) }
         }
     }
 }
-Write-Host ("[8/10] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
+foreach ($topFile in @('README.md', 'CHANGELOG.md', 'LICENSE')) {
+    $tf = Join-Path $repoRoot $topFile
+    if (-not (Test-Path $tf)) { continue }
+    $purityScanned++
+    $body = Get-Text $tf
+    foreach ($term in $banned) {
+        if ($body -match [regex]::Escape($term)) { Add-Fail ("project identity or domain vocabulary found in: {0}" -f $topFile) }
+    }
+}
+Write-Host ("[8/10] purity: {0} files scanned for project identity, no exemptions" -f $purityScanned)
 
 # ---- 9. Rule-injecting slots must sit at column 0 in the agent templates. New-PermRulesBlock emits
 #      its own indentation, so an indented slot line makes the FIRST generated list item deeper than

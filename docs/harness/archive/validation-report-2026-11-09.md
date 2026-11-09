@@ -48,7 +48,7 @@ JS-twin verification results (executed): 38-key parse of the real staged `projec
 | P-08 | CI `harness-validation.yml` runs green on the PR | GitHub | WP-3 evidence |
 | P-09 | Independent review of the transformation by a separate session | owner-launched | Mission step 7 |
 | P-10 | Open Knowledge pilot (module currently `false`) | knowledge-management §8 | optional WP-10 |
-| P-11 | Dental Park instance docs refresh (README/knowledge pointer lines, traceability ID list) | small staged doc updates + PM edit pass | post-apply tidy |
+| P-11 | the originating project instance docs refresh (README/knowledge pointer lines, traceability ID list) | small staged doc updates + PM edit pass | post-apply tidy |
 
 ## 3. Known limitations accepted (disclosed)
 

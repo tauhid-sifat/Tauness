@@ -4,7 +4,7 @@ All notable changes to the AIDLC Harness kit. Version is `harness/HARNESS-VERSIO
 entry here, and material changes (permissions, policies, gates, approvals - OD-18) also get an ADR in
 [`docs/harness/adr/`](docs/harness/adr/INDEX.md).
 
-## [1.2.0] - in progress
+## [1.2.0] - 2026-11-09
 
 ### Added
 
@@ -37,7 +37,7 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
 
 ### Changed
 
-- **Layer A purity enforcement** in `tests/check-sources.ps1`: the kit, the live core docs and `tests/` are
+- **Layer A purity enforcement** in `tests/check-sources.ps1`: every file in the repository - kit, core docs, evidence, ADRs, log, site, tests, top-level docs - is
   scanned for project identity and the build fails on a hit. The check carries a positive control, because the
   first version of it was a vacuous no-op: `@('a' + 'b', 'c')` makes PowerShell concatenate the comma list into
   one string, so the ban list had a single impossible entry and every run "passed". Now the list's shape is

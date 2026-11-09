@@ -60,7 +60,7 @@ if (-not $Config) {
         STACK_SKILLS_LIST = Read-Host 'Extra developer skill IDs (comma-separated; blank ok)'
         SKILLS_SHARED = Read-Host 'Skills every role may load (comma-separated; blank ok)'
         DATA_SENSITIVITY = Read-Host 'Data sensitivity: public|business|personal|regulated'
-        SENSITIVE_DATA_LABEL = Read-Host 'Sensitive data label (e.g. patient, customer, user)'
+        SENSITIVE_DATA_LABEL = Read-Host 'Sensitive data label (e.g. customer, client, user)'
         USE_PROJECTS_V2 = Read-Host 'Use GitHub Projects v2? true/false'
         USE_LIVE_BROWSER = Read-Host 'Enable live-browser integration? true/false'
         USE_DESIGN_TOOLS = Read-Host 'Enable design-system tools (Hallmark/Impeccable)? true/false'

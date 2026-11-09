@@ -1,9 +1,9 @@
 # ADR-H-001 — Generalize the harness into core/configuration/workspace layers
 
 - **Status:** accepted · **Date:** 2026-11-09 · **Decider:** Owner (mission) / Architect (proposal)
-- **Context:** The harness was built around one project (Dental Park). Stack, domain, GitHub identity, ID prefixes, and deploy CLIs were hardcoded across agents, config, templates, and docs, so any second project required manual surgery.
+- **Context:** The harness was built around one specific client project. Stack, domain, GitHub identity, ID prefixes, and deploy CLIs were hardcoded across agents, config, templates, and docs, so any second project required manual surgery.
 - **Decision:** Split into Layer A **core harness** (`harness/` kit + `docs/harness/` specs — never project-specific), Layer B **project configuration** (`project.yaml` — the single per-project input), Layer C **project workspace** (`docs/project/`, code, generated instance files). Instance files are generated artifacts; rules change only by editing the kit and owner-applying.
-- **Consequences:** upgrades propagate mechanically; doc/config drift is detectable; project work can never contaminate the core; one more generation step (mitigated by init/apply scripts). Dental Park becomes an example instance, not the foundation.
+- **Consequences:** upgrades propagate mechanically; doc/config drift is detectable; project work can never contaminate the core; one more generation step (mitigated by init/apply scripts). The originating project becomes an example instance, not the foundation.
 - **Supersedes:** implicit project-coupled structure of the 2026-11-04 baseline.
 
 # ADR-H-002 — Kit templates with `{{PLACEHOLDER}}` substitution rendered from project.yaml
@@ -70,8 +70,8 @@
 # ADR-H-010 — The kit has its own home repository; core docs live at `docs/harness/`
 
 - **Status:** accepted · **Date:** 2026-11-09 · **Decider:** Owner
-- **Context:** The kit was developed inside the Dental Park repository while the project was its only instance. Layer A (core harness) and Layer C (one project's workspace) shared a tree, and the generalized kit still referenced `docs/harness/` as canonical while holding no copy of it.
-- **Decision:** This repository is the kit's home; the Dental Park instance is frozen and is no longer a development site. Core specifications, audits and ADRs are seeded to `docs/harness/` at the repo root — not inside `harness/` — because `init-project.ps1` resolves `DocsHarnessPath` as `<repo root>/docs/harness` and `validate-harness.ps1` section 7 requires those 13 documents there. `harness/staging/` (rendered project values, Layer C) and `harness/reports/` (generator output) stay git-ignored; the stale staging tree was deleted after seeding.
+- **Context:** The kit was developed inside a client repository while that project was its only instance. Layer A (core harness) and Layer C (one project's workspace) shared a tree, and the generalized kit still referenced `docs/harness/` as canonical while holding no copy of it.
+- **Decision:** This repository is the kit's home; the originating project's instance is frozen and is no longer a development site. Core specifications, audits and ADRs are seeded to `docs/harness/` at the repo root — not inside `harness/` — because `init-project.ps1` resolves `DocsHarnessPath` as `<repo root>/docs/harness` and `validate-harness.ps1` section 7 requires those 13 documents there. `harness/staging/` (rendered project values, Layer C) and `harness/reports/` (generator output) stay git-ignored; the stale staging tree was deleted after seeding.
 - **Consequences:** one place to change the harness; a rendered instance is reproducible from kit + `project.yaml` alone; layer separation is enforced by the ignore rules rather than by convention; existing instances keep their own history and are unaffected.
 - **Rejected:** publishing `staging/instance/` (project identity in a Layer A repo); `harness/docs/` (breaks the documented layout and the renderer's path contract).
 

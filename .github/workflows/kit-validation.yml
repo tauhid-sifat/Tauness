@@ -19,12 +19,17 @@ permissions:
   contents: read
 
 jobs:
-  # The renderer addresses files with Windows path separators, so instance rendering is exercised
-  # on Windows. Linux/macOS coverage of the renderer is a known gap (see README), which is why the
-  # platform-neutral static policy runs on all three.
+  # The renderer used to address files with Windows separators only. Path literals are now
+  # forward-slash based (valid everywhere) and the separator-sensitive regexes accept either, so all
+  # three runners render, validate and re-apply instances. Windows stays first in the matrix: it is
+  # the historically supported path and the one the owner runs locally.
   render-and-validate:
     name: Render and validate every lifecycle profile
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Kit self-test (5 profiles + all-integrations variant)
@@ -34,9 +39,9 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: kit-self-test-artifacts
+          name: kit-self-test-${{ matrix.os }}
           path: |
-            C:/Users/runneradmin/AppData/Local/Temp/aidlc-kit-test-*/**/harness/reports/*.md
+            **/harness/reports/validate-*.md
           if-no-files-found: ignore
 
   source-policy:

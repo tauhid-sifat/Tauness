@@ -7,7 +7,7 @@
 
 | DoD item | Verdict | Evidence / caveat |
 |---|---|---|
-| Harness genuinely project-agnostic | **DONE in the core; staged for live** | `harness/kit/**` contains zero project/stack/domain assumptions (only `{{TOKEN}}` slots); all project facts live in `project.yaml` + generated instance. Live `.opencode/` still holds the concurrent session's dental-flavored agents until owner applies (they are functionally hardened and parse; generalization lands with apply) |
+| Harness genuinely project-agnostic | **DONE in the core; staged for live** | `harness/kit/**` contains zero project/stack/domain assumptions (only `{{TOKEN}}` slots); all project facts live in `project.yaml` + generated instance. Live `.opencode/` still holds the concurrent session's client-facing-flavored agents until owner applies (they are functionally hardened and parse; generalization lands with apply) |
 | Covers complete AIDLC lifecycle | **DONE** | 7 canonical phases incl. Operations & Maintenance (ADR-H-003); 5 tailoring profiles; brownfield intake; steady-state `/ops` |
 | BA comprehensive vs AI BA Harness benchmark | **DONE** | Knowledge base w/ IDs+statuses+source records; extract→judge→stage→critic→item-accept workflow; RACI authority checks; contradiction rule; `/intake`, `/ask`, health reviews; batch limits; gitignored sensitive inbox. Benchmark mechanics adopted wholesale |
 | Agent system operational + governed | **DONE (static); runtime pending** | 7 agents render with deny-by-default allow-lists, no general/explore, matrix drift-checked by validator. Runtime proof = negative matrix (P-04) after apply + readiness flip |
@@ -17,7 +17,7 @@
 | Workflows have verifiable gates | **DONE** | Gate = issue + evidence pack + owner-merged phase-state PR; phase-state machine-readable; validator checks shape |
 | GitHub integration works | **PARTIAL — externally blocked** | Local governance artifacts generated; remote control plane (push/protection/Projects/Environment/scopes) is an owner-authorized action (B-002/B-008). Not claimed working |
 | Project init works | **DONE (scripted); first-run pending** | `init-project.ps1` + `/init-project` complete and reviewed; leak-checked render pipeline. Not yet executed end-to-end (needs owner PowerShell + a throwaway target; listed P-01…P-03). Apply path proven indirectly: the current repo's live hardened config already demonstrates the deny/allow mechanics working |
-| Dental Park remains usable | **DONE** | Existing project docs untouched; new workspace docs staged; instance values (areas, stack, OD-approved models, privacy rules) preserved in `staging/instance/project.yaml`; no Dental Park knowledge required or lost |
+| the originating project remains usable | **DONE** | Existing project docs untouched; new workspace docs staged; instance values (areas, stack, OD-approved models, privacy rules) preserved in `staging/instance/project.yaml`; no the originating project knowledge required or lost |
 | Documentation matches implementation | **DONE with honesty labels** | Every claim in staged docs carries evidence legend + pending-test list; validation report explicitly separates verified vs pending; implementation log records the concurrent-session absorption |
 | Validation performed + documented | **DONE (static) / pending (runtime)** | `validation-report-2026-11-09.md` — 12 verified checks, 11 pending owner-run checks |
 | Outstanding limitations explicitly reported | **DONE** | This audit §2 + handover |

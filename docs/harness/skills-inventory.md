@@ -1,6 +1,6 @@
 # AIDLC Harness — Skills Inventory and Agent Mapping
 
-> **Status:** Core harness specification (Layer A) · harness 1.1.1 · 2026-11-09. Generalizes the 2026-11-02 inventory: the *method* and *policies* are core; the *installed list* is instance-local.
+> ${1}harness 1.2.0 · 2026-11-09. Generalizes the 2026-11-02 inventory: the *method* and *policies* are core; the *installed list* is instance-local.
 
 ## 1. Model
 

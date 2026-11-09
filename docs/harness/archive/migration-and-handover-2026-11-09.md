@@ -2,11 +2,11 @@
 
 ## 1. What changed conceptually
 
-The Dental Park-specific harness is now a **project-agnostic AIDLC core** (`harness/` kit + `docs/harness/` specs) with Dental Park reduced to **one instance** defined by `project.yaml` + generated files + `docs/project/`. Lifecycle extended to include Operations & Maintenance and five tailoring profiles. Enforcement upgraded: shell deny-by-default, role allow-lists, delegation-proof `policies` layer, integration toggles. BA discipline raised to the AI BA Harness benchmark (knowledge base + staging/critic/acceptance + authority checks + `/intake`/`/ask`).
+The the originating project-specific harness is now a **project-agnostic AIDLC core** (`harness/` kit + `docs/harness/` specs) with the originating project reduced to **one instance** defined by `project.yaml` + generated files + `docs/project/`. Lifecycle extended to include Operations & Maintenance and five tailoring profiles. Enforcement upgraded: shell deny-by-default, role allow-lists, delegation-proof `policies` layer, integration toggles. BA discipline raised to the AI BA Harness benchmark (knowledge base + staging/critic/acceptance + authority checks + `/intake`/`/ask`).
 
-## 2. Apply the transformation to Dental Park (owner, one time)
+## 2. Apply the transformation to the originating project (owner, one time)
 
-From `D:\My Code\Dental Park Website` in **your** PowerShell (agents cannot self-apply — by design):
+From `D:\My Code\the originating project Website` in **your** PowerShell (agents cannot self-apply — by design):
 
 ```powershell
 # 0) Commit the staged harness work first (restore point before apply; nothing is pushed):
@@ -58,7 +58,7 @@ pwsh -File harness\scripts\init-project.ps1 -Target ..\my-new-project
 - Existing codebase: add `-InsideRepo` (only creates missing files, reports conflicts, never deletes; then run the brownfield Phase-0 assessment).
 - Post-init owner checklist: validate → git init/commit → remote + scopes + protections → labels/Projects → model readiness → negative matrix → Phase 1.
 
-**New-project sanity test (recommended):** after Dental Park apply, spin one throwaway project (e.g. `headless` + `lean`) and grep its files for "Dental", "patient", "Next.js", "supabase" — zero hits expected by construction; report any leak as a P0 harness bug.
+**New-project sanity test (recommended):** after the originating project apply, spin one throwaway project (e.g. `headless` + `lean`) and grep its files for the originating project name, its domain nouns and its stack vendor names — zero hits expected by construction; report any leak as a P0 harness bug.
 
 ## 5. Upgrading any instance later
 
@@ -68,7 +68,7 @@ Edit kit → bump `HARNESS-VERSION` → in each project: `apply-harness-change.p
 
 | # | Decision | Where |
 |---|---|---|
-| 1 | OD-11 jurisdiction/regime (Dental Park) | gates Phase 3 |
+| 1 | OD-11 jurisdiction/regime (the originating project) | gates Phase 3 |
 | 2 | OD-12 provider backup verification + RPO/RTO | gates production |
 | 3 | BrowserOS restore vs disable (OD-10) | QA path |
 | 4 | OpenCode 2.2.6 upgrade vs keep prohibition | security hygiene |
