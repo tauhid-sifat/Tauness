@@ -36,18 +36,7 @@ permissions:
     effect: "allow"
 
 {{REVIEWER_STACK_SHELL_ALLOWS}}
-  - action: "skill"
-    resource: "code-review"
-    effect: "allow"
-  - action: "skill"
-    resource: "pr"
-    effect: "allow"
-  - action: "skill"
-    resource: "codebase-design"
-    effect: "allow"
-  - action: "skill"
-    resource: "domain-modeling"
-    effect: "allow"
+{{REVIEWER_SKILL_ALLOWS}}
   - action: "webfetch"
     resource: "*"
     effect: "deny"

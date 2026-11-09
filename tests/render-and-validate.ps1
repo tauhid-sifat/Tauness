@@ -80,7 +80,8 @@ try {
     $requiredPassMarkers = @(
         '[PASS] agents:count', '[PASS] commands:count', '[PASS] placeholders',
         '[PASS] phase-state', '[PASS] config:policies', '[PASS] config:shell-deny',
-        '[PASS] encoding:bom', '[PASS] secrets:scan', '[PASS] doc:architecture-specification'
+        '[PASS] encoding:bom', '[PASS] secrets:scan', '[PASS] doc:architecture-specification',
+        '[PASS] skills:declared', '[PASS] skills:installed'
     )
 
     foreach ($v in $variants) {
@@ -134,7 +135,20 @@ try {
             $fails += ("{0}: {1} file(s) with truncated or leftover template names: {2}" -f $v.Name, $badNames.Count, (($badNames | ForEach-Object { $_.Name } | Select-Object -First 6) -join ', '))
         }
 
-        $agentCount = @(Get-ChildItem -File (Join-Path $dir '.opencode/agents') -Filter *.md -ErrorAction SilentlyContinue).Count
+        $agentFiles = @(Get-ChildItem -File (Join-Path $dir '.opencode/agents') -Filter *.md -ErrorAction SilentlyContinue)
+        # Permission rules must share one indent level inside each agent's frontmatter. The renderer
+        # self-indents generated blocks, so a mis-placed slot line makes the first generated item
+        # deeper than its siblings and the YAML stops parsing - which is how 6 of 7 agents broke
+        # during the skills refactor, invisibly to every other check in the suite.
+        foreach ($af in $agentFiles) {
+            $indents = @((Get-TextSafe $af.FullName) -split "`r?`n" |
+                Where-Object { $_ -match '^\s*- action:' } |
+                ForEach-Object { $_.Length - $_.TrimStart().Length } | Select-Object -Unique)
+            if ($indents.Count -gt 1) {
+                $fails += ("{0}: {1} permission rules sit at {2} different indents ({3}) - frontmatter will not parse" -f $v.Name, $af.Name, $indents.Count, ($indents -join ','))
+            }
+        }
+        $agentCount = $agentFiles.Count
         if ($agentCount -ne 7) { $fails += ("{0}: expected 7 rendered role agents, found {1}" -f $v.Name, $agentCount) }
         $cmdCount = @(Get-ChildItem -File (Join-Path $dir '.opencode/commands') -Filter *.md -ErrorAction SilentlyContinue).Count
         if ($cmdCount -ne 16) { $fails += ("{0}: expected 16 rendered commands, found {1}" -f $v.Name, $cmdCount) }
@@ -142,6 +156,21 @@ try {
         if ($issueCount -lt 11) { $fails += ("{0}: expected at least 11 issue forms, found {1}" -f $v.Name, $issueCount) }
         $coreDocCount = @(Get-ChildItem -File (Join-Path $dir 'docs/harness') -Filter *.md -ErrorAction SilentlyContinue).Count
         if ($coreDocCount -lt 13) { $fails += ("{0}: core docs not copied into the instance (found {1} in docs/harness)" -f $v.Name, $coreDocCount) }
+
+        # ---- install stub skills for everything the renderer granted. The kit ships no skills and a
+        #      fresh instance has none installed, so without this the "declared but not installed"
+        #      warning would fire for every grant and the real assertion would be drowned out.
+        $granted = @{}
+        foreach ($af in (Get-ChildItem -File (Join-Path $dir '.opencode/agents') -Filter *.md -ErrorAction SilentlyContinue)) {
+            foreach ($m in [regex]::Matches((Get-TextSafe $af.FullName), '(?s)action:\s*"skill"\s*\n\s*resource:\s*"([^"]+)"\s*\n\s*effect:\s*"allow"')) {
+                $granted[$m.Groups[1].Value] = $true
+            }
+        }
+        foreach ($sk in $granted.Keys) {
+            $sd = Join-Path $dir (Join-Path '.opencode/skills' $sk)
+            if (-not (Test-Path $sd)) { New-Item -ItemType Directory -Path $sd -Force | Out-Null }
+            Write-Utf8NoBom (Join-Path $sd 'SKILL.md') ("# $sk`n`nTest stub created by tests/render-and-validate.ps1 so declared grants resolve to real skills.`n")
+        }
 
         # ---- profile actually reached the instance
         $phaseState = ''

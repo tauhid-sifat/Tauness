@@ -103,7 +103,17 @@ foreach ($sd in @('.opencode\skills','.agents\skills')) {
     $full = Join-Path $Root $sd
     if (Test-Path $full) { $skillDirs += (Get-ChildItem -Directory -Recurse $full | Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } | ForEach-Object { $_.Name }) }
 }
-$globalKnownSkills = @('browseros-neo','impeccable','pinokio','idea-validator','opencode','report','academic-paper','academic-paper-reviewer','academic-pipeline','deep-research','sr-screener','firecrawl','firecrawl-search','firecrawl-scrape','firecrawl-map','firecrawl-crawl','firecrawl-download','firecrawl-agent','firecrawl-interact','firecrawl-monitor','firecrawl-parse','firecrawl-research-index','firecrawl-developer-index','firecrawl-alexandria')
+# Skills are project configuration, not kit content: project.yaml (via the renderer's own authority
+# function) decides what each role may load, and an agent granting anything else is a FAIL.
+$skillGrants = @{}
+try {
+    . (Join-Path $scriptDir 'lib-apply.ps1')
+    $skillGrants = Get-RoleSkillGrants -Cfg $cfg
+} catch {
+    Fail 'skills:authority' ("cannot compute the declared grant map: " + $_.Exception.Message)
+}
+$undeclared = @()
+$notInstalled = @()
 $agentModels = @{}
 foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue)) {
     $t = Read-TextRaw $af.FullName
@@ -127,11 +137,13 @@ foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -
         if ($extra.Count -eq 0 -and $missing.Count -eq 0) { Pass "agent:$id:delegation" ("matrix ok: " + ($allows -join ',')) }
         else { Fail "agent:$id:delegation" ("extra=[" + ($extra -join ',') + "] missing=[" + ($missing -join ',') + "]") }
     }
-    # skill allow sanity
+    # skill allow sanity: every grant must come from the project's declared map
     $skAllow = @([regex]::Matches($t, '(?s)action:\s*"skill"\s*\n\s*resource:\s*"([^"]+)"\s*\n\s*effect:\s*"allow"') | ForEach-Object { $_.Groups[1].Value })
+    $allowed = @($skillGrants[$id])
     foreach ($s in $skAllow) {
         if ($s -eq '*') { Fail "agent:$id:skills" 'wildcard skill allow' }
-        elseif (($skillDirs -notcontains $s) -and ($globalKnownSkills -notcontains $s)) { Warn "agent:$id:skill:$s" 'skill not found in project tree or known globals - verify installed' }
+        elseif ($allowed -notcontains $s) { $undeclared += ("{0}:{1}" -f $id, $s) }
+        elseif ($skillDirs -notcontains $s) { $notInstalled += ("{0}:{1}" -f $id, $s) }
     }
     # MCP override check: agents must not allow MCP tools the project denies
     $mcpAllow = @([regex]::Matches($t, '(?m)^  - action:\s*"((?:firecrawl|browseros|composio|jira|pencil)_\*)"') | ForEach-Object { $_.Groups[1].Value })
@@ -139,6 +151,8 @@ foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -
 }
 $agentCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue).Count
 if ($agentCount -eq 7) { Pass 'agents:count' '7 role agents' } else { Fail 'agents:count' "expected 7 role agents, found $agentCount" }
+if ($undeclared.Count -eq 0) { Pass 'skills:declared' 'every agent skill grant is declared in project.yaml' } else { Fail 'skills:declared' ('granted but not declared: ' + (($undeclared | Select-Object -Unique) -join ', ')) }
+if ($notInstalled.Count -eq 0) { Pass 'skills:installed' 'every granted skill is present in the instance tree' } else { Warn 'skills:installed' ('declared but not installed: ' + (($notInstalled | Select-Object -Unique) -join ', ')) }
 
 # ---- 5. Model routing vs project.yaml
 foreach ($id in $agentModels.Keys) {

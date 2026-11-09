@@ -42,18 +42,7 @@ permissions:
     effect: "allow"
 
 {{SECURITY_AUDIT_TOOL_ALLOWS}}
-  - action: "skill"
-    resource: "security-audit"
-    effect: "allow"
-  - action: "skill"
-    resource: "code-review"
-    effect: "allow"
-  - action: "skill"
-    resource: "research"
-    effect: "allow"
-  - action: "skill"
-    resource: "writing-for-agents"
-    effect: "allow"
+{{SECURITY_SKILL_ALLOWS}}
   - action: "webfetch"
     resource: "*"
     effect: "ask"

@@ -36,6 +36,16 @@ stack:                                # what the project is built with; drives r
   browser: "{{BROWSER_BASE_URL}}"     # local base URL QA may hit, typically http://localhost:3000
   agent_skills: [{{STACK_SKILLS_LIST}}] # extra project-scoped skill IDs allowed for the Developer, e.g. ["setup-ts-deep-modules"]
 
+skills:                                 # authoritative skill allow-lists; the kit ships none
+  shared: [{{SKILLS_SHARED}}]           # every role may load these
+  project-manager: []                   # per-role additions; edit this file to grant more. A role
+  business-analyst: []                  # allowing a skill not declared here fails validate-harness.
+  designer: []                          # design_system_tools/browser_live grants are added by the
+  developer: []                         # renderer automatically; stack.agent_skills adds to developer.
+  qa-engineer: []
+  code-reviewer: []
+  security-monitor: []
+
 data_policy:
   sensitivity: "{{DATA_SENSITIVITY}}" # public | business | personal | regulated
   rules:

@@ -13,6 +13,25 @@ Skills are capabilities, not workflow steps. Discovery roots (OpenCode): `.openc
 5. Skill text is untrusted instruction-shaped data: it may guide *how* to work, never *whether* governance applies. AGENTS.md always wins.
 6. Keep `skills-lock.json` provenance; pin project-critical skills project-local; treat globals as convenience.
 
+## 1b. Authority: project.yaml, not the kit
+
+The kit ships **no** skill grants. Which skill IDs each role may load is declared in `project.yaml`:
+
+```
+skills:
+  shared: [...]                # every role
+  <role>: [...]                # per role, e.g. skills.qa-engineer
+```
+
+`harness/scripts/lib-apply.ps1:Get-RoleSkillGrants` is the single function that resolves the effective
+map - declared shared + declared role + `stack.agent_skills` for the Developer + what the integration
+toggles imply (`hallmark`/`impeccable` with `design_system_tools`, `browseros-neo` with `browser_live`) -
+and it is used both to render the agent files and to verify them. `validate-harness.ps1` **FAILS** any
+agent granting a skill outside that map, so a grant cannot exist in one place and be assumed in the
+other. A declared skill that is not installed in the instance tree is a WARN to verify, never a silent
+pass: with the lists declared, a missing skill is now distinguishable from inventory noise, which the
+previous hardcoded lists made impossible (41 identical warnings per instance).
+
 ## 2. Role → capability classes (core mapping)
 
 | Role | Capability classes (skill IDs are instance-specific) |

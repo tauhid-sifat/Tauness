@@ -9,7 +9,7 @@ Initialize the AIDLC harness for a project.
 Target: `$ARGUMENTS` (empty folder for a new project, or `--inside-repo` for an existing one)
 
 1. Read `harness/README.md` and `docs/harness/project-initialization.md`.
-2. Conduct the configuration interview and fill `project.yaml` values in rounds, one topic at a time: identity, description, owner login, repository, lifecycle profile + areas, stack (dev/test/build commands, deploy CLIs, local URL), data sensitivity + protection rule, integrations (design tools, live browser, Open Knowledge, web research), models + readiness.
+2. Conduct the configuration interview and fill `project.yaml` values in rounds, one topic at a time: identity, description, owner login, repository, lifecycle profile + areas, stack (dev/test/build commands, deploy CLIs, local URL), skills shared across roles (per-role lists are edited in `project.yaml` afterwards), data sensitivity + protection rule, integrations (design tools, live browser, Open Knowledge, web research), models + readiness.
 3. Show the assembled `project.yaml` as a diff and wait for the owner's explicit yes.
 4. Run `harness/scripts/init-project.ps1 -Target <path>` with the accepted configuration (never delete anything that exists; report conflicts and stop for explicit choices).
 5. Verify: `opencode debug config`, `opencode debug agents`, `harness/scripts/validate-harness.ps1`.

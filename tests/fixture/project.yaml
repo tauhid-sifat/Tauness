@@ -40,9 +40,22 @@ stack:
   browser: "http://localhost:3000"
   agent_skills: []
 
+# Skills are project configuration, never kit content: this map is the authority the renderer writes
+# and validate-harness.ps1 enforces. The names below are the fixture's own inventory; the stub SKILL.md
+# files that tests/render-and-validate.ps1 installs alongside them make "declared and installed" true.
+skills:
+  shared: []                            # nothing is universal in practice; grant per role
+  project-manager: [opencode, report, research, triage, wayfinder, ask-matt, handoff, grilling, to-questionnaire, writing-for-agents]
+  business-analyst: [to-spec, to-tickets, triage, wayfinder, grill-me, grilling, grill-with-docs, domain-modeling, research, writing-for-agents, ask-matt]
+  designer: []                          # renderer adds prototype + writing-for-agents (and the
+                                        # design-system/live-browser grants when those toggles are on)
+  developer: [opencode, tdd, implement, implement-spec, diagnosing-bugs, codebase-design, improve-codebase-architecture, domain-modeling, prototype, pr, research]
+  qa-engineer: [diagnosing-bugs, writing-for-agents]
+  code-reviewer: [code-review, pr, codebase-design, domain-modeling]
+  security-monitor: [security-audit, code-review, research, writing-for-agents]
+
 data_policy:
-  sensitivity: "personal"               # public | business | personal | regulated
-  rule_override: "Do not send fixture user data to external AI, scraping, browser, or research services without owner approval."
+  sensitivity: "personal"               # public | business | personal | regulated  rule_override: "Do not send fixture user data to external AI, scraping, browser, or research services without owner approval."
   rules:
     - "No secrets, credentials, .env files, or personal data in Git, issues, PRs, logs, or knowledge bundles."
 

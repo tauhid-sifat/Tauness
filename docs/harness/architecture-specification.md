@@ -35,7 +35,7 @@ Generated instance files are build artifacts of `kit + project.yaml`. Rules chan
 1. **One harness, one ledger, one authority.** One repository, one issue tracker, one decision register, one owner.
 2. **PM orchestrates, specialists execute.** The PM is the only primary agent; specialists are addressable through commands without bypassing governance (OD-03).
 3. **Native OpenCode first; GitHub for identity; policies for the irreversible.** No custom plugin/MCP/framework unless a proven gap remains (OD-16).
-4. **Deny by default, allow narrowly.** Shell, delegation, skills, MCP, and secrets start denied; every role carries the smallest command/path list that does its job (OD-21).
+4. **Deny by default, allow narrowly.** Shell, delegation, skills, MCP, and secrets start denied; every role carries the smallest working command/path list that does its job (OD-21), and skill grants are declared in `project.yaml skills.*` rather than hardcoded in the kit.
 5. **Evidence over assertion.** Nothing is done without verifiable, reproducible evidence; PM verifies evidence, not claims.
 6. **Human gates are structural.** Phase transitions, material changes, production deploys, destructive data actions, and harness changes stop for the owner.
 7. **Reversibility.** Branches, PRs, additive migrations, backups before overwrites; never rewrite shared history.

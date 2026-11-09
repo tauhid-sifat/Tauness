@@ -2,33 +2,73 @@
 # Depends on lib-render.ps1 being dot-sourced first. NEVER deletes files; existing
 # targets are skipped unless -Force.
 
+function Get-RoleSkills {
+    param([hashtable]$Cfg, [string]$Role, [string[]]$Computed)
+    # project.yaml is the authority for skill allow-lists. The kit ships none: shared skills, the
+    # per-role declarations, and any grants the integrations imply are unioned here, in that order,
+    # with blanks and duplicates removed. validate-harness.ps1 fails any agent that allows a skill
+    # this list does not contain, so the declaration is the enforcement point, not a suggestion.
+    $list = @()
+    $list += @($Cfg['skills.shared'])
+    $list += @($Cfg["skills.$Role"])
+    $list += @($Computed)
+    return @($list | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique)
+}
+
+function Get-RoleSkillGrants {
+    param([hashtable]$Cfg)
+    # THE authority on which skills each role may load. The renderer writes these into the agent
+    # files and validate-harness.ps1 recomputes the same map to check them, so a skill can never be
+    # granted in one place and merely asserted in another. project.yaml is authoritative for the
+    # declared lists; only integration/stack-derived grants are computed here.
+    $dsTools = ("$($Cfg['integrations.design_system_tools'])" -eq 'true')
+    $liveBr  = ("$($Cfg['integrations.browser_live'])" -eq 'true')
+
+    $computed = @{}
+    $computed['project-manager']  = @()
+    $computed['business-analyst'] = @()
+    $designerExtra = @('prototype', 'writing-for-agents')
+    if ($dsTools) { $designerExtra = @('hallmark', 'impeccable') + $designerExtra }
+    if ($liveBr)  { $designerExtra += 'browseros-neo' }
+    $computed['designer'] = $designerExtra
+    $computed['developer'] = @($Cfg['stack.agent_skills'])
+    $qaExtra = @()
+    if ($liveBr) { $qaExtra = @('browseros-neo') }
+    $computed['qa-engineer'] = $qaExtra
+    $computed['code-reviewer'] = @()
+    $computed['security-monitor'] = @()
+
+    $grants = @{}
+    foreach ($role in $computed.Keys) { $grants[$role] = @(Get-RoleSkills -Cfg $Cfg -Role $role -Computed @($computed[$role])) }
+    return $grants
+}
+
 function New-RenderSlots { param([hashtable]$Cfg)
     $slots = @{}
     $dsTools = ("$($Cfg['integrations.design_system_tools'])" -eq 'true')
     $liveBr  = ("$($Cfg['integrations.browser_live'])" -eq 'true')
+    $grants = Get-RoleSkillGrants -Cfg $Cfg
 
     $slots['PM_STACK_SHELL_ALLOWS'] = ''
+    $slots['PM_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['project-manager']) -Effect 'allow'
+    $slots['BA_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['business-analyst']) -Effect 'allow'
+    $slots['REVIEWER_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['code-reviewer']) -Effect 'allow'
+    $slots['SECURITY_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['security-monitor']) -Effect 'allow'
 
     $devCmds = @($Cfg['stack.dev_commands'])
     $slots['DEVELOPER_STACK_SHELL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values $devCmds -Effect 'allow'
-    $devSkills = @($Cfg['stack.agent_skills'])
-    $slots['DEVELOPER_STACK_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values $devSkills -Effect 'allow'
+    $slots['DEVELOPER_STACK_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['developer']) -Effect 'allow'
 
     $desShell = ''
-    $desSkills = @('prototype','writing-for-agents')
     if ($dsTools) {
         $desShell = New-PermRulesBlock -Action 'shell' -Values @('node .agents/skills/hallmark/scripts','npx impeccable audit','npx impeccable critique','npx impeccable polish','npx impeccable layout','npx impeccable typeset') -Effect 'allow'
         $desShell += "`r`n" + (New-PermRulesBlock -Action 'shell' -Values @('npx impeccable document','npx impeccable extract','npx impeccable new-work') -Effect 'deny')
-        $desSkills = @('hallmark','impeccable','prototype','writing-for-agents')
     }
-    if ($liveBr) { $desSkills = $desSkills + @('browseros-neo') }
     $slots['DESIGNER_STACK_SHELL_ALLOWS'] = $desShell
-    $slots['DESIGNER_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values $desSkills -Effect 'allow'
+    $slots['DESIGNER_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['designer']) -Effect 'allow'
 
     $slots['QA_STACK_SHELL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values @($Cfg['stack.qa_commands']) -Effect 'allow'
-    $qaSkills = @()
-    if ($liveBr) { $qaSkills = @('browseros-neo') }
-    $slots['QA_INTEGRATION_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values $qaSkills -Effect 'allow'
+    $slots['QA_INTEGRATION_SKILL_ALLOWS'] = New-PermRulesBlock -Action 'skill' -Values @($grants['qa-engineer']) -Effect 'allow'
 
     $slots['REVIEWER_STACK_SHELL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values @($Cfg['stack.reviewer_commands']) -Effect 'allow'
     $slots['SECURITY_AUDIT_TOOL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values @($Cfg['stack.security_commands']) -Effect 'allow'

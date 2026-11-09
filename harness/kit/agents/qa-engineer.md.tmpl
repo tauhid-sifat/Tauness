@@ -53,14 +53,7 @@ permissions:
   - action: "shell"
     resource: "curl {{BROWSER_BASE_URL}}*"
     effect: "allow"
-  - action: "skill"
-    resource: "diagnosing-bugs"
-    effect: "allow"
-  - action: "skill"
-    resource: "writing-for-agents"
-    effect: "allow"
-  {{QA_INTEGRATION_SKILL_ALLOWS}}
-
+{{QA_INTEGRATION_SKILL_ALLOWS}}
   - action: "webfetch"
     resource: "{{BROWSER_BASE_URL}}*"
     effect: "allow"

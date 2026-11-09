@@ -6,7 +6,20 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
 
 ## [1.2.0] - in progress
 
-### Added
+- **Skill allow-lists moved out of the kit and into `project.yaml`** (`skills.shared`, `skills.<role>`).
+  The agent templates carried 42 hardcoded grants naming one machine's installed set, so every fresh
+  instance reported 41 identical "skill not found" warnings and a genuinely missing skill could not be
+  seen. `Get-RoleSkillGrants` in `lib-apply.ps1` is now the single authority: declared shared + declared
+  role + `stack.agent_skills` + what the integration toggles imply. `validate-harness.ps1` **fails** an
+  agent granting anything outside that map and **warns** only for a declared-but-uninstalled skill; its
+  24-name `globalKnownSkills` snapshot is gone. The interview gained a shared-skills prompt, the
+  self-test installs stub skills for whatever a variant granted, and `skills:declared` /
+  `skills:installed` are now required PASS markers. Behaviour-preserving by measurement: rendering from
+  `HEAD` and from the working tree and comparing per-role grants shows all 7 roles identical - the first
+  attempt over-granted `opencode`, `research` and `writing-for-agents` to six roles through
+  `skills.shared`, which that comparison caught.
+
+### Changed
 
 - **MIT license** (`LICENSE`), chosen by the owner; README links versions to tags and the changelog.
 - **Layer A purity enforcement** in `tests/check-sources.ps1`: the kit, the live core docs and `tests/` are

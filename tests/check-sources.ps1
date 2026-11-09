@@ -55,7 +55,7 @@ foreach ($f in $scripts) {
         Add-Fail ("{0}: parse error at line {1}, column {2}: {3}" -f $f.Name, $first.Token.StartLine, $first.Token.StartColumn, $first.Message)
     }
 }
-Write-Host ("[1/8] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
+Write-Host ("[1/9] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
 
 # ---- 2. Data files: no BOM in the kit, core docs, or fixtures
 $dataRoots = @('harness', 'docs/harness', 'tests')
@@ -71,7 +71,7 @@ foreach ($rel in $dataRoots) {
         }
     }
 }
-Write-Host ("[2/8] data: {0} files scanned for BOM" -f $dataScanned)
+Write-Host ("[2/9] data: {0} files scanned for BOM" -f $dataScanned)
 
 # ---- 3. Template slot audit
 # Produced slots: $ctx['X'] = ... / $slots['X'] = ... in the renderer, plus the tokens
@@ -137,7 +137,7 @@ foreach ($tok in ($interviewUnknown | Sort-Object -Unique)) {
     Add-Fail ("project.yaml.tmpl slot {" + $tok + "} has no producer in init-project.ps1's interview")
 }
 
-Write-Host ("[3/8] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
+Write-Host ("[3/9] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
 if ($unused.Count -gt 0) { Write-Host ("       produced but not referenced by rendered templates (project.yaml.tmpl consumes these at interview time): " + ($unused -join ', ')) }
 
 # ---- 4. Core kit contract, asserted by name
@@ -189,7 +189,7 @@ if (Test-Path $profilesPath) { $profilesText = Get-Text $profilesPath }
 foreach ($profile in @('full', 'lean', 'headless', 'brownfield', 'micro')) {
     if ($profilesText -notmatch "(?m)^  $([regex]::Escape($profile)):\s*$") { Add-Fail "lifecycle profile '$profile' missing from profiles.yaml" }
 }
-Write-Host ("[4/8] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
+Write-Host ("[4/9] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
 
 # Kit file names must be truncation-safe: the renderer strips the .tmpl suffix by character count,
 # so anything left over must be a real, expected extension (CODEOWNERS.tmpl correctly leaves no
@@ -202,7 +202,7 @@ $mangled = @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit') -E
     return -not ($allowedExt -contains $ext.ToLowerInvariant())
 })
 foreach ($m in $mangled) { Add-Fail ("unexpected file extension: " + $m.Name) }
-Write-Host ("[5/8] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
+Write-Host ("[5/9] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
 
 # ---- 6. Reachability: every kit file must be rendered, or be a declared non-rendered input.
 #      Get-RenderPlan is the renderer's own statement of what it can reach, so it is called here
@@ -237,7 +237,7 @@ foreach ($f in ($kitFiles | Sort-Object)) {
 foreach ($f in @($notRendered.Keys | Sort-Object)) {
     if ($kitFiles -notcontains $f) { Add-Fail "declared non-rendered input is missing from the kit: $f" }
 }
-Write-Host ("[6/8] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
+Write-Host ("[6/9] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
 
 # ---- 7. Data format contract: kit JSON must be JSON (sync-labels.ps1 pipes labels.json to
 #      ConvertFrom-Json; the file shipped as commented YAML and no check could see that).
@@ -246,7 +246,7 @@ foreach ($f in $jsonFiles) {
     try { $null = (Get-Text $f.FullName) | ConvertFrom-Json }
     catch { Add-Fail ("{0} is not valid JSON ({1})" -f $f.Name, $_.Exception.Message) }
 }
-Write-Host ("[7/8] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
+Write-Host ("[7/9] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
 
 # ---- 8. Layer A purity: the core kit must never name a project.
 #      Stated in harness/README.md for three versions and checked nowhere, which is how nine core
@@ -294,7 +294,20 @@ foreach ($root in $purityRoots) {
         }
     }
 }
-Write-Host ("[8/8] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
+Write-Host ("[8/9] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
+
+# ---- 9. Rule-injecting slots must sit at column 0 in the agent templates. New-PermRulesBlock emits
+#      its own indentation, so an indented slot line makes the FIRST generated list item deeper than
+#      its siblings, and the agent's YAML frontmatter stops parsing. Three pre-existing slots had this
+#      latent defect; it only surfaced once they expanded to non-empty grants.
+foreach ($f in (Get-ChildItem -File (Join-Path $repoRoot 'harness/kit/agents') -Filter *.tmpl -ErrorAction SilentlyContinue)) {
+    foreach ($ln in ((Get-Text $f.FullName) -split "`r?`n")) {
+        if ($ln -match '^[ ]+\{\{[A-Z_]+_(?:ALLOWS|RULES)\}\}\s*$') {
+            Add-Fail ("{0}: rule-injecting slot is indented; the generated block self-indents, so this breaks YAML frontmatter: '{1}'" -f $f.Name, $ln.Trim())
+        }
+    }
+}
+Write-Host "[9/9] slots at column 0 in the agent templates"
 
 if ($fails.Count -gt 0) {
     Write-Host ""

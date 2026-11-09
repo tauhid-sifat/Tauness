@@ -28,7 +28,7 @@ Instances record `project.yaml.harness.kit_version + rendered_from_commit`. Upgr
 
 ## 5. Customization without forking
 
-Project needs map to `project.yaml` fields, not core edits: extra commands → `stack.*_commands` / `agent_skills`; stricter rules → `hard_deny_commands`; different lifecycle → `lifecycle.profile` (+ recorded tailoring decisions); new integrations → toggles + MCP deny list; anything genuinely new → `harness-improvement` issue (kit change) or **project-local additions** under `docs/project/` and an instance-specific agent overlay file (new agent ID, never editing a generated one) — both reviewed by the owner.
+Project needs map to `project.yaml` fields, not core edits: extra commands → `stack.*_commands` / `agent_skills`; skill grants → `skills.shared` / `skills.<role>`; stricter rules → `hard_deny_commands`; different lifecycle → `lifecycle.profile` (+ recorded tailoring decisions); new integrations → toggles + MCP deny list; anything genuinely new → `harness-improvement` issue (kit change) or **project-local additions** under `docs/project/` and an instance-specific agent overlay file (new agent ID, never editing a generated one) — both reviewed by the owner.
 
 ## 6. Validation gates at initialization
 

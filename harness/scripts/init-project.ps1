@@ -58,6 +58,7 @@ if (-not $Config) {
         DEPLOY_CLI_LIST = Read-Host 'Deploy CLIs that must never run locally (comma-separated; blank ok)'
         BROWSER_BASE_URL = Read-Host 'Local browser base URL (e.g. http://localhost:3000; blank ok)'
         STACK_SKILLS_LIST = Read-Host 'Extra developer skill IDs (comma-separated; blank ok)'
+        SKILLS_SHARED = Read-Host 'Skills every role may load (comma-separated; blank ok)'
         DATA_SENSITIVITY = Read-Host 'Data sensitivity: public|business|personal|regulated'
         SENSITIVE_DATA_LABEL = Read-Host 'Sensitive data label (e.g. patient, customer, user)'
         USE_PROJECTS_V2 = Read-Host 'Use GitHub Projects v2? true/false'
@@ -70,7 +71,7 @@ if (-not $Config) {
     $text = $tmpl
     foreach ($k in $vals.Keys) {
         $v = $vals[$k]
-        if ($k -in @('AREA_LIST','SOURCE_GLOBS','DEV_COMMAND_LIST','QA_COMMAND_LIST','REVIEW_COMMAND_LIST','SECURITY_COMMAND_LIST','HARD_DENY_LIST','DEPLOY_CLI_LIST','STACK_SKILLS_LIST')) {
+        if ($k -in @('AREA_LIST','SOURCE_GLOBS','DEV_COMMAND_LIST','QA_COMMAND_LIST','REVIEW_COMMAND_LIST','SECURITY_COMMAND_LIST','HARD_DENY_LIST','DEPLOY_CLI_LIST','STACK_SKILLS_LIST','SKILLS_SHARED')) {
             if ($v) { $v = ($v -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }) -join ', ' }
         }
         $text = $text.Replace('{{' + $k + '}}', $v)
