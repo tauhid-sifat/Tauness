@@ -87,3 +87,7 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 ## Versioning
 
 See `harness/HARNESS-VERSION` and the commit hash recorded in each instance's `project.yaml.harness` section. Breaking kit changes require an owner-approved harness change and an ADR in `docs/harness/adr/`. The self-test is the gate: a kit change that cannot render a conforming instance does not merge.
+
+## License
+
+Released under the [MIT License](LICENSE). The provenance stamp (`rendered_from_commit` in `project.yaml`) is how an instance records which kit build it was rendered from; published versions are tagged `vMAJOR.MINOR.PATCH` and listed in [CHANGELOG.md](CHANGELOG.md).

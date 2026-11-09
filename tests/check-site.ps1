@@ -57,6 +57,10 @@ foreach ($f in $pages) {
     # ---- cross-page links and remote hosts
     foreach ($l in $links) {
         if ($l -like 'data:*' -or $l -like 'mailto:*') { continue }
+        if ($l -eq 'LICENSE') {
+            if (-not (Test-Path (Join-Path $repoRoot 'LICENSE'))) { Add-Fail "${name}: links to LICENSE but the file is missing" }
+            continue
+        }
         if ($l -match '^https?://') {
             if ($l -match '^https?://(www\.)?github\.com/tauhid-sifat/([A-Za-z0-9_.-]+)' -and $Matches[2] -eq 'Tauness') { continue }
             if ($l -notmatch '^https?://(github\.com|opencode\.ai|docs\.github\.com)') { Add-Fail "${name}: unexpected external host in link $l" }
@@ -130,7 +134,7 @@ if (Test-Path $index) {
     # The U+2260 in "approved != implemented != verified" is built from its code point because this
     # script's own source must stay ASCII-only (the rule check-sources.ps1 enforces).
     $ne = [string][char]0x2260
-    $musts = @('N-01 to N-30', 'Windows-only', 'no LICENSE file', '41 WARNs', 'never been executed',
+    $musts = @('N-01 to N-30', 'Windows-only', 'deliberately not enabled', '41 WARNs', 'never been executed',
                ('approved ' + $ne + ' implemented ' + $ne + ' verified'))
     foreach ($must in $musts) {
         if ($html -notmatch [regex]::Escape($must)) { Add-Fail "index.html no longer states: $must" }
