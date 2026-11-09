@@ -21,7 +21,7 @@
 | OD-08 | `gh` CLI only | Approved | Implemented; MCP servers project-scoped + default deny |
 | OD-09 | GitHub scope refresh (`project`, `workflow`, `read:project`) | Approved; execution outstanding | Owner action |
 | OD-10 | Browser tooling (BrowserOS pilot, Playwright later) | Approved; pilot blocked | Integration toggle `browser_live`; MCP `ask` per call until owner enables |
-| OD-11 | Jurisdiction/regime before Phase 3 | Approved; input outstanding | Instance project decision (Dental Park); core carries the framework (data_policy) |
+| OD-11 | Jurisdiction/regime before Phase 3 | Approved; input outstanding | Instance project decision (the originating project); core carries the framework (data_policy) |
 | OD-12 | Backup provider verification | Approved; verification outstanding | Instance project action; core defines the verification discipline |
 | OD-13 | Pinned global `puppeteer-core` | Approved & executed | Retained; documented as global-tool footprint with CI-pinned fallback |
 | OD-14 | Deny phantom skill IDs | Approved | Implemented via deny-all baseline + explicit allow-lists (15 IDs need no individual denies) |
@@ -42,7 +42,7 @@
 | OD-29 | KB delegation amendment (BA → code-reviewer critic, read-only, no approval transfer) | **Accepted — owner confirmed 2026-11-09** | Demonstrated technical need: independent critic required by benchmark; reviewer remains zero-write |
 | OD-30 | Initialization & upgrade mechanism (init/apply scripts; generated-file ownership) | **Accepted (mission-authorized)** | ADR-H-006; owner-run apply is the literal owner-approval mechanism |
 | OD-31 | `policies` as hard-deny layer; agent-override hole closed | **Accepted** | ADR-H-004; verified against official docs + observed override behavior; version-dependent → re-prove on upgrades |
-| OD-32 | Dental Park instance values (areas, profile `full`, stack command lists, `web_research: false`, `browser_live: true` with ask-gating) | **Accepted — owner confirmed 2026-11-09** | Rendered into `harness/staging/instance/project.yaml`; values mirror prior approved docs; deviations would be project decisions |
+| OD-32 | First-instance values (areas, profile `full`, stack command lists, `web_research: false`, `browser_live: true` with ask-gating) | **Accepted — owner confirmed 2026-11-09** | Rendered into `harness/staging/instance/project.yaml`; values mirror prior approved docs; deviations would be project decisions |
 
 ## Standing owner actions (not architecture decisions)
 
@@ -50,7 +50,7 @@
 2. Rotate/remove plaintext credentials in global OpenCode config; keep secrets out of configs.
 3. GitHub: scopes (`project`, `workflow`, `read:project`), push authorization, branch protection/CODEOWNERS/required checks/production Environment; label sync; Projects v2.
 4. OD-05/OD-25: verify workspace Global privacy setting + Hy3 structured output; flip `models.readiness` to `verified` to unlock sessions.
-5. OD-11: Dental Park jurisdiction/regime input before Architecture phase.
+5. OD-11: originating project jurisdiction/regime input before Architecture phase.
 6. OD-12: provider backup evidence + RPO/RTO + restore test before production.
 7. OD-10: restore BrowserOS Neo connectivity for the pilot (or disable the integration).
 8. OpenCode 2.2.6+ upgrade decision (session_move fix).

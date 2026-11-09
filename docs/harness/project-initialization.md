@@ -4,7 +4,7 @@
 
 ## 1. What initialization produces
 
-A complete instance from one input — `project.yaml` — with: root `AGENTS.md` + `opencode.jsonc` (rendered rules incl. policies, secret denies, protected paths, integration toggles), 7 agents + 16 commands in `.opencode/`, generated `.github/` governance (11 issue forms with the project's phases/areas/prefix, PR template, CODEOWNERS, workflows, labels), the `docs/project/` workspace skeleton (all phase directories with owning-role READMEs, knowledge base structure + templates, decision register, phase-state bound to the chosen lifecycle profile, traceability, working-memory), `.gitignore`, and a README pointing at the handbook. No project ever inherits another's assumptions; no Dental Park (or any stack) text exists in the kit.
+A complete instance from one input — `project.yaml` — with: root `AGENTS.md` + `opencode.jsonc` (rendered rules incl. policies, secret denies, protected paths, integration toggles), 7 agents + 16 commands in `.opencode/`, generated `.github/` governance (11 issue forms with the project's phases/areas/prefix, PR template, CODEOWNERS, workflows, labels), the `docs/project/` workspace skeleton (all phase directories with owning-role READMEs, knowledge base structure + templates, decision register, phase-state bound to the chosen lifecycle profile, traceability, working-memory), `.gitignore`, and a README pointing at the handbook. No project ever inherits another's assumptions; no project-specific or stack-specific text exists in the kit.
 
 ## 2. New-project flow
 

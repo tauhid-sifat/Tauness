@@ -1,6 +1,6 @@
 # AIDLC Harness — Architecture Specification
 
-> **Status:** Core harness specification (Layer A) — supersedes the Dental Park-scoped architecture baseline of 2026-11-04 for all general-purpose use; OD-01–OD-25 remain the approved governance record.
+> **Status:** Core harness specification (Layer A) - supersedes the originating project's scoped architecture baseline of 2026-11-04 for all general-purpose use; OD-01-OD-25 remain the approved governance record.
 > **Authority:** Project Owner. **Version:** harness 1.1.1 · 2026-11-09
 > **Scope:** This document is project-agnostic. Project identity, stack, domains, and policies live in each instance's `project.yaml`.
 > **Evidence legend:** `[VERIFIED]` runtime/official-doc verified · `[APPROVED]` owner decision · `[RECOMMENDED]` adopted default.

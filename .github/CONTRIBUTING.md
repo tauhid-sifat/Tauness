@@ -16,8 +16,10 @@ Read, in this order:
 
 ## The rules that will decide whether a change lands
 
-- **Layer A never names a project.** `harness/kit/`, `harness/scripts/`, and the living parts of
-  `docs/harness/` hold universal rules only. Project values belong in `project.yaml` (Layer B).
+- **Layer A never names a project** — and `tests/check-sources.ps1` enforces it across the kit, the live core
+  docs and `tests/`. `docs/harness/archive/`, `docs/harness/adr/` and `implementation-log.md` are the narrow
+  history exception: they record what happened, and scrubbing that would destroy provenance. Generic examples
+  marked "e.g." (a vendor CLI, a sample data label) are not project identity.
 - **Generated files are build artifacts.** Never hand-edit an instance's `AGENTS.md` or
   `opencode.jsonc` to change a rule - edit the kit, then re-apply.
 - **Script sources are ASCII-only, no BOM.** Windows PowerShell 5.1 decodes BOM-less UTF-8 with the

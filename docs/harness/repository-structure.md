@@ -35,7 +35,7 @@
 ├── .github/                       # generated governance + project-authored workflows
 │
 ├── docs/
-│   ├── harness/                   # LAYER A docs (specs, ADRs, registry, audits — project-agnostic)
+│   ├── harness/                   # LAYER A docs (specs, ADRs, registry, and the archive/ of dated evidence) - project identity is enforced by tests/check-sources.ps1
 │   └── project/                   # LAYER C workspace (canonical project knowledge + status)
 │       ├── 00-context/ … 06-operations/      # domain dirs (READMEs from kit, content by roles)
 │       ├── knowledge/                         # KB: capabilities/rules/entities/processes/sources/decisions/questions/actions + _staging/

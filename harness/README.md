@@ -50,9 +50,11 @@ Generated and local-only paths, never committed: `harness/reports/` (written by
 
 | Layer | Home | Contains | May contain project names? |
 |---|---|---|---|
-| **A. Core harness** | `harness/` + `docs/harness/` | universal rules, agents, commands, workflows, enforcement, templates | **No** |
+| **A. Core harness** | `harness/` + `docs/harness/` | universal rules, agents, commands, workflows, enforcement, templates | **No — enforced.** `tests/check-sources.ps1` scans the kit, the live core docs and `tests/`, and fails on project identity |
 | **B. Project configuration** | `project.yaml` (+ `docs/project/00-context/constraints.md`) | identity, stack, areas, IDs, integrations, data policy, lifecycle profile | Yes — this is where projects declare themselves |
 | **C. Project workspace** | `docs/project/`, source code, tests, `.github/` instance, `.opencode/` instance | requirements, designs, code, issues, reports, status | Yes |
+
+**History exception, deliberately narrow.** `docs/harness/archive/` (dated audits, the handover note and validation reports), `docs/harness/adr/` and `docs/harness/implementation-log.md` may name a project, because they record what happened and scrubbing that would destroy the provenance. Everything else in Layer A may not. Generic examples marked "e.g." - a vendor CLI, a sample sensitivity label - are not project identity and stay allowed, because a rule that bans ordinary vocabulary only teaches people to route around it.
 
 Instance files (layer C roots: `AGENTS.md`, `opencode.jsonc`, `.opencode/`, `.github/`, `docs/project/`) are **generated** from layer A templates plus layer B values. Never hand-edit generated files to change a rule: edit the kit, then re-apply (`harness/scripts/apply-harness-change.ps1`). The kit is the source of truth; instances are build artifacts.
 

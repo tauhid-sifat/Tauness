@@ -23,13 +23,13 @@
 
 | Package | Deliverable | Status |
 |---|---|---|
-| WP-G1 Audit & gap analysis | `generalization-audit-2026-11-09.md` | **Complete** |
+| WP-G1 Audit & gap analysis | `archive/generalization-audit-2026-11-09.md` | **Complete** |
 | WP-G2 Core kit | `harness/` kit: project.yaml schema, config/AGENTS/agents/commands templates, lifecycle profiles, github+docs templates, scripts (init/apply/validate/sync-labels/negative-tests) | **Complete (staged; owner apply for live repo)** |
-| WP-G3 Dental Park instance regeneration | `harness/staging/instance/**` rendered preview (config, agents×7, commands×15, github, project.yaml, KB/working/status docs) | **Complete (staged)** — apply owner-run |
+| WP-G3 First-instance regeneration | `harness/staging/instance/**` rendered preview (config, agents×7, commands×15, github, project.yaml, KB/working/status docs) | **Complete (staged)** — apply owner-run |
 | WP-G4 Core documentation | 13 staged core docs incl. knowledge-management, project-initialization, using-the-harness, ADRs, updated registries | **Complete (staged)** — apply owner-run |
 | WP-G5 Enforcement proof | runtime negative matrix + fresh-session skill check + delegation pilot | **Not executed** (needs owner terminal + OD-25 readiness) |
-| WP-G6 Validation report + readiness audit | `validation-report-2026-11-09.md`, `final-readiness-audit-2026-11-09.md` | **Complete** |
-| WP-G7 Migration & handover | `migration-and-handover-2026-11-09.md` | **Complete** |
+| WP-G6 Validation report + readiness audit | `archive/validation-report-2026-11-09.md`, `archive/final-readiness-audit-2026-11-09.md` | **Complete** |
+| WP-G7 Migration & handover | `archive/migration-and-handover-2026-11-09.md` | **Complete** |
 | WP-G8 GitHub activation | push, protections, labels, Projects, Environment | Owner-authorized actions (see handover) |
 
 ## 3. Critical path to first governed project work
@@ -46,7 +46,7 @@ OD-21→WP-11 · OD-23→kit integrations (module, default off) · OD-24→WP-G2
 
 ## 5. Risks
 
-Over-broad denies blocking routine work (mitigation: narrow allow-lists + matrix; fixes go through kit); policy-precedence drift on OpenCode upgrade (mitigation: re-run matrix every upgrade); single-owner approval queue (batching; async gates); generated-file desync (CI harness-validation + apply plan); Dental Park usability during transition (all instance values preserved in `staging/instance/project.yaml`; no project docs overwritten).
+Over-broad denies blocking routine work (mitigation: narrow allow-lists + matrix; fixes go through kit); policy-precedence drift on OpenCode upgrade (mitigation: re-run matrix every upgrade); single-owner approval queue (batching; async gates); generated-file desync (CI harness-validation + apply plan); the originating instance's usability during transition (all instance values preserved in `staging/instance/project.yaml`; no project docs overwritten).
 
 ## 6. Rollback
 

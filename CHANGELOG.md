@@ -4,6 +4,34 @@ All notable changes to the AIDLC Harness kit. Version is `harness/HARNESS-VERSIO
 entry here, and material changes (permissions, policies, gates, approvals - OD-18) also get an ADR in
 [`docs/harness/adr/`](docs/harness/adr/INDEX.md).
 
+## [1.2.0] - in progress
+
+### Added
+
+- **MIT license** (`LICENSE`), chosen by the owner; README links versions to tags and the changelog.
+- **Layer A purity enforcement** in `tests/check-sources.ps1`: the kit, the live core docs and `tests/` are
+  scanned for project identity and the build fails on a hit. The check carries a positive control, because the
+  first version of it was a vacuous no-op: `@('a' + 'b', 'c')` makes PowerShell concatenate the comma list into
+  one string, so the ban list had a single impossible entry and every run "passed". Now the list's shape is
+  asserted and a known-bad sample must match before silence counts.
+
+### Changed
+
+- Dated evidence (`final-readiness-audit`, `generalization-audit`, `migration-and-handover`,
+  `validation-report`) moved to `docs/harness/archive/`; cross-references updated. `harness/README.md` and
+  `repository-structure.md` now state the rule, the narrow history exception (ADRs, the implementation log,
+  the archive) and why generic examples are not project identity.
+- Project identity scrubbed from the four live specs that named a project (`architecture-specification`,
+  `project-initialization`, `implementation-roadmap`, `open-decisions`), leaving only history documents named.
+- Branch protection on this repository's `main` is recorded as a deliberate owner exception rather than an
+  outstanding defect; instance-side expectations are unchanged.
+
+### Fixed
+
+- A **false negative in the kit's own test suite** was caught while writing the purity check (see Added): the
+  same `+`/comma precedence trap applies to any array literal built with concatenation in this codebase, so
+  producer lists elsewhere were audited for it and are clean.
+
 ## [1.1.1] - 2026-11-09
 
 Patch: a shipped workflow was unrunnable, found by auditing rendered YAML rather than reading the template.

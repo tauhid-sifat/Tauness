@@ -55,7 +55,7 @@ foreach ($f in $scripts) {
         Add-Fail ("{0}: parse error at line {1}, column {2}: {3}" -f $f.Name, $first.Token.StartLine, $first.Token.StartColumn, $first.Message)
     }
 }
-Write-Host ("[1/7] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
+Write-Host ("[1/8] sources: {0} scripts checked - ASCII-only, no BOM, parse clean" -f $scripts.Count)
 
 # ---- 2. Data files: no BOM in the kit, core docs, or fixtures
 $dataRoots = @('harness', 'docs/harness', 'tests')
@@ -71,7 +71,7 @@ foreach ($rel in $dataRoots) {
         }
     }
 }
-Write-Host ("[2/7] data: {0} files scanned for BOM" -f $dataScanned)
+Write-Host ("[2/8] data: {0} files scanned for BOM" -f $dataScanned)
 
 # ---- 3. Template slot audit
 # Produced slots: $ctx['X'] = ... / $slots['X'] = ... in the renderer, plus the tokens
@@ -137,7 +137,7 @@ foreach ($tok in ($interviewUnknown | Sort-Object -Unique)) {
     Add-Fail ("project.yaml.tmpl slot {" + $tok + "} has no producer in init-project.ps1's interview")
 }
 
-Write-Host ("[3/7] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
+Write-Host ("[3/8] slots: {0} distinct slots used by templates, {1} without a producer, {2} produced but unreferenced; interview template: {3} producers, {4} unproduced" -f $used.Count, $unknown.Count, $unused.Count, $interview.Count, @($interviewUnknown | Sort-Object -Unique).Count)
 if ($unused.Count -gt 0) { Write-Host ("       produced but not referenced by rendered templates (project.yaml.tmpl consumes these at interview time): " + ($unused -join ', ')) }
 
 # ---- 4. Core kit contract, asserted by name
@@ -189,7 +189,7 @@ if (Test-Path $profilesPath) { $profilesText = Get-Text $profilesPath }
 foreach ($profile in @('full', 'lean', 'headless', 'brownfield', 'micro')) {
     if ($profilesText -notmatch "(?m)^  $([regex]::Escape($profile)):\s*$") { Add-Fail "lifecycle profile '$profile' missing from profiles.yaml" }
 }
-Write-Host ("[4/7] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
+Write-Host ("[4/8] contract: kit paths present, harness $version, 7 agents, {0} commands, 5 profiles" -f $commandTemplates.Count)
 
 # Kit file names must be truncation-safe: the renderer strips the .tmpl suffix by character count,
 # so anything left over must be a real, expected extension (CODEOWNERS.tmpl correctly leaves no
@@ -202,7 +202,7 @@ $mangled = @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit') -E
     return -not ($allowedExt -contains $ext.ToLowerInvariant())
 })
 foreach ($m in $mangled) { Add-Fail ("unexpected file extension: " + $m.Name) }
-Write-Host ("[5/7] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
+Write-Host ("[5/8] extensions: {0} kit files conform to md|yml|yaml|json|jsonc|ps1|txt (+.tmpl)" -f @(Get-ChildItem -File -Recurse (Join-Path $repoRoot 'harness/kit')).Count)
 
 # ---- 6. Reachability: every kit file must be rendered, or be a declared non-rendered input.
 #      Get-RenderPlan is the renderer's own statement of what it can reach, so it is called here
@@ -237,7 +237,7 @@ foreach ($f in ($kitFiles | Sort-Object)) {
 foreach ($f in @($notRendered.Keys | Sort-Object)) {
     if ($kitFiles -notcontains $f) { Add-Fail "declared non-rendered input is missing from the kit: $f" }
 }
-Write-Host ("[6/7] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
+Write-Host ("[6/8] reachability: {0} kit files, {1} rendered by the plan, {2} declared inputs" -f $kitFiles.Count, $reachable.Count, $notRendered.Count)
 
 # ---- 7. Data format contract: kit JSON must be JSON (sync-labels.ps1 pipes labels.json to
 #      ConvertFrom-Json; the file shipped as commented YAML and no check could see that).
@@ -246,7 +246,55 @@ foreach ($f in $jsonFiles) {
     try { $null = (Get-Text $f.FullName) | ConvertFrom-Json }
     catch { Add-Fail ("{0} is not valid JSON ({1})" -f $f.Name, $_.Exception.Message) }
 }
-Write-Host ("[7/7] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
+Write-Host ("[7/8] data formats: {0} kit JSON files parse" -f $jsonFiles.Count)
+
+# ---- 8. Layer A purity: the core kit must never name a project.
+#      Stated in harness/README.md for three versions and checked nowhere, which is how nine core
+#      documents came to name the originating project, its patients and its vendors. Owner decision
+#      2026-11-09: dated evidence moves to docs/harness/archive/, decision records (ADRs) and the
+#      implementation log may name a project as history, and everything else must not - enforced.
+#      Generic stack examples marked "e.g." in template comments are deliberately allowed: the rule
+#      is about project identity, not about mentioning a public product or a generic data example:
+#      words like "patient" (a sample sensitivity label in the interview) and vendor CLIs used in
+#      "e.g." comments are allowed, because banning them would only teach the check to be worked around.
+# Project identity terms. Literals are split deliberately: this script lives inside the scanned set,
+# so writing the terms plainly makes it flag itself (it did). Each element must stay parenthesised:
+# @('a' + 'b', 'c') makes PowerShell concatenate the whole comma list into ONE string, which turns
+# this check into a vacuous no-op that still reports PASS. The positive control below catches that.
+$banned = @(
+    ('Dental ' + 'Park'),
+    ('dental-' + 'park'),
+    ('dent' + 'ist'),
+    ('cl' + 'inic')
+)
+if ($banned.Count -ne 4) { Add-Fail ("purity term list is malformed ({0} entries, expected 4) - the check would not work" -f $banned.Count) }
+# Positive control: prove the scanner can actually see a violation before trusting its silence.
+$probe = "readme " + $banned[0] + " mention"
+if (-not ($probe -match [regex]::Escape($banned[0]))) { Add-Fail 'purity check is vacuous: its own terms do not match a known-bad sample' }
+$purityExempt = @(
+    'docs/harness/adr/INDEX.md',            # decision records cite real history
+    'docs/harness/implementation-log.md'    # dated evidence log
+)
+$purityRoots = @('harness', 'docs/harness', 'tests')
+$purityScanned = 0
+foreach ($root in $purityRoots) {
+    $dir = Join-Path $repoRoot $root
+    if (-not (Test-Path $dir)) { continue }
+    foreach ($f in (Get-ChildItem -File -Recurse $dir -ErrorAction SilentlyContinue)) {
+        $rel = ($f.FullName.Substring($repoRoot.Length + 1)) -replace '\\', '/'
+        if ($rel -like 'docs/harness/archive/*') { continue }     # evidence, not live spec
+        if ($purityExempt -contains $rel) { continue }
+        if ($f.Extension -notin @('.md', '.tmpl', '.ps1', '.yaml', '.yml', '.json', '.jsonc')) { continue }
+        $purityScanned++
+        $body = Get-Text $f.FullName
+        foreach ($term in $banned) {
+            if ($body -match [regex]::Escape($term)) {
+                Add-Fail ("Layer A names a project or its domain ('{0}') in: {1}" -f $term, $rel)
+            }
+        }
+    }
+}
+Write-Host ("[8/8] purity: {0} files scanned for project identity, {1} history exemptions, archive excluded" -f $purityScanned, $purityExempt.Count)
 
 if ($fails.Count -gt 0) {
     Write-Host ""
