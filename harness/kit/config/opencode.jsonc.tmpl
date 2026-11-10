@@ -17,17 +17,32 @@
 
     // 1) Secrets: no agent may read or edit secret material. Overridable by nothing below except
     //    agent-level allow — and no role is permitted to allow it (AGENTS.md non-negotiable).
+    //    The root form (`.env`) and the nested form (`**/.env`) are BOTH listed: OpenCode's
+    //    `**/x` does not match a root-level `x`, so `**/.env` alone left the most common secret
+    //    location readable (and editable).
+    { "action": "read", "resource": ".env", "effect": "deny" },
     { "action": "read", "resource": "**/.env", "effect": "deny" },
+    { "action": "read", "resource": ".env.*", "effect": "deny" },
     { "action": "read", "resource": "**/.env.*", "effect": "deny" },
+    { "action": "read", "resource": ".env.example", "effect": "allow" },
     { "action": "read", "resource": "**/.env.example", "effect": "allow" },
+    { "action": "read", "resource": "*.pem", "effect": "deny" },
     { "action": "read", "resource": "**/*.pem", "effect": "deny" },
+    { "action": "read", "resource": "*.key", "effect": "deny" },
     { "action": "read", "resource": "**/*.key", "effect": "deny" },
+    { "action": "read", "resource": "*.p12", "effect": "deny" },
     { "action": "read", "resource": "**/*.p12", "effect": "deny" },
+    { "action": "read", "resource": "*.pfx", "effect": "deny" },
     { "action": "read", "resource": "**/*.pfx", "effect": "deny" },
+    { "action": "read", "resource": ".ssh/**", "effect": "deny" },
     { "action": "read", "resource": "**/.ssh/**", "effect": "deny" },
+    { "action": "read", "resource": "id_rsa*", "effect": "deny" },
     { "action": "read", "resource": "**/id_rsa*", "effect": "deny" },
+    { "action": "read", "resource": "id_ed25519*", "effect": "deny" },
     { "action": "read", "resource": "**/id_ed25519*", "effect": "deny" },
+    { "action": "edit", "resource": ".env", "effect": "deny" },
     { "action": "edit", "resource": "**/.env", "effect": "deny" },
+    { "action": "edit", "resource": ".env.*", "effect": "deny" },
     { "action": "edit", "resource": "**/.env.*", "effect": "deny" },
 
     // 2) Protected paths (governance boundaries). Roles own their domain by agent-level allow only.

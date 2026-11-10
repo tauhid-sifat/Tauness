@@ -69,7 +69,11 @@ if ($leakFiles.Count -eq 0) { Pass 'placeholders' 'no unresolved placeholders in
 # ---- 3. Config structure
 $cfg = Get-ProjectConfig (Join-Path $Root 'project.yaml')
 $cfgJsonRaw = Read-TextRaw (Join-Path $Root 'opencode.jsonc')
-$cfgJson = $cfgJsonRaw -replace '(?m)^\s*//.*$','' -replace '/\*[\s\S]*?\*/',''
+# Strip line comments only. A block-comment strip (`/\* ... \*/`) corrupts glob resources such as
+# `**/*.pem`, which contain both `/*` and `*/` - the old `-replace` silently mangled the parsed
+# config (its `config:*` checks ran against a mutated permission list). The template uses `//`
+# comments only, so no block strip is needed.
+$cfgJson = $cfgJsonRaw -replace '(?m)^\s*//.*$',''
 $parsed = $null
 try { $parsed = $cfgJson | ConvertFrom-Json } catch { Fail 'config:json' ("JSONC parse: " + $_.Exception.Message) }
 if ($parsed) {
@@ -88,6 +92,11 @@ if ($parsed) {
         if ([string]::IsNullOrWhiteSpace($sd)) { continue }
         $hit = @($parsed.permissions | Where-Object { $_.action -eq 'edit' -and $_.resource -eq $sd -and $_.effect -eq 'deny' })
         if ($hit.Count -ge 1) { Pass "config:source-deny:$sd" 'denied' } else { Fail "config:source-deny:$sd" 'application source is editable by every role' }
+    }
+    # Root-level secret files are the common location; `**/.env` alone does NOT match a root `.env`.
+    foreach ($need in @('.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', '.ssh/**', 'id_rsa*', 'id_ed25519*')) {
+        $hit = @($parsed.permissions | Where-Object { $_.action -eq 'read' -and $_.resource -eq $need -and $_.effect -eq 'deny' })
+        if ($hit.Count -ge 1) { Pass "config:secret-deny:$need" 'denied' } else { Fail "config:secret-deny:$need" 'root-level secret is readable' }
     }
     if ($parsed.mcp -and $parsed.mcp.servers) { Pass 'config:mcp-shape' 'modern mcp.servers form' }
     elseif ($parsed.mcp) { Fail 'config:mcp-shape' 'deprecated top-level mcp entries - must use mcp.servers' }

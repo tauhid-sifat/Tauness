@@ -37,6 +37,8 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
 ### Fixed
 
 - **Orchestrator could edit application code.** The permission model was allow-by-default for edit, so the base `* * allow` left `src/` and `tests/` editable by every role despite the documented "zero domain write scope" for the reviewer and "orchestrator cannot edit application code" (VC-31, N-02). The project now denies each `stack.source_dirs` entry and only the Developer re-allows it (ADR-H-018); proven live on OpenCode 2.2.6 - PM edit of `src/example.js` is denied, the developer's edit succeeds.
+- **Root-level `.env` and key files were readable.** The secret denies used only `**/.env`, and OpenCode's `**/x` does not match a root-level `x`, so `.env` at the repo root (the usual location) was readable and editable while `sub/.env` was not. Every secret pattern is now listed at both the root and nested form, with `.env.example` allowed at both (ADR-H-019); verified live on OpenCode 2.2.6 - root `.env` returns `Permission denied: read`, `.env.example` stays readable.
+- **Validator read a corrupted config.** `validate-harness.ps1` stripped block comments with `-replace '/\*[\s\S]*?\*/',''`, but a glob resource like `**/*.pem` contains both `/*` and `*/`, so the regex deleted 7 permission rules before parsing. Every `config:*` check ran against a mutated list (which is why the new secret check reported four root-level denies as "missing" when the rendered file had them). The block strip is removed - the template uses `//` line comments only - and the parsed permission count rises from 53 to 60.
 - `sync-labels.ps1` attested end to end: 38 taxonomy labels created with correct colours, re-run idempotent.
 
 ## [1.2.1] - 2026-11-09

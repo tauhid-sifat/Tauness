@@ -95,7 +95,7 @@ try {
         '[PASS] encoding:bom', '[PASS] secrets:scan', '[PASS] doc:architecture-specification',
         '[PASS] skills:declared', '[PASS] skills:installed',
         '[PASS] ledger:present', '[PASS] ledger:evidence', '[PASS] ledger:summary',
-        '[PASS] proposal:decision'
+        '[PASS] proposal:decision', '[PASS] config:secret-deny:.env'
     )
 
     foreach ($v in $variants) {

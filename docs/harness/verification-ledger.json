@@ -40,10 +40,13 @@
       "id": "VC-03",
       "control": "Secrets and key material are read-denied and edit-denied (.env*, *.pem, *.key, .ssh, id_*)",
       "tier": "permissions",
-      "status": "implemented",
-      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:json" }, { "kind": "check", "ref": "validate-harness.ps1 secrets:scan" }],
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "validate-harness.ps1 config:secret-deny:<file> + secrets:scan" },
+        { "kind": "run", "ref": "implementation-log 2026-11-10: N-18 root .env and nested sub/.env both denied (Permission denied: read) after the root-glob fix, .env.example still readable; OpenCode 2.2.6" }
+      ],
       "tests": ["N-18"],
-      "notes": "secrets:scan proves no secret VALUES are committed; it does not prove the read deny is enforced."
+      "notes": "Was false before ADR-H-019: `**/.env` does not match a root-level .env, so the most common secret location was readable. Both root and nested forms are now denied; secrets:scan separately proves no secret VALUES are committed."
     },
     {
       "id": "VC-04",

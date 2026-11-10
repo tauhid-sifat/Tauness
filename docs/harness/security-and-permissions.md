@@ -63,7 +63,7 @@ Residual risks stated plainly: shell matching is textual (allow-listing is the c
 | `DESIGN.md` | edit deny + Designer sole re-allow (OD-02) |
 | `docs/project/**` | project-level deny; each role re-allows its owned subtree(s) |
 | application source (`stack.source_dirs`, e.g. `src/**`, `tests/**`) | project-level edit deny; the Developer alone re-allows its source dirs. The orchestrator, QA and the reviewer cannot edit application code |
-| `.env*`, keys, `.ssh` | read + edit deny (secret material never reachable; shell read shapes policy-denied) |
+| `.env*`, keys, `.ssh`, `id_*` | read + edit deny at both the repo root and nested paths - the root form is listed explicitly because `**/.env` does not match a root `.env`; `.env.example` stays readable |
 
 ## 5. Threat model (agent-system) — persistent register per project
 
