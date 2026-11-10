@@ -19,13 +19,13 @@ permissions:
   contents: read
 
 jobs:
-  # Windows only for now: the renderer still addresses files with Windows separators, so rendering an
-  # instance on Linux/macOS would fail for the wrong reason. The static policy and handbook jobs run on
-  # all three platforms - they parse and check sources rather than write files. Converting the path
-  # literals and re-enabling this matrix is tracked as open work in the handbook.
   render-and-validate:
     name: Render and validate every lifecycle profile
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Kit self-test (5 profiles + all-integrations variant)

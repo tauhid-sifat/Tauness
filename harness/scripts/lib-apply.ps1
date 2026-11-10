@@ -90,28 +90,28 @@ function Get-RenderPlan { param([string]$KitDir, [string]$TargetDir, [string]$Do
         }
     }
     $k = $KitDir
-    AddItem @(Get-ChildItem -File (Join-Path $k 'agents\*.md.tmpl')) '.opencode\agents' $true 'instance'
-    AddItem @(Get-ChildItem -File (Join-Path $k 'commands\*.md.tmpl')) '.opencode\commands' $true 'instance'
-    AddItem @(Get-ChildItem -File (Join-Path $k 'github\ISSUE_TEMPLATE\*.tmpl')) '.github\ISSUE_TEMPLATE' $true 'instance'
-    AddItem @(Get-ChildItem -File (Join-Path $k 'github\workflows\*.tmpl')) '.github\workflows' $true 'instance'
-    AddItem @((Join-Path $k 'github\workflows\harness-validation.yml')) '.github\workflows' $false 'instance'
-    AddItem @((Join-Path $k 'github\labels.json')) '.github' $false 'instance'
+    AddItem @(Get-ChildItem -File (Join-Path $k 'agents/*.md.tmpl')) '.opencode/agents' $true 'instance'
+    AddItem @(Get-ChildItem -File (Join-Path $k 'commands/*.md.tmpl')) '.opencode/commands' $true 'instance'
+    AddItem @(Get-ChildItem -File (Join-Path $k 'github/ISSUE_TEMPLATE/*.tmpl')) '.github/ISSUE_TEMPLATE' $true 'instance'
+    AddItem @(Get-ChildItem -File (Join-Path $k 'github/workflows/*.tmpl')) '.github/workflows' $true 'instance'
+    AddItem @((Join-Path $k 'github/workflows/harness-validation.yml')) '.github/workflows' $false 'instance'
+    AddItem @((Join-Path $k 'github/labels.json')) '.github' $false 'instance'
     # Governance files GitHub reads from .github/ directly. These two were absent from the plan,
     # so instances silently lacked the CODEOWNERS review requirement that the GitHub-side controls
     # (negative test G-02) and project-initialization.md both assume exists.
-    AddItem @((Join-Path $k 'github\CODEOWNERS.tmpl')) '.github' $true 'instance'
-    AddItem @((Join-Path $k 'github\pull_request_template.md.tmpl')) '.github' $true 'instance'
+    AddItem @((Join-Path $k 'github/CODEOWNERS.tmpl')) '.github' $true 'instance'
+    AddItem @((Join-Path $k 'github/pull_request_template.md.tmpl')) '.github' $true 'instance'
     # docs/project tree (mirror structure; strip .tmpl) - init only
-    $docsRoot = Join-Path $k 'docs\project'
+    $docsRoot = Join-Path $k 'docs/project'
     foreach ($f in (Get-ChildItem -File -Recurse $docsRoot)) {
         $rel = $f.FullName.Substring($docsRoot.Length + 1)
         $dstName = $rel
         if ($dstName.EndsWith('.tmpl')) { $dstName = $dstName.Substring(0, $dstName.Length - 5) }
-        [void]$plan.Add([pscustomobject]@{ Src = $f.FullName; Dst = (Join-Path $TargetDir (Join-Path 'docs\project' $dstName)); Scope = 'init' })
+        [void]$plan.Add([pscustomobject]@{ Src = $f.FullName; Dst = (Join-Path $TargetDir (Join-Path 'docs/project' $dstName)); Scope = 'init' })
     }
     # singletons
     [void]$plan.Add([pscustomobject]@{ Src = (Join-Path $k 'AGENTS.md.tmpl');              Dst = (Join-Path $TargetDir 'AGENTS.md');        Scope = 'instance' })
-    [void]$plan.Add([pscustomobject]@{ Src = (Join-Path $k 'config\opencode.jsonc.tmpl');  Dst = (Join-Path $TargetDir 'opencode.jsonc');   Scope = 'instance' })
+    [void]$plan.Add([pscustomobject]@{ Src = (Join-Path $k 'config/opencode.jsonc.tmpl');  Dst = (Join-Path $TargetDir 'opencode.jsonc');   Scope = 'instance' })
     [void]$plan.Add([pscustomobject]@{ Src = (Join-Path $k 'gitignore.tmpl');              Dst = (Join-Path $TargetDir '.gitignore');      Scope = 'init' })
     [void]$plan.Add([pscustomobject]@{ Src = (Join-Path $k 'README-project.md.tmpl');      Dst = (Join-Path $TargetDir 'README.md');        Scope = 'init' })
     return $plan
@@ -129,7 +129,7 @@ function Invoke-HarnessRender {
     )
     $cfgPath = if (Test-Path $ProjectYamlPath) { $ProjectYamlPath } else { throw "project.yaml not found: $ProjectYamlPath" }
     $cfg = Get-ProjectConfig $cfgPath
-    $profiles = Join-Path $KitDir 'lifecycle\profiles.yaml'
+    $profiles = Join-Path $KitDir 'lifecycle/profiles.yaml'
     $ctx = New-RenderContext -Cfg $cfg -KitDir $KitDir -ProfilesPath $profiles
     $ctx['GIT_REMOTE_URL'] = [string]$cfg['repository.remote']
     $ctx['REPO_DOCS_URL'] = "https://github.com/$($cfg['owner.login'])/$($cfg['project.slug'])/tree/main/docs/project"
@@ -170,7 +170,7 @@ function Invoke-HarnessRender {
     if ($DocsHarnessPath -and (Test-Path $DocsHarnessPath)) {
         foreach ($f in (Get-ChildItem -File -Recurse $DocsHarnessPath)) {
             $rel = $f.FullName.Substring($DocsHarnessPath.Length + 1)
-            $dst = Join-Path (Join-Path $TargetDir 'docs\harness') $rel
+            $dst = Join-Path (Join-Path $TargetDir 'docs/harness') $rel
             if ((Test-Path $dst) -and -not $Force) { $skipped++; continue }
             if (-not $DryRun) {
                 $d = Split-Path -Parent $dst
@@ -185,7 +185,7 @@ function Invoke-HarnessRender {
             foreach ($part in @('kit','scripts')) {
                 $d = Join-Path $kitDstRoot $part
                 if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
-                Copy-Item -Path (Join-Path $srcRoot "$part\*") -Destination $d -Recurse -Force
+                Copy-Item -Path (Join-Path $srcRoot "$part/*") -Destination $d -Recurse -Force
             }
             Copy-Item -Path (Join-Path $srcRoot 'HARNESS-VERSION') -Destination (Join-Path $kitDstRoot 'HARNESS-VERSION') -Force
             Copy-Item -Path (Join-Path $srcRoot 'README.md') -Destination (Join-Path $kitDstRoot 'README.md') -Force

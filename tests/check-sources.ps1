@@ -13,6 +13,12 @@
 #   * Templates read explicitly as UTF-8 may not carry a BOM: it would flow into generated files.
 #
 # Usage: pwsh -File tests/check-sources.ps1     (exit 0 = clean, exit 1 = violations)
+#        pwsh -File tests/check-sources.ps1 -Terms <file> -ProjectYaml <file>
+
+param(
+    [string]$Terms,        # one banned term per line (# comments); lets an owner extend the list without editing this file
+    [string]$ProjectYaml   # a project.yaml whose identity (name/slug/description/data-policy label) is also banned from Layer A
+)
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -266,6 +272,42 @@ $banned = @(
     (-join [char[]]@(100, 101, 110, 116, 105, 115, 116))
 )
 if ($banned.Count -ne 6) { Add-Fail ("purity term list is malformed ({0} entries, expected 6) - the check would not work" -f $banned.Count) }
+
+# Project vocabulary, derived rather than hand-maintained. The fixed list above knows only the
+# originating project; a new project leaking its own client name, domain noun or codename into the
+# kit would pass unless the check is told. Two complementary, opt-in sources - neither of which is
+# readable in this file: a --Terms file (one term per line) and a project.yaml whose identity fields
+# (name, slug, description, data_policy label) are read and banned from Layer A.
+$derived = @()
+if ($Terms) {
+    if (-not (Test-Path $Terms)) { Add-Fail "purity --Terms file not found: $Terms" }
+    else {
+        foreach ($ln in ((Get-Text $Terms) -split "`r?`n")) {
+            $t = $ln.Trim()
+            if ($t -and -not $t.StartsWith('#')) { $derived += $t }
+        }
+    }
+}
+$pyPath = if ($ProjectYaml) { $ProjectYaml } else { (Join-Path $repoRoot 'project.yaml') }
+if (Test-Path $pyPath) {
+    $pyCfg = Get-ProjectConfig $pyPath
+    foreach ($k in @('project.name','project.slug','project.description')) {
+        $v = "$($pyCfg[$k])".Trim()
+        if ($v) { $derived += $v }
+    }
+    # data_policy label: the noun phrase naming what the sensitive data is ("customer data"). The
+    # generic sensitivity levels are excluded - they are not project identity.
+    $dpBlock = [regex]::Match((Get-Text $pyPath), '(?s)data_policy:.*?(?=^[A-Za-z]|\z)')
+    if ($dpBlock.Success) {
+        foreach ($m in [regex]::Matches($dpBlock.Value, '([A-Za-z][A-Za-z-]{2,}\s+data)\b')) {
+            $phrase = $m.Groups[1].Value
+            if ($phrase -notmatch '^(personal|business|public|regulated|sensitive)\s') { $derived += $phrase }
+        }
+    }
+}
+$derived = @($derived | Where-Object { $_ } | Sort-Object -Unique)
+$banned = @($banned) + $derived
+
 # Positive control: a vacuous ban list is indistinguishable from a clean repository, so prove the
 # scanner can see a violation before believing its silence. This suite has been bitten by exactly that.
 $probe = "readme " + $banned[0] + " mention"
@@ -281,7 +323,12 @@ foreach ($root in $purityRoots) {
         if ($rel -eq 'tests/check-sources.ps1') { continue }   # carries the terms as code points
         $purityScanned++
         $body = Get-Text $f.FullName
+        # Derived terms (project.yaml identity) are Layer A only: a project.yaml committed under
+        # tests/ or examples/ legitimately names itself, so scanning those trees with its own name
+        # would self-flag. The fixed backstop still scans everywhere.
+        $isLayerB = ($rel -like 'tests/*' -or $rel -like 'examples/*')
         foreach ($term in $banned) {
+            if ($isLayerB -and ($derived -contains $term)) { continue }
             if ($body -match [regex]::Escape($term)) { Add-Fail ("project identity or domain vocabulary found in: {0}" -f $rel) }
         }
     }
@@ -295,7 +342,7 @@ foreach ($topFile in @('README.md', 'CHANGELOG.md', 'LICENSE')) {
         if ($body -match [regex]::Escape($term)) { Add-Fail ("project identity or domain vocabulary found in: {0}" -f $topFile) }
     }
 }
-Write-Host ("[8/10] purity: {0} files scanned for project identity, no exemptions" -f $purityScanned)
+Write-Host ("[8/10] purity: {0} files scanned for project identity, {1} fixed + {2} derived terms, no exemptions" -f $purityScanned, 6, $derived.Count)
 
 # ---- 9. Rule-injecting slots must sit at column 0 in the agent templates. New-PermRulesBlock emits
 #      its own indentation, so an indented slot line makes the FIRST generated list item deeper than

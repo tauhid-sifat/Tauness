@@ -1,6 +1,6 @@
 # AIDLC Harness — Knowledge Management
 
-> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Fuses the repository-knowledge architecture of the baseline with the reference BA-harness knowledge workflow (source records, staging, critic, item acceptance, authority checks) and the Open Knowledge retrieval module (OD-23).
+> **Status:** Core harness specification (Layer A) · harness 1.3.0 · 2026-11-09. Fuses the repository-knowledge architecture of the baseline with the reference BA-harness knowledge workflow (source records, staging, critic, item acceptance, authority checks) and the Open Knowledge retrieval module (OD-23).
 > **Depends on:** `architecture-specification.md`, `agent-specifications.md`
 
 ---

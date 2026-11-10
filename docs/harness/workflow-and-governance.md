@@ -1,6 +1,6 @@
 # AIDLC Harness — Workflow and Governance
 
-> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Generalizes the 2026-11-04 phase/gate model; all OD-approved mechanics preserved.
+> **Status:** Core harness specification (Layer A) · harness 1.3.0 · 2026-11-09. Generalizes the 2026-11-04 phase/gate model; all OD-approved mechanics preserved.
 > **Depends on:** `architecture-specification.md`, `agent-specifications.md`, `security-and-permissions.md`
 
 ---
@@ -97,6 +97,19 @@ Reproducible evidence or it did not happen. Review findings close only when the 
 ## 10. Continuous improvement
 
 Monthly metrics in `status/metrics.md` (requirements review yield, ambiguous ACs, traceability coverage, a11y findings, CI pass rate, defect escape, review latency, security posture, rework, agent task success). Retros after each gate and incident; harness improvements via `harness-improvement` issues → PM evaluation → owner approval → kit edit → `apply-harness-change.ps1`. Agents can never weaken their own guardrails. Version + change history: `harness/HARNESS-VERSION`, roadmap, implementation log, ADRs.
+
+### 10.1 Harness-improvement proposal lifecycle
+
+`/improve-harness` writes a proposal to `docs/project/working/project-manager/harness-feedback/<yyyymmdd>-<slug>.md` with frontmatter `status:` and `decision:`. A proposal never becomes a decision silently - every transition is an owner action:
+
+| From | To | Owner action |
+|---|---|---|
+| `proposed` | `owner-approved` | Owner reviews the evidence and records the ADR id in `decision:` |
+| `owner-approved` | `applied` | Owner runs `apply-harness-change.ps1`; the change lands in the kit and instance |
+| `proposed` / `owner-approved` | `rejected` | Owner records why it was refused; the file stays as "we tried this and said no" |
+| any | `withdrawn` | The proposer withdraws it; the file remains with the reason |
+
+`validate-harness.ps1` enforces the sharp edge: a proposal whose `status:` is `owner-approved` or `applied` without a non-empty `decision:` reference fails validation. Rejected and withdrawn proposals keep their file, so a "no" survives as a record instead of disappearing.
 
 ## 11. Rejected anti-patterns
 

@@ -90,7 +90,7 @@ if (-not $Config) {
     Write-TextUtf8 -Path $Config -Text $text
 }
 
-$result = Invoke-HarnessRender -KitDir $kitDir -ProjectYamlPath $Config -TargetDir $Target -DocsHarnessPath (Join-Path (Split-Path -Parent $homeRoot) 'docs\harness') -DryRun:$DryRun -Force:$Force
+$result = Invoke-HarnessRender -KitDir $kitDir -ProjectYamlPath $Config -TargetDir $Target -DocsHarnessPath (Join-Path (Split-Path -Parent $homeRoot) 'docs/harness') -DryRun:$DryRun -Force:$Force
 
 if (-not $DryRun) {
     if (-not (Test-Path (Join-Path $Target 'project.yaml'))) {
@@ -116,8 +116,8 @@ if (-not $DryRun) {
 
 Next steps (owner):
   1. cd $Target; git init -b main (if new); review rendered files; commit 'Initialize from AIDLC harness'.
-  2. Validate: pwsh -File harness\scripts\validate-harness.ps1
-  3. GitHub: create the private repo, push, then pwsh -File harness\scripts\sync-labels.ps1
+  2. Validate: pwsh -File harness/scripts/validate-harness.ps1
+  3. GitHub: create the private repo, push, then pwsh -File harness/scripts/sync-labels.ps1
   4. Open OpenCode here -> /status shows the lifecycle; begin Phase 1 via /pm.
 "@
 } else {

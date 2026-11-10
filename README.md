@@ -84,9 +84,10 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 
 `check-sources.ps1` enforces the rules the kit was built without: script sources stay ASCII-only (Windows PowerShell 5.1 decodes BOM-less UTF-8 through the ANSI codepage, so a non-ASCII literal can silently break parsing), every template slot has a producer, and the kit contract holds by exact filename and count. `render-and-validate.ps1` renders a throwaway instance for each lifecycle profile plus an all-integrations variant, asserts the artifacts and the enforcement effect of each toggle, then requires `validate-harness.ps1` to exit clean **and** to have recorded specific checks as PASS — so a check that errors out cannot masquerade as a pass.
 
-`.github/workflows/kit-validation.yml` runs the render test on Windows and the static policy on Windows, Linux and macOS.
+`.github/workflows/kit-validation.yml` runs the render test and the static policy on Windows, Linux and macOS.
 
-**Known limitation:** the renderer addresses files with Windows path separators, so `init-project.ps1` and `validate-harness.ps1` are Windows-only in practice even though the harness targets all three platforms. Converting those literals is outstanding work; until then only the Windows runner can exercise a rendered instance.
+The renderer addresses files with forward-slash path literals, which are valid on Windows, Linux and
+macOS, so `init-project.ps1` and `validate-harness.ps1` run on all three platforms.
 
 ## Local-only artifacts
 

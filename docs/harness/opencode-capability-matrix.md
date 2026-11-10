@@ -1,6 +1,6 @@
 # OpenCode Capability Matrix — AIDLC Harness
 
-> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Baseline verified on OpenCode v2.2.5 (Windows 11, PowerShell 5.1, Node 22.19, Git 2.53, gh 2.96) against the installed runtime and official V2 documentation (permissions, agents, plugins, config schema `https://opencode.ai/config.json`). The 2026-11-02/04 baseline below is retained where re-verified; the 2026-11-09 addendum captures the re-check plus the enforcement findings that shaped ADR-H-004.
+> **Status:** Core harness specification (Layer A) · harness 1.3.0 · 2026-11-09. Baseline verified on OpenCode v2.2.5 (Windows 11, PowerShell 5.1, Node 22.19, Git 2.53, gh 2.96) against the installed runtime and official V2 documentation (permissions, agents, plugins, config schema `https://opencode.ai/config.json`). The 2026-11-02/04 baseline below is retained where re-verified; the 2026-11-09 addendum captures the re-check plus the enforcement findings that shaped ADR-H-004.
 
 ## 1. Legend
 

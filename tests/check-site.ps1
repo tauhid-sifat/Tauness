@@ -63,6 +63,7 @@ foreach ($f in $pages) {
         }
         if ($l -match '^https?://') {
             if ($l -match '^https?://(www\.)?github\.com/tauhid-sifat/([A-Za-z0-9_.-]+)' -and $Matches[2] -eq 'Tauness') { continue }
+            if ($l -match '^https?://tauhid-sifat\.github\.io/') { continue }
             if ($l -notmatch '^https?://(github\.com|opencode\.ai|docs\.github\.com)') { Add-Fail "${name}: unexpected external host in link $l" }
             continue
         }
@@ -93,13 +94,26 @@ foreach ($f in $pages) {
     }
 }
 
-# ---- the handbook's version stamp must equal the kit version
+# ---- the handbook's version stamp must equal the kit version on every page (so the walkthrough and
+#      404 page cannot drift silently), and the zero-build extras (skip link, focus styles,
+#      reduced-motion, search) must all be present
 $version = (Get-Content (Join-Path $repoRoot 'harness/HARNESS-VERSION') -Raw).Trim()
+if (-not (Test-Path (Join-Path $siteDir '404.html'))) { Add-Fail '404.html missing from site/' }
+if (-not (Test-Path (Join-Path $siteDir 'search-index.js'))) { Add-Fail 'search-index.js missing from site/' }
+if (-not (Test-Path (Join-Path $siteDir 'search.js'))) { Add-Fail 'search.js missing from site/' }
+foreach ($f in $pages) {
+    $html = Get-Text $f.FullName
+    if ($html -notmatch ('<code>' + [regex]::Escape($version) + '</code>')) { Add-Fail "$($f.Name): footer version stamp is not kit $version" }
+    if ($html -notmatch ('kit ' + [regex]::Escape($version))) { Add-Fail "$($f.Name): nav brand stamp is not kit $version" }
+    if ($html -notmatch 'class="skip-link"') { Add-Fail "$($f.Name): no skip-to-content link" }
+    if ($html -notmatch 'prefers-reduced-motion') { Add-Fail "$($f.Name): no reduced-motion guard" }
+    if ($html -notmatch ':focus-visible') { Add-Fail "$($f.Name): no visible focus style" }
+    if ($html -notmatch 'id="search-input"') { Add-Fail "$($f.Name): no search input" }
+    if ($html -notmatch 'search-index\.js') { Add-Fail "$($f.Name): does not load the search index" }
+}
 $index = Join-Path $siteDir 'index.html'
 if (Test-Path $index) {
     $html = Get-Text $index
-    if ($html -notmatch ('kit <code>' + [regex]::Escape($version) + '</code>')) { Add-Fail "index.html footer version stamp is not kit $version" }
-    if ($html -notmatch ('kit ' + [regex]::Escape($version))) { Add-Fail "index.html nav brand stamp is not kit $version" }
 
     # ---- counted claims: tables must have as many rows as the handbook asserts
     function Get-FirstTableRows([string]$SectionId) {
@@ -116,7 +130,7 @@ if (Test-Path $index) {
         @{ id = 'roles';      want = 7;  label = 'role agents in the roles table' },
         @{ id = 'commands';   want = 16; label = 'commands in the commands table' },
         @{ id = 'lifecycle';  want = 8;  label = 'phases in the lifecycle table (7 canonical + 0-intake)' },
-        @{ id = 'gaps';       want = 10; label = 'rows in the not-yet-proven table' }
+        @{ id = 'gaps';       want = 7;  label = 'rows in the not-yet-proven table' }
     )
     foreach ($c in $claims) {
         $rows = Get-FirstTableRows $c.id
@@ -153,8 +167,7 @@ if (Test-Path $index) {
     # The U+2260 in "approved != implemented != verified" is built from its code point because this
     # script's own source must stay ASCII-only (the rule check-sources.ps1 enforces).
     $ne = [string][char]0x2260
-    $musts = @('N-01 to N-30', 'Windows-only', 'deliberately not enabled', '0 WARN / 0 FAIL',
-               'only knows the terms it was given', 'never been executed',
+    $musts = @('N-01 to N-30', 'deliberately not enabled', '0 WARN / 0 FAIL',
                ('approved ' + $ne + ' implemented ' + $ne + ' verified'))
     foreach ($must in $musts) {
         if ($html -notmatch [regex]::Escape($must)) { Add-Fail "index.html no longer states: $must" }

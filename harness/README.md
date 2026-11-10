@@ -93,13 +93,9 @@ without them:
   command templates, 5 profiles, the documented core docs, and file extensions that survive the
   `.tmpl` suffix being stripped by character count.
 
-`.github/workflows/kit-validation.yml` runs the render test on Windows and the static policy on
-Windows, Linux and macOS.
-
-**Known limitation:** the renderer addresses files with Windows separators (`Join-Path $Root
-'docs\harness\x.md'`), so `init-project.ps1` and `validate-harness.ps1` are Windows-only in
-practice even though the harness targets all three platforms. Converting those path literals is
-outstanding work; until then only the Windows runner can exercise a rendered instance.
+`.github/workflows/kit-validation.yml` runs the render test and the static policy on Windows, Linux
+and macOS. The renderer addresses files with forward-slash path literals, valid on all three
+platforms, so `init-project.ps1` and `validate-harness.ps1` are not Windows-bound.
 
 ## Versioning
 

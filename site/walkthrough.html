@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Acme Console, start to finish - AIDLC Harness worked example</title>
 <meta name="description" content="A worked example of the AIDLC Harness: adopting the kit, running a project through owner-gated phases, staging knowledge, and where the controls stop agents.">
+<link rel="canonical" href="https://tauhid-sifat.github.io/Tauness/walkthrough.html">
+<meta property="og:title" content="Acme Console, start to finish - AIDLC Harness worked example">
+<meta property="og:description" content="A worked example of the AIDLC Harness: adopting the kit, running a project through owner-gated phases, staging knowledge, and where the controls stop agents.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tauhid-sifat.github.io/Tauness/walkthrough.html">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b5bd3'/%3E%3Cpath d='M8 22l4-12 4 12M9.6 18.4h4.8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20 10h4v12h-4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -108,6 +114,20 @@ main a{color:var(--accent);text-underline-offset:2px}
 .dg-s{font-size:9.5px;fill:var(--muted)}
 .dg-badge{font-size:7.5px;font-weight:800;letter-spacing:.06em;fill:var(--dg-badge)}
 footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.84rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 8px 0;z-index:100;text-decoration:none}
+.skip-link:focus{left:0}
+.search{position:relative;margin:4px 0 14px}
+.search input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.87rem;font-family:var(--sans)}
+.search-results{list-style:none;margin:6px 0 0;padding:0;max-height:280px;overflow-y:auto}
+.search-results li{margin:0}
+.search-results a{display:block;padding:6px 10px;margin:0;border-radius:6px;font-size:.82rem}
+.search-results a:hover{background:var(--surface-2)}
+.search-results .s-title{display:block;font-weight:600}
+.search-results .s-snip{display:block;color:var(--muted);font-size:.74rem}
+.search-results .s-page{color:var(--muted);font-size:.7rem}
+.search-results .s-none{color:var(--muted);font-size:.82rem;padding:6px 10px}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
 @media (max-width:920px){
   .layout{grid-template-columns:1fr}
   nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
@@ -117,6 +137,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <div class="layout">
 <nav aria-label="Sections">
   <div class="brand">
@@ -127,7 +148,12 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
         <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div><strong>AIDLC Harness</strong><span>worked example · kit 1.2.1</span></div>
+    <div><strong>AIDLC Harness</strong><span>worked example · kit 1.3.0</span></div>
+  </div>
+
+  <div class="search" role="search">
+    <input type="search" id="search-input" placeholder="Search the handbook" aria-label="Search the handbook" autocomplete="off">
+    <ul class="search-results" id="search-results" hidden></ul>
   </div>
 
   <h2>This example</h2>
@@ -151,7 +177,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
   <a href="index.html#gaps">What is not yet proven</a>
 </nav>
 
-<main>
+<main id="main-content" tabindex="-1">
 <h1>Acme Console, start to finish</h1>
 <p class="lede">One worked example of the AIDLC Harness: a real configuration, the commands you would type, what each
 step produces, and where you stop and decide. The project is fictional. The commands, file counts, generated
@@ -164,7 +190,7 @@ list is in <a href="index.html#gaps">What is not yet proven</a>.</p>
 <table>
 <thead><tr><th>Real</th><th>Fictional</th></tr></thead>
 <tbody>
-<tr><td>Every command line, file path, file count and validation number below was produced by running the kit at tag <code>v1.2.1</code> on Windows</td><td>Acme Console, its team, its feature and its ticket numbers</td></tr>
+<tr><td>Every command line, file path, file count and validation number below was produced by running the kit at tag <code>v1.3.0</code> on Windows</td><td>Acme Console, its team, its feature and its ticket numbers</td></tr>
 <tr><td>The generated inventory: 64 files, 7 role agents, 16 commands, 12 issue templates, 4 workflows, 18 <code>docs/project</code> documents</td><td>The content of requirements, decisions and review findings (illustrative, in the shape the harness produces)</td></tr>
 <tr><td>The deny rules and where an agent is stopped in principle</td><td>Whether OpenCode stopped it - no runtime test has ever been run, so nothing on this page demonstrates enforcement happening</td></tr>
 </tbody>
@@ -190,10 +216,10 @@ agents. Support and finance data makes it personal-sensitive. It starts from the
 <h2 id="adopt">Day 0 - adopt the harness</h2>
 <p>Twenty minutes, mostly reading. Plan it as part of the first working day, not as a ritual afterwards - a project
 adopted late has no decision register and no traceability for the decisions already made.</p>
-<pre><code>git clone --branch v1.2.1 https://github.com/tauhid-sifat/Tauness.git harness-kit
-copy harness-kit\examples\nextjs-web.yaml .\acme-console.yaml
+<pre><code>git clone --branch v1.3.0 https://github.com/tauhid-sifat/Tauness.git harness-kit
+copy harness-kit/examples/nextjs-web.yaml ./acme-console.yaml
 notepad acme-console.yaml            # name, slug, prefix, owner login, areas, models, readiness
-pwsh -File harness-kit\harness\scripts\init-project.ps1 -Target ..\acme-console -Config .\acme-console.yaml</code></pre>
+pwsh -File harness-kit/harness/scripts/init-project.ps1 -Target ../acme-console -Config ./acme-console.yaml</code></pre>
 <p>The render prints its plan first if you add <code>-DryRun</code>; without it, it writes new files, skips anything
 already present, and reports conflicts rather than overwriting. What lands (measured):</p>
 <pre><code>root                     5   AGENTS.md, opencode.jsonc, project.yaml, .gitignore, README.md
@@ -207,23 +233,24 @@ docs/harness            20   copied: specifications, ADRs, dated evidence, verif
 harness                 75   copied: the kit, so upgrades can be re-applied inside this repo</code></pre>
 <p>The generated <code>AGENTS.md</code> is stamped with what it came from, which is what makes an upgrade reviewable
 later:</p>
-<pre><code>&gt; **Status:** Owner-approved harness instructions - Generated 2026-11-09 from harness kit 1.2.1 (commit e20aaca).</code></pre>
+<pre><code>&gt; **Status:** Owner-approved harness instructions - Generated 2026-11-09 from harness kit 1.3.0 (commit e20aaca).</code></pre>
 <p>Then read two files before writing any code. <code>opencode.jsonc</code> is the complete list of what the agents may
 run - it is shorter than people expect. <code>docs/project/status/phase-state.md</code> says where you are, and a fresh
 instance starts honestly before Phase 1:</p>
 <pre><code>current_phase: "0-harness-setup"
 status:        not_started
 profile:       "full"</code></pre>
-<pre><code>cd ..\acme-console
-pwsh -File harness\scripts\validate-harness.ps1          # 56 PASS / 0 WARN / 0 FAIL
-git init -b main; git add -A; git commit -m "Initialize from AIDLC harness 1.2.1"
+<pre><code>cd ../acme-console
+pwsh -File harness/scripts/validate-harness.ps1          # 57 PASS / 0 WARN / 0 FAIL
+git init -b main; git add -A; git commit -m "Initialize from AIDLC harness 1.3.0"
 gh repo create acme-console --private --source=. --remote=origin --push
-pwsh -File harness\scripts\sync-labels.ps1 -Repo you/acme-console</code></pre>
+pwsh -File harness/scripts/sync-labels.ps1 -Repo you/acme-console</code></pre>
 <div class="callout warn"><p><strong>Then do the part only you can do.</strong> Branch protection on <code>main</code>,
 CODEOWNERS review required (the file is already generated), a <code>production</code> Environment with you as required
 reviewer. Until those exist, everything the harness enforces is enforced by OpenCode's config on your machine - which
-is the level of protection the ledger calls <em>implemented, not verified</em>. And <code>sync-labels.ps1</code>'s
-<code>gh label create</code> path has never been run in CI, so read its output the first time.</p></div>
+is the level of protection the ledger calls <em>implemented, not verified</em>. <code>sync-labels.ps1</code>'s
+<code>gh label create</code> path is attested against a live repository but has never been run in CI, so read its output
+the first time.</p></div>
 
 <h2 id="discovery">Phase 1 - discovery, and the first knowledge</h2>
 <p>Open OpenCode in the repository. One command starts the phase, and it does not start building.</p>
@@ -338,9 +365,9 @@ these things should stop, and your own approvals are the control that is known t
 
 <h2 id="upgrade">Upgrading the harness later</h2>
 <p>The instance carries its own copy of the kit, which is what makes this boring:</p>
-<pre><code>pwsh -File harness\scripts\apply-harness-change.ps1 -DryRun    # what would change, file by file
-pwsh -File harness\scripts\apply-harness-change.ps1 -Force     # timestamped backup, then regenerate
-pwsh -File harness\scripts\validate-harness.ps1                # must still pass</code></pre>
+<pre><code>pwsh -File harness/scripts/apply-harness-change.ps1 -DryRun    # what would change, file by file
+pwsh -File harness/scripts/apply-harness-change.ps1 -Force     # timestamped backup, then regenerate
+pwsh -File harness/scripts/validate-harness.ps1                # must still pass</code></pre>
 <p>Only the generated set is rewritten - <code>AGENTS.md</code>, <code>opencode.jsonc</code>, the agents, commands,
 issue forms, workflows, governance files. Your requirements, decisions, knowledge and code are init-scope and never
 touched. Where you disagree with a generated rule, the path is a proposal upstream, not a local edit: a hand-patched
@@ -359,19 +386,19 @@ missing answer on the first batch, which is what it is for.</li>
 are documented, but nothing here can turn branch protection on for a repository it has no authority over.</li>
 <li><strong>You re-read what the agent wrote.</strong> Verdicts are advisory and requirements come with quotes; the
 first week felt slower than prompting freely, and that is the trade the harness is explicitly making.</li>
-<li><strong>Windows only, for now.</strong> Rendering and validation want Windows today because the renderer uses
-Windows path separators. The static policy jobs run everywhere; instance work does not yet.</li>
 </ul>
 <p class="lede">Continue: <a href="index.html">the handbook</a> - setup, roles, commands, lifecycle, enforcement,
 knowledge, GitHub integration, and the honesty table of everything not yet proven.</p>
 
 <footer>
 <p><strong>Acme Console</strong> is a fictional project used to exercise the <strong>AIDLC Harness</strong> kit
-<code>1.2.1</code> under the <a href="LICENSE">MIT License</a>. Commands, counts and generated files are from a real
+<code>1.3.0</code> under the <a href="LICENSE">MIT License</a>. Commands, counts and generated files are from a real
 render of <code>examples/nextjs-web.yaml</code>; requirements, tickets and verdicts are illustrative. Kit and
 handbook: <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>. Not affiliated with OpenCode.</p>
 </footer>
 </main>
 </div>
+<script src="search-index.js"></script>
+<script src="search.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # validate-harness.ps1 - structural + consistency validation of a harness instance.
 # Read-only; safe to run anytime. Exits non-zero on FAIL. Writes a report to harness/reports/.
-# Usage: pwsh -File harness\scripts\validate-harness.ps1 [-Root <repoRoot>] [-IncludeRuntime]
+# Usage: pwsh -File harness/scripts/validate-harness.ps1 [-Root <repoRoot>] [-IncludeRuntime]
 
 param(
     [string]$Root,
@@ -22,10 +22,10 @@ function Fail($c, $d) { Add-Result 'FAIL' $c $d }
 function Warn($c, $d) { Add-Result 'WARN' $c $d }
 
 # ---- 1. Required files
-foreach ($p in @('AGENTS.md','opencode.jsonc','project.yaml','.gitignore','README.md','harness\HARNESS-VERSION')) {
+foreach ($p in @('AGENTS.md','opencode.jsonc','project.yaml','.gitignore','README.md','harness/HARNESS-VERSION')) {
     if (Test-Path (Join-Path $Root $p)) { Pass "file:$p" 'present' } else { Fail "file:$p" 'missing' }
 }
-foreach ($d in @('.opencode\agents','.opencode\commands','docs\harness','docs\project','.github\ISSUE_TEMPLATE')) {
+foreach ($d in @('.opencode/agents','.opencode/commands','docs/harness','docs/project','.github/ISSUE_TEMPLATE')) {
     if (Test-Path (Join-Path $Root $d)) { Pass "dir:$d" 'present' } else { Fail "dir:$d" 'missing' }
 }
 
@@ -37,12 +37,12 @@ foreach ($d in @('.opencode\agents','.opencode\commands','docs\harness','docs\pr
 #    literal token examples; docs/harness/** documents that same syntax. Scanning them as leaks
 #    produced false failures, so the sweep is limited to what the renderer actually produced.
 $leakFiles = @(); $bomFiles = @()
-$sweepDirs = @('.opencode','.github','docs','harness\kit','harness\scripts')
+$sweepDirs = @('.opencode','.github','docs','harness/kit','harness/scripts')
 $generatedRootFiles = @('AGENTS.md','opencode.jsonc','project.yaml','.gitignore','README.md')
 function Get-InstanceRel([string]$FullPath) { return $FullPath.Substring($Root.Length).TrimStart('\','/') }
 function Test-GeneratedPath([string]$Rel) {
-    if ($Rel -match '^harness(\\|$)') { return $false }          # kit + scripts: source of truth
-    if ($Rel -match '^docs\\harness(\\|$)') { return $false }    # core docs: document the syntax
+    if ($Rel -match '^harness([\\/]|$)') { return $false }          # kit + scripts: source of truth
+    if ($Rel -match '^docs[\\/]harness([\\/]|$)') { return $false } # core docs: document the syntax
     if ($Rel -match '\.tmpl$') { return $false }
     return $true
 }
@@ -99,7 +99,7 @@ $expectedMatrix = @{
     'security-monitor' = @('code-reviewer','developer')
 }
 $skillDirs = @()
-foreach ($sd in @('.opencode\skills','.agents\skills')) {
+foreach ($sd in @('.opencode/skills','.agents/skills')) {
     $full = Join-Path $Root $sd
     if (Test-Path $full) { $skillDirs += (Get-ChildItem -Directory -Recurse $full | Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } | ForEach-Object { $_.Name }) }
 }
@@ -115,7 +115,7 @@ try {
 $undeclared = @()
 $notInstalled = @()
 $agentModels = @{}
-foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue)) {
+foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode/agents/*.md') -ErrorAction SilentlyContinue)) {
     $t = Read-TextRaw $af.FullName
     $id = $af.BaseName
     if ($t -notmatch '(?m)^description:') { Fail "agent:$id" 'missing description' }
@@ -149,7 +149,7 @@ foreach ($af in (Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -
     $mcpAllow = @([regex]::Matches($t, '(?m)^  - action:\s*"((?:firecrawl|browseros|composio|jira|pencil)_\*)"') | ForEach-Object { $_.Groups[1].Value })
     if ($mcpAllow.Count -gt 0) { Fail "agent:$id:mcp-override" ('agent re-allows denied MCP: ' + ($mcpAllow -join ',')) }
 }
-$agentCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\agents\*.md') -ErrorAction SilentlyContinue).Count
+$agentCount = @(Get-ChildItem -File (Join-Path $Root '.opencode/agents/*.md') -ErrorAction SilentlyContinue).Count
 if ($agentCount -eq 7) { Pass 'agents:count' '7 role agents' } else { Fail 'agents:count' "expected 7 role agents, found $agentCount" }
 if ($undeclared.Count -eq 0) { Pass 'skills:declared' 'every agent skill grant is declared in project.yaml' } else { Fail 'skills:declared' ('granted but not declared: ' + (($undeclared | Select-Object -Unique) -join ', ')) }
 if ($notInstalled.Count -eq 0) { Pass 'skills:installed' 'every granted skill is present in the instance tree' } else { Warn 'skills:installed' ('declared but not installed: ' + (($notInstalled | Select-Object -Unique) -join ', ')) }
@@ -162,34 +162,34 @@ foreach ($id in $agentModels.Keys) {
 if ($agentModels.Count -eq 7) { Pass 'models:bound' 'all agents declare a model' }
 
 # ---- 6. Commands reference existing agents
-foreach ($cf in (Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md') -ErrorAction SilentlyContinue)) {
+foreach ($cf in (Get-ChildItem -File (Join-Path $Root '.opencode/commands/*.md') -ErrorAction SilentlyContinue)) {
     $t = Read-TextRaw $cf.FullName
     if ($t -match '(?m)^agent:\s*(\S+)') {
         $ag = $Matches[1]
-        if (-not (Test-Path (Join-Path $Root ".opencode\agents\$ag.md"))) { Fail "command:$($cf.BaseName)" ("references missing agent '$ag'") }
+        if (-not (Test-Path (Join-Path $Root ".opencode/agents/$ag.md"))) { Fail "command:$($cf.BaseName)" ("references missing agent '$ag'") }
     }
 }
-$cmdCount = @(Get-ChildItem -File (Join-Path $Root '.opencode\commands\*.md') -ErrorAction SilentlyContinue).Count
+$cmdCount = @(Get-ChildItem -File (Join-Path $Root '.opencode/commands/*.md') -ErrorAction SilentlyContinue).Count
 if ($cmdCount -ge 16) { Pass 'commands:count' "$cmdCount commands" } else { Warn 'commands:count' "$cmdCount (< 16 expected after full generation)" }
 
 # ---- 7. Core docs completeness (instance copies)
 foreach ($d in @('architecture-specification','agent-specifications','workflow-and-governance','security-and-permissions','github-governance','knowledge-management','project-initialization','using-the-harness','open-decisions','implementation-roadmap','skills-inventory','opencode-capability-matrix','repository-structure')) {
-    if (Test-Path (Join-Path $Root "docs\harness\$d.md")) { Pass "doc:$d" 'present' } else { Fail "doc:$d" 'missing' }
+    if (Test-Path (Join-Path $Root "docs/harness/$d.md")) { Pass "doc:$d" 'present' } else { Fail "doc:$d" 'missing' }
 }
 
 # ---- 8. Phase state + register + traceability shape
-$ps = Join-Path $Root 'docs\project\status\phase-state.md'
+$ps = Join-Path $Root 'docs/project/status/phase-state.md'
 if (Test-Path $ps) {
     $t = Read-TextRaw $ps
     foreach ($k in @('current_phase','status','profile','phase_list')) { if ($t -notmatch "(?m)^$k(\s*):") { Fail 'phase-state' "missing key $k" } }
     Pass 'phase-state' 'shape ok'
 } else { Fail 'phase-state' 'missing' }
-if (Test-Path (Join-Path $Root 'docs\project\traceability.md')) { Pass 'traceability' 'present' }
-if (Test-Path (Join-Path $Root 'docs\project\decisions\decision-register.md')) { Pass 'decision-register' 'present' }
+if (Test-Path (Join-Path $Root 'docs/project/traceability.md')) { Pass 'traceability' 'present' }
+if (Test-Path (Join-Path $Root 'docs/project/decisions/decision-register.md')) { Pass 'decision-register' 'present' }
 
 # ---- 9. No secrets by pattern (tracked-ish scan of instance text files)
 $secretHits = @()
-foreach ($f in (Get-ChildItem -File -Recurse $Root -Include *.md,*.yml,*.jsonc,*.json,*.ps1 -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch '\\(\.git|harness\\reports|node_modules)\\' })) {
+foreach ($f in (Get-ChildItem -File -Recurse $Root -Include *.md,*.yml,*.jsonc,*.json,*.ps1 -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch '[\\/](\.git|harness[\\/]reports|node_modules)[\\/]' })) {
     $t = $null; try { $t = Read-TextRaw $f.FullName } catch { continue }
     if ($t -match 'gh[ps]_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|sk-[A-Za-z0-9]{30,}') { $secretHits += $f.FullName.Substring($Root.Length+1) }
 }
@@ -210,7 +210,7 @@ if ($IncludeRuntime) {
 # ---- 11. Verification ledger: the instance ships the kit's own statement of what is proven, and the
 #        validator refuses to let a "verified" claim travel without evidence. It reports the status mix
 #        on every run, so an instance cannot quietly assume enforcement it has never seen.
-$ledgerPath = Join-Path $Root 'docs\harness\verification-ledger.json'
+$ledgerPath = Join-Path $Root 'docs/harness/verification-ledger.json'
 if (Test-Path $ledgerPath) {
     Pass 'ledger:present' 'verification ledger shipped with the instance'
     $ledger = $null
@@ -232,10 +232,29 @@ if (Test-Path $ledgerPath) {
     Fail 'ledger:present' 'verification ledger missing from the instance (docs/harness/verification-ledger.json)'
 }
 
+# ---- 12. Harness-feedback proposals: a proposal cannot assert approval or application without a
+#        decision reference. The lifecycle (proposed -> owner-approved -> applied, or
+#        rejected/withdrawn) is what stops a proposal silently becoming a decision; the `decision:`
+#        field is the only evidence of owner promotion, so claiming applied without one is a FAIL.
+$proposalDir = Join-Path $Root 'docs/project/working/project-manager/harness-feedback'
+$badProposals = @()
+foreach ($pf in (Get-ChildItem -File $proposalDir -Filter *.md -ErrorAction SilentlyContinue)) {
+    $status = ''; $decision = ''
+    foreach ($line in ((Read-TextRaw $pf.FullName) -split "`r?`n")) {
+        if ($line -match '^\s*status:\s*"?([A-Za-z-]+)"?\s*$') { $status = $Matches[1] }
+        elseif ($line -match '^\s*decision:\s*"?([^"]*)"?\s*$') { $decision = $Matches[1].Trim() }
+    }
+    if ($status -in @('owner-approved','applied') -and -not $decision) {
+        $badProposals += ($pf.Name + " (status=$status, no decision)")
+    }
+}
+if ($badProposals.Count -eq 0) { Pass 'proposal:decision' 'no approval/application claim lacks a decision reference' }
+else { Fail 'proposal:decision' ('approval/application claimed without a decision: ' + ($badProposals -join ', ')) }
+
 # ---- report
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-if (-not $ReportPath) { $ReportPath = Join-Path $Root "harness\reports\validate-$stamp.md" }
-$lines = @("# Harness validation report", "> Root: $Root - $(Get-Date -Format 's') - kit $((Read-TextRaw (Join-Path $Root 'harness\HARNESS-VERSION') -ErrorAction SilentlyContinue).Trim())", "")
+if (-not $ReportPath) { $ReportPath = Join-Path $Root "harness/reports/validate-$stamp.md" }
+$lines = @("# Harness validation report", "> Root: $Root - $(Get-Date -Format 's') - kit $((Read-TextRaw (Join-Path $Root 'harness/HARNESS-VERSION') -ErrorAction SilentlyContinue).Trim())", "")
 $fails = @($results | Where-Object Level -eq 'FAIL'); $warns = @($results | Where-Object Level -eq 'WARN'); $passes = @($results | Where-Object Level -eq 'PASS')
 $lines += ("**Result: {0} PASS - {1} WARN - {2} FAIL**" -f $passes.Count, $warns.Count, $fails.Count)
 $lines += ''

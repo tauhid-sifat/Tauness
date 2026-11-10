@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found - AIDLC Harness Handbook</title>
+<meta name="description" content="The page you asked for does not exist. Jump back into the AIDLC Harness engineering handbook.">
+<link rel="canonical" href="https://tauhid-sifat.github.io/Tauness/404.html">
+<meta property="og:title" content="Page not found - AIDLC Harness Handbook">
+<meta property="og:description" content="The AIDLC Harness engineering handbook: role agents, deny-by-default permissions, owner-gated lifecycle phases, and GitHub-enforced approvals.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tauhid-sifat.github.io/Tauness/404.html">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b5bd3'/%3E%3Cpath d='M8 22l4-12 4 12M9.6 18.4h4.8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20 10h4v12h-4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f9fc; --surface-2:#edf1f8; --text:#0f1723; --muted:#5a6b82;
+  --border:#dbe3ee; --accent:#2b5bd3; --accent-ink:#1c3f96; --accent-soft:#eaf0fe;
+  --warn-bg:#fdf3df; --warn-ink:#8a5206; --danger:#b42318; --ok:#166534; --code-bg:#f1f5fa;
+  --mono:ui-monospace,'Cascadia Mono','SF Mono',Consolas,'Liberation Mono',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a1120; --surface:#111b2e; --surface-2:#17233a; --text:#e3e9f4; --muted:#93a2ba;
+    --border:#2a3956; --accent:#7aa2ff; --accent-ink:#a9c3ff; --accent-soft:#122744;
+    --warn-bg:#3a2d0f; --warn-ink:#f3c265; --danger:#f87171; --ok:#4ade80; --code-bg:#0e1a2d;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.62;font-size:16px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 8px 0;z-index:100;text-decoration:none}
+.skip-link:focus{left:0}
+.layout{display:grid;grid-template-columns:274px minmax(0,1fr);max-width:1460px;margin:0 auto}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:26px 20px;border-right:1px solid var(--border);background:var(--surface)}
+nav h2{font-size:.71rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:22px 0 8px}
+nav h2:first-of-type{margin-top:0}
+nav a{display:block;padding:5px 10px;margin:1px -10px;color:var(--text);text-decoration:none;border-radius:6px;font-size:.87rem}
+nav a:hover{background:var(--surface-2);color:var(--accent)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand .mark svg{display:block;width:34px;height:34px}
+.brand strong{font-size:1rem;letter-spacing:-.01em;display:block}
+.brand span{font-size:.72rem;color:var(--muted)}
+main{padding:44px 50px 96px;min-width:0}
+h1{font-size:2.15rem;line-height:1.18;margin:0 0 .5rem;letter-spacing:-.025em}
+.lede{font-size:1.08rem;color:var(--muted);margin:0 0 1rem;max-width:74ch}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .38em;border-radius:4px;border:1px solid var(--border)}
+main a{color:var(--accent);text-underline-offset:2px}
+.search{position:relative;margin:4px 0 14px}
+.search input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.87rem;font-family:var(--sans)}
+.search-results{list-style:none;margin:6px 0 0;padding:0;max-height:280px;overflow-y:auto}
+.search-results li{margin:0}
+.search-results a{display:block;padding:6px 10px;border-radius:6px;font-size:.82rem}
+.search-results a:hover{background:var(--surface-2)}
+.search-results .s-title{display:block;font-weight:600}
+.search-results .s-snip{display:block;color:var(--muted);font-size:.74rem}
+.search-results .s-page{color:var(--muted);font-size:.7rem}
+.search-results .s-none{color:var(--muted);font-size:.82rem;padding:6px 10px}
+footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.84rem}
+@media (max-width:920px){
+  .layout{grid-template-columns:1fr}
+  nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  main{padding:28px 16px 64px}
+  h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="layout">
+<nav aria-label="Sections">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="34" height="34" role="img">
+        <rect width="32" height="32" rx="7" fill="var(--mark)"/>
+        <path d="M8 22l4-12 4 12M9.6 18.4h4.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.3.0</span></div>
+  </div>
+  <div class="search" role="search">
+    <input type="search" id="search-input" placeholder="Search the handbook" aria-label="Search the handbook" autocomplete="off">
+    <ul class="search-results" id="search-results" hidden></ul>
+  </div>
+  <h2>Start here</h2>
+  <a href="index.html">Handbook home</a>
+  <a href="walkthrough.html">Worked example</a>
+</nav>
+
+<main id="main-content" tabindex="-1">
+<h1>Page not found</h1>
+<p class="lede">That URL does not resolve to a handbook page. It may have moved, or been mistyped.</p>
+<p>Head back to the <a href="index.html">handbook home</a>, or read the <a href="walkthrough.html">worked example</a> of one project going from <code>git clone</code> to operations.</p>
+<footer>
+<p><strong>AIDLC Harness</strong> · kit <code>1.3.0</code> · released under the <a href="LICENSE">MIT License</a> · <a href="https://github.com/tauhid-sifat/Tauness">repository</a>.</p>
+</footer>
+</main>
+</div>
+<script src="search-index.js"></script>
+<script src="search.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "schema": "aidlc.verification-ledger/1",
-  "updated": "2026-11-09",
+  "updated": "2026-11-10",
   "statusVocabulary": {
     "designed": "Written into governance; nothing executes it yet.",
     "implemented": "Generated into every instance and statically checked, but the behaviour itself has not been observed.",
@@ -16,19 +16,25 @@
       "id": "VC-01",
       "control": "Shell access is deny-by-default in every instance's opencode.jsonc",
       "tier": "permissions",
-      "status": "implemented",
-      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:shell-deny" }],
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "validate-harness.ps1 config:shell-deny" },
+        { "kind": "run", "ref": "implementation-log 2026-11-10: N-26 pwsh (and ls) denied by the permission layer on OpenCode 2.2.6" }
+      ],
       "tests": ["N-25", "N-26", "N-27"],
-      "notes": "The configuration check proves the rule exists and is ordered first. Only the runtime matrix proves OpenCode refuses the call."
+      "notes": "Runtime refusal observed: a developer session's pwsh and ls shell calls returned Permission denied: shell."
     },
     {
       "id": "VC-02",
       "control": "Governance paths (harness, AGENTS.md, opencode.jsonc, .opencode, .github, docs/harness, .git) are edit-denied to every role",
       "tier": "permissions",
-      "status": "implemented",
-      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:protect:*" }],
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "validate-harness.ps1 config:protect:*" },
+        { "kind": "run", "ref": "implementation-log 2026-11-10: N-01 edit of docs/harness/architecture-specification.md denied on OpenCode 2.2.6" }
+      ],
       "tests": ["N-01", "N-09"],
-      "notes": ""
+      "notes": "Runtime refusal observed: the project-manager session's Edit of a docs/harness file returned Permission denied: edit."
     },
     {
       "id": "VC-03",
@@ -248,7 +254,7 @@
       "status": "verified",
       "evidence": [{ "kind": "check", "ref": "tests/check-sources.ps1 section 8 (with positive control)" }],
       "tests": [],
-      "notes": "Ban list is hand-maintained; deriving project vocabulary is open work (see the handbook)."
+      "notes": "Backstop list plus opt-in --Terms / project.yaml derivation (ADR-H-017)."
     },
     {
       "id": "VC-26",
@@ -302,10 +308,21 @@
       "status": "verified",
       "evidence": [
         { "kind": "check", "ref": "tests/render-and-validate.ps1 example-* variants (brownfield-internal, nextjs-web, python-api), each render -> validate -> re-apply -> validate" },
-        { "kind": "ci", "ref": "kit-validation, windows-latest render job" }
+        { "kind": "ci", "ref": "kit-validation render job (windows/ubuntu/macos matrix since 2026-11-10)" }
       ],
       "tests": [],
       "notes": "Expectations are parsed from each config (ID prefix, first deploy CLI, owner login) rather than hardcoded, so a starter config is checked against its own identity. Two assertions were hardcoded to the fixture before this and failed the examples rather than the kit."
+    },
+    {
+      "id": "VC-33",
+      "control": "sync-labels.ps1 creates the governed label taxonomy against a live repository, idempotently",
+      "tier": "github",
+      "status": "verified",
+      "evidence": [
+        { "kind": "run", "ref": "implementation-log 2026-11-10: 38 taxonomy labels created on a throwaway private repo, colours matched, re-run idempotent (exit 0)" }
+      ],
+      "tests": [],
+      "notes": "Ran against a throwaway repo alongside GitHub's default labels, which sync-labels deliberately does not delete. 11 type, 4 priority, 3 risk, 5 statusless, 8 area, 7 phase labels."
     },
     {
       "id": "VC-28",

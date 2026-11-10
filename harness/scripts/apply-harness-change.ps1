@@ -2,7 +2,7 @@
 # Regenerates the generated instance files from harness/kit + project.yaml.
 # This IS the owner-approval mechanism for harness changes (AGENTS.md Sec. 2): agents propose,
 # the owner applies. Creates a timestamped backup of every file it overwrites.
-# Usage: pwsh -File harness\scripts\apply-harness-change.ps1 [-DryRun] [-Force] [-BackupDir <path>]
+# Usage: pwsh -File harness/scripts/apply-harness-change.ps1 [-DryRun] [-Force] [-BackupDir <path>]
 
 param(
     [switch]$DryRun,
@@ -17,11 +17,11 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 . (Join-Path $scriptDir 'lib-render.ps1')
 . (Join-Path $scriptDir 'lib-apply.ps1')
 
-$kitDir = Join-Path $repoRoot 'harness\kit'
+$kitDir = Join-Path $repoRoot 'harness/kit'
 $py = Join-Path $repoRoot 'project.yaml'
 if (-not (Test-Path $kitDir)) { throw "Not a harness instance: $kitDir missing" }
 if (-not (Test-Path $py)) {
-    $staged = Join-Path $repoRoot 'harness\staging\instance\project.yaml'
+    $staged = Join-Path $repoRoot 'harness/staging/instance/project.yaml'
     if (Test-Path $staged) {
         Copy-Item $staged $py
         Write-Host "No root project.yaml - placed staged copy ($staged) at repo root first."
@@ -31,7 +31,7 @@ if (-not (Test-Path $py)) {
 # preview plan
 $plan = @(Get-RenderPlan -KitDir $kitDir -TargetDir $repoRoot | Where-Object { $_.Scope -eq 'instance' })
 Write-Host "Harness change apply - plan ($($plan.Count) generated files)"
-Write-Host "Kit version: $((Read-TextRaw (Join-Path $repoRoot 'harness\HARNESS-VERSION')).Trim())"
+Write-Host "Kit version: $((Read-TextRaw (Join-Path $repoRoot 'harness/HARNESS-VERSION')).Trim())"
 if (-not $Force) {
     Write-Host "`nExisting files will be SKIPPED unless -Force (never deleted). Re-run with -DryRun for a silent plan."
 }
@@ -64,16 +64,16 @@ if ($result.Leaks.Count -gt 0) { Write-Warning ("Unresolved placeholders: " + ($
 
 # Optional: accept staged core-doc rewrites (owner-reviewed documents)
 if ($AcceptStagedDocs) {
-    $staged = Join-Path $repoRoot 'harness\staging\docs-harness'
+    $staged = Join-Path $repoRoot 'harness/staging/docs-harness'
     if (Test-Path $staged) {
         foreach ($f in (Get-ChildItem -File -Recurse $staged)) {
             $rel = $f.FullName.Substring($staged.Length + 1)
-            $dst = Join-Path (Join-Path $repoRoot 'docs\harness') $rel
+            $dst = Join-Path (Join-Path $repoRoot 'docs/harness') $rel
             $d = Split-Path -Parent $dst
             if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
             if ((Test-Path $dst) -and -not $Force) { Write-Host "SKIP doc exists (use -Force): $rel"; continue }
             if (Test-Path $dst) {
-                $bd = Join-Path $BackupDir ("docs\harness\" + $rel)
+                $bd = Join-Path $BackupDir ("docs/harness/" + $rel)
                 $bdir = Split-Path -Parent $bd
                 if (-not (Test-Path $bdir)) { New-Item -ItemType Directory -Path $bdir -Force | Out-Null }
                 Copy-Item $dst $bd -Force
@@ -89,6 +89,6 @@ Write-Host @"
 Verify now (owner shell):
   opencode debug config   # parses with the new rules
   opencode debug agents   # 7 agents, models, modes
-  pwsh -File harness\scripts\validate-harness.ps1
+  pwsh -File harness/scripts/validate-harness.ps1
 Then commit: git add -A ; git commit -m 'Apply AIDLC harness <version>' ; open a PR or push per policy.
 "@

@@ -7,9 +7,9 @@
 # changes land unverified - which is how the kit shipped with a truncated-extension renderer, an
 # unparseable rendering helper, and a HARNESS-VERSION lookup that could never resolve.
 #
-# Runs on Windows PowerShell 5.1+ and PowerShell 7. The renderer itself still addresses files with
-# Windows path separators, so instance rendering is exercised on Windows runners only; the static
-# source policy in check-sources.ps1 is platform-neutral and runs everywhere.
+# Runs on Windows PowerShell 5.1+ and PowerShell 7. The renderer addresses files with forward-slash
+# path literals (valid on Windows, Linux and macOS), so instance rendering is exercised on all three
+# platforms in CI; the static source policy in check-sources.ps1 is also platform-neutral.
 #
 # Usage: pwsh -File tests/render-and-validate.ps1 [-Profiles full,lean] [-KeepArtifacts]
 
@@ -94,7 +94,8 @@ try {
         '[PASS] phase-state', '[PASS] config:policies', '[PASS] config:shell-deny',
         '[PASS] encoding:bom', '[PASS] secrets:scan', '[PASS] doc:architecture-specification',
         '[PASS] skills:declared', '[PASS] skills:installed',
-        '[PASS] ledger:present', '[PASS] ledger:evidence', '[PASS] ledger:summary'
+        '[PASS] ledger:present', '[PASS] ledger:evidence', '[PASS] ledger:summary',
+        '[PASS] proposal:decision'
     )
 
     foreach ($v in $variants) {
@@ -281,6 +282,27 @@ try {
             }
         }
 
+        # ---- proposal lifecycle gate, proven by re-injection. A proposal claiming `applied` (or
+        #      `owner-approved`) without a `decision:` reference must fail the validator - otherwise a
+        #      proposal could silently read as promoted. Inject the claim, expect the FAIL, then remove
+        #      it so the upgrade path below sees a clean instance.
+        $proposalDir = Join-Path $dir 'docs/project/working/project-manager/harness-feedback'
+        $badProposal = Join-Path $proposalDir 'probe-applied-no-decision.md'
+        New-Item -ItemType Directory -Path $proposalDir -Force | Out-Null
+        Write-Utf8NoBom $badProposal ("---`nstatus: applied`ndecision:`n---`n# re-injection probe`n")
+        $probeExit = -1
+        try {
+            & (Join-Path $scriptsDir 'validate-harness.ps1') -Root $dir 6>&1 2>&1 | Out-Null
+            $probeExit = $LASTEXITCODE
+        } catch {
+            $fails += ("{0}: proposal re-injection validate threw: {1}" -f $v.Name, $_.Exception.Message)
+        }
+        $probeRep = @(Get-ChildItem -File (Join-Path $dir 'harness/reports') -Filter 'validate-*.md' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+        $probeText = if ($probeRep.Count -gt 0) { Get-Text $probeRep[$probeRep.Count - 1].FullName } else { '' }
+        Remove-Item $proposalDir -Recurse -Force -ErrorAction SilentlyContinue
+        if ($probeExit -eq 0) { $fails += ("{0}: proposal claiming applied with no decision did not fail validation" -f $v.Name) }
+        elseif ($probeText -notmatch '\[FAIL\] proposal:decision') { $fails += ("{0}: proposal re-injection failed for the wrong reason (expected proposal:decision)" -f $v.Name) }
+
         # ---- upgrade path: apply-harness-change.ps1 re-renders an instance from the kit. "Upgrades
         #      propagate mechanically" is the kit's central promise and this path had zero coverage.
         $applyBackup = Join-Path $workRoot ($tag + '.apply-backup')
@@ -301,7 +323,7 @@ try {
         if (-not $applyThrew) {
             # The success path sets no exit code, so completion is proven from the artifacts the
             # script promises: a backup copy of every file it overwrites.
-            foreach ($b in @('AGENTS.md', 'opencode.jsonc', (Join-Path '.opencode\agents' 'project-manager.md'), (Join-Path '.github' 'CODEOWNERS'), (Join-Path '.github' 'pull_request_template.md'))) {
+            foreach ($b in @('AGENTS.md', 'opencode.jsonc', (Join-Path '.opencode/agents' 'project-manager.md'), (Join-Path '.github' 'CODEOWNERS'), (Join-Path '.github' 'pull_request_template.md'))) {
                 if (-not (Test-Path (Join-Path $applyBackup $b))) { $fails += ("{0}: apply overwrote {1} without backing it up first" -f $v.Name, $b) }
             }
             if ((Get-StableText (Join-Path $dir 'AGENTS.md')) -ne $agentsBefore) { $fails += ("{0}: re-apply changed AGENTS.md - rendering is not deterministic" -f $v.Name) }

@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AIDLC Harness — Engineering Handbook</title>
 <meta name="description" content="A reusable AI Development Lifecycle harness for OpenCode: seven role agents with deny-by-default permissions, owner-gated lifecycle phases, cited Git-markdown knowledge, and GitHub-enforced approvals.">
+<link rel="canonical" href="https://tauhid-sifat.github.io/Tauness/index.html">
+<meta property="og:title" content="AIDLC Harness — Engineering Handbook">
+<meta property="og:description" content="A reusable AI Development Lifecycle harness for OpenCode: seven role agents with deny-by-default permissions, owner-gated lifecycle phases, cited Git-markdown knowledge, and GitHub-enforced approvals.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tauhid-sifat.github.io/Tauness/index.html">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b5bd3'/%3E%3Cpath d='M8 22l4-12 4 12M9.6 18.4h4.8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20 10h4v12h-4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -108,6 +114,20 @@ main a{color:var(--accent);text-underline-offset:2px}
 .dg-s{font-size:9.5px;fill:var(--muted)}
 .dg-badge{font-size:7.5px;font-weight:800;letter-spacing:.06em;fill:var(--dg-badge)}
 footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.84rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 8px 0;z-index:100;text-decoration:none}
+.skip-link:focus{left:0}
+.search{position:relative;margin:4px 0 14px}
+.search input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.87rem;font-family:var(--sans)}
+.search-results{list-style:none;margin:6px 0 0;padding:0;max-height:280px;overflow-y:auto}
+.search-results li{margin:0}
+.search-results a{display:block;padding:6px 10px;margin:0;border-radius:6px;font-size:.82rem}
+.search-results a:hover{background:var(--surface-2)}
+.search-results .s-title{display:block;font-weight:600}
+.search-results .s-snip{display:block;color:var(--muted);font-size:.74rem}
+.search-results .s-page{color:var(--muted);font-size:.7rem}
+.search-results .s-none{color:var(--muted);font-size:.82rem;padding:6px 10px}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
 @media (max-width:920px){
   .layout{grid-template-columns:1fr}
   nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
@@ -117,6 +137,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <div class="layout">
 <nav aria-label="Sections">
   <div class="brand">
@@ -127,7 +148,12 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
         <path d="M20 10h4v12h-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.2.1</span></div>
+    <div><strong>AIDLC Harness</strong><span>engineering handbook · kit 1.3.0</span></div>
+  </div>
+
+  <div class="search" role="search">
+    <input type="search" id="search-input" placeholder="Search the handbook" aria-label="Search the handbook" autocomplete="off">
+    <ul class="search-results" id="search-results" hidden></ul>
   </div>
 
   <h2>Start here</h2>
@@ -164,7 +190,7 @@ footer{margin-top:3.6rem;padding-top:1.2rem;border-top:1px solid var(--border);c
   <a href="https://github.com/tauhid-sifat/Tauness">Repository</a>
 </nav>
 
-<main>
+<main id="main-content" tabindex="-1">
 <h1>AIDLC Harness</h1>
 <p class="lede">A reusable engineering harness for AI development teams running in OpenCode. It gives a project seven
 role-separated agents with deny-by-default permissions, a seven-phase lifecycle that stops for your approval at every
@@ -238,7 +264,6 @@ irreversible actions behind controls the agent cannot widen.</p>
 <li><strong>OpenCode-specific enforcement.</strong> The permission and <code>policies</code> semantics belong to OpenCode 2.2.x and are version-sensitive. Upgrading requires re-running the runtime negative matrix.</li>
 <li><strong>It is not a sandbox.</strong> Deny rules and approvals stop the documented bypasses; a local process is not a security boundary against a determined adversary on the same account.</li>
 <li><strong>Runtime proof is still outstanding.</strong> The enforcement is designed and generated, not yet demonstrated in a live session here. See <a href="#gaps">What is not yet proven</a> before you rely on a control.</li>
-<li><strong>Rendering is Windows-only in practice.</strong> The renderer addresses files with <code>\</code> separators, so <code>init-project.ps1</code> and <code>validate-harness.ps1</code> need Windows until that conversion lands.</li>
 </ul>
 
 <h2 id="built-on">What it's built on</h2>
@@ -373,7 +398,6 @@ becomes permanent. The blue strip at the bottom is always on. On a narrow screen
 <tbody>
 <tr><td><strong>OpenCode 2.2.x</strong></td><td>The permission and <code>policies</code> semantics the enforcement relies on are OpenCode's own. The baseline here is verified against 2.2.5; an upgrade means re-running the runtime negative matrix</td></tr>
 <tr><td><strong>Windows PowerShell 5.1+ or PowerShell 7</strong></td><td><code>init-project.ps1</code>, <code>apply-harness-change.ps1</code>, <code>validate-harness.ps1</code> and <code>sync-labels.ps1</code> are the render and check path. Script sources must stay ASCII-only so 5.1 can parse them</td></tr>
-<tr><td><strong>Windows, for rendering</strong></td><td>The renderer addresses files with <code>\</code> separators, so init and validate are Windows-only in practice today. The static source policy runs on Windows, Linux and macOS</td></tr>
 <tr><td><strong>Git</strong></td><td>The instance is a repository; the phase gate travels as a pull request against <code>phase-state.md</code>, and the decision register is an append-only file</td></tr>
 <tr><td><strong>GitHub CLI (<code>gh</code>)</strong></td><td>The control plane is <code>gh</code> rather than a GitHub MCP server (OD-08), so the agent's reach is a command allow-list you can read. <code>sync-labels.ps1</code> needs a token with <code>repo</code></td></tr>
 <tr><td><em>owner side</em> branch protection, CODEOWNERS, Environments</td><td>The GitHub layer is the control that agent configuration cannot reach: it is what makes "only the owner merges" true rather than a policy the agent agrees to</td></tr>
@@ -424,7 +448,7 @@ and say yes, and a blank remote is a valid answer - you can fill it in later.</p
 <ol class="steps">
   <li>
     <h3>Clone the kit at a version you can pin</h3>
-<pre><code>git clone --branch v1.2.1 https://github.com/tauhid-sifat/Tauness.git harness-kit
+<pre><code>git clone --branch v1.3.0 https://github.com/tauhid-sifat/Tauness.git harness-kit
 cd harness-kit
 pwsh -File tests/check-sources.ps1        # optional: prove the kit you just cloned is intact</code></pre>
     <p>Pin the tag rather than tracking <code>main</code>: instances record which kit commit rendered them
@@ -473,14 +497,14 @@ copied in: harness/       75   the kit itself, so this instance can re-apply upg
 <pre><code>cd ../acme-app
 pwsh -File harness/scripts/validate-harness.ps1</code></pre>
     <p>Read-only, exits non-zero on a FAIL, and writes a report under <code>harness/reports/</code>. A clean run today
-    is 56 checks. Open <code>opencode.jsonc</code> before you go further: it is the complete list of what your agents may
+    is 57 checks. Open <code>opencode.jsonc</code> before you go further: it is the complete list of what your agents may
     and may not do, and it is easier to read once here than to rediscover mid-task.</p>
   </li>
   <li>
     <h3>Put it under git and push</h3>
 <pre><code>git init -b main
 git add -A
-git commit -m "Initialize from AIDLC harness 1.2.1"
+git commit -m "Initialize from AIDLC harness 1.3.0"
 gh repo create acme-app --private --source=. --remote=origin --push</code></pre>
     <p>Create the empty private repository first if you prefer; an empty remote URL in step 2 is fine and you can fill
     it into <code>project.yaml</code> afterwards.</p>
@@ -490,9 +514,9 @@ gh repo create acme-app --private --source=. --remote=origin --push</code></pre>
 <pre><code>pwsh -File harness/scripts/sync-labels.ps1 -DryRun
 pwsh -File harness/scripts/sync-labels.ps1 -Repo you/acme-app</code></pre>
     <p>Creates <code>type:</code>, <code>priority:p0-p3</code>, <code>risk-</code>, the statusless labels, one
-    <code>phase-</code> label per active phase and one <code>area:</code> per area. Honest caveat: the parsing bug that
-    made this script unloadable is fixed, but the <code>gh label create</code> path itself has never been run in CI -
-    there is no credential or repository there - so check the first run's output rather than assuming it.</p>
+    <code>phase-</code> label per active phase and one <code>area:</code> per area. The <code>gh label create</code> path
+    has been attested against a live repository (2026-11-10, idempotent), though still not exercised in CI - so check the
+    first run's output rather than assuming.</p>
   </li>
   <li>
     <h3>Turn on the controls the agent cannot reach</h3>
@@ -838,7 +862,7 @@ pwsh -File tests/render-and-validate.ps1    # renders and validates every lifecy
 <tr><td>Data-format contract</td><td>Every <code>kit/**/*.json</code> must parse as JSON. <code>labels.json</code> shipped as commented YAML and was piped straight into <code>ConvertFrom-Json</code></td></tr>
 <tr><td>Workflow YAML shape</td><td>Rendered <code>.github/**/*.yml</code> must contain no flow mapping holding an Actions expression and no unresolved slot, and all 16 files must be present. Added after <code>pr-policy.yml</code> was found ending a step with <code>env: { GH_TOKEN: ${{ ... }} }</code> - unparseable YAML, so the PR policy gate had never been loadable in any instance</td></tr>
 <tr><td>Verification ledger</td><td><code>docs/harness/verification-ledger.json</code> is the single statement of what is proven. Checked like code: schema, status vocabulary, unique ids, no <code>verified</code> row without evidence, and a two-way join with <code>negative-tests.md</code> - every cited runtime test must exist, and every test in the protocol must be claimed by a control. Consumed by <code>validate-harness.ps1</code> per instance and by <code>tests/check-site.ps1</code> against the counts printed above</td></tr>
-<tr><td>CI</td><td><code>kit-validation.yml</code>: the render test on Windows, the static policy and handbook checks on Windows, Linux and macOS. Currently 56 PASS / 0 WARN / 0 FAIL per variant</td></tr>
+<tr><td>CI</td><td><code>kit-validation.yml</code>: the render test and the static policy and handbook checks on Windows, Linux and macOS. Currently 57 PASS / 0 WARN / 0 FAIL per variant</td></tr>
 </tbody>
 </table>
 <h3>Why the checks are this specific</h3>
@@ -875,22 +899,19 @@ nothing parsed the rendered <code>.github</code> files, and <code>harness-valida
 <p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
 real only when a test has shown it blocking. These are the harness's own audit findings, restated plainly.</p>
 <p>The machine-readable <a href="https://github.com/tauhid-sifat/Tauness/blob/main/docs/harness/verification-ledger.json">verification ledger</a>
-is what backs that sentence: the ledger records 32 controls: 7 verified, 19 implemented, 6 designed.
+is what backs that sentence: the ledger records 33 controls: 10 verified, 17 implemented, 6 designed.
 <code>validate-harness.ps1</code> re-reads that file inside every instance and fails any
 <code>verified</code> claim that carries no evidence, and <code>tests/check-site.ps1</code> refuses to publish this
 page if its counts drift from it - so the numbers here cannot be inflated by editing prose.</p>
 <table>
 <thead><tr><th>Status</th><th>Item</th></tr></thead>
 <tbody>
-<tr><td><span class="pill no">not executed</span></td><td>The runtime negative matrix - <strong>N-01 to N-30</strong> and <strong>G-01 to G-04</strong> - has never been run against a live OpenCode session. Every claim that a policy blocks an agent is currently <em>designed and generated</em>, not demonstrated. That includes <code>policies</code> precedence itself and <code>subagent_depth: 2</code>. CI does not even confirm that OpenCode accepts a rendered <code>opencode.jsonc</code>: the self-test proves it parses as JSONC, which is a weaker claim than the runtime loading it</td></tr>
-<tr><td><span class="pill stop">unverified</span></td><td><code>sync-labels.ps1</code> can now read its taxonomy (the file was commented YAML parsed as JSON, which is fixed in 1.1.0), but the path that actually creates labels - <code>gh label create</code> against a real repository - has never been executed. CI has no credential and no repo to write to, so label sync remains unproven end to end</td></tr>
-<tr><td><span class="pill read">narrow ban list</span></td><td>The Layer A purity check now scans the kit, the live core docs and <code>tests/</code> for project identity - but it only knows the names it is told. <strong>Adding a project teaches the kit nothing about that project's vocabulary</strong>, so a future instance leaking its own client, domain noun or internal codename into the kit would pass. Extending the list per project, or inferring it from <code>project.yaml</code>, is open work</td></tr>
-<tr><td><span class="pill read">not yet wired</span></td><td>Skill grants are now declared in <code>project.yaml</code> and enforced against it, so the 41 identical warnings per instance are gone — but the ban list behind the Layer A purity check still has to be edited by hand. <strong>A new project leaking its own client name, domain noun or internal codename into the kit would pass</strong>, because the check only knows the terms it was given. Deriving that vocabulary from <code>project.yaml</code> is open work</td></tr>
+<tr><td><span class="pill no">partly demonstrated</span></td><td>The runtime negative matrix - <strong>N-01 to N-30</strong> and <strong>G-01 to G-04</strong> - is not yet fully run. Two cases were demonstrated live on OpenCode 2.2.6: <strong>N-01</strong> (edit of <code>docs/harness/</code> denied) and <strong>N-26</strong> (<code>pwsh</code>/shell denied). The rest - including <code>policies</code> precedence itself (VC-11), <code>subagent_depth: 2</code>, and every <strong>G-xx</strong> GitHub-side case - still needs a <code>readiness: verified</code> instance and, for G-xx, real branch protection plus push authorization</td></tr>
+<tr><td><span class="pill read">opt-in vocabulary</span></td><td>The Layer A purity check bans a fixed backstop list plus anything it is given: a <code>--Terms &lt;file&gt;</code>, or a <code>project.yaml</code> whose name, slug, description and data-policy label become banned tokens - it no longer has to be edited by hand. The kit repository's own CI supplies neither, so there it still relies on the fixed backstop</td></tr>
 <tr><td><span class="pill stop">unattested</span></td><td><code>.github/CODEOWNERS</code> and the PR template are generated now, but nothing has demonstrated that GitHub actually enforces owner review on a governance path in this repository: that requires branch protection plus a real PR, and neither exists yet (see <em>owner action</em> above). Rendering the file is not the same as the control being live</td></tr>
 <tr><td><span class="pill stop">owner action</span></td><td>Instance-side GitHub controls are still not exercised anywhere: no <code>production</code> Environment with a required reviewer exists, no instance has had push authorization granted, and the owner's <code>gh</code> token lacks <code>project</code>, <code>workflow</code> and <code>read:project</code> scopes, so Projects v2 - the intended home of status (OD-06) - cannot be populated. (For <em>this</em> repository, branch protection is a recorded accepted exception, not an oversight - see below)</td></tr>
 <tr><td><span class="pill stop">open</span></td><td>Model readiness is unset for the fixture bindings: provider privacy, retention and structured-output behaviour must be verified before <code>readiness: verified</code> (OD-05, OD-25)</td></tr>
 <tr><td><span class="pill read">untested</span></td><td>Open Knowledge retrieval is defined but has never been piloted (P-10): the handshake is untested on the installed OpenCode version and the module stays off by default</td></tr>
-<tr><td><span class="pill read">platform gap</span></td><td>Rendering is Windows-only because the renderer uses <code>\</code> path literals, so Linux and macOS CI exercises static checks only</td></tr>
 <tr><td><span class="pill read">accepted exception</span></td><td>Branch protection is <strong>deliberately not enabled</strong> on this repository's <code>main</code>: changes land by direct push. Owner decision 2026-11-09, accepted as a known exception rather than pretence - the CI checks still run and report, but nothing enforces them before merge here. Inside a rendered <em>instance</em> the rule is unchanged: the owner enables protection, and agents may not push to <code>main</code></td></tr>
 </tbody>
 </table>
@@ -909,7 +930,6 @@ generates correctly and is not yet proven to enforce.</p>
 <tr><td>Validator FAILs with <code>missing core doc</code></td><td><code>docs/harness/</code> is absent at the repository root, which is where <code>init-project.ps1</code> resolves it</td><td>Seed or restore the 13 core docs at <code>docs/harness/</code>, not inside <code>harness/</code></td></tr>
 <tr><td>An agent's allow-list seems to override a project deny</td><td>Expected: agent rules append last</td><td>Move the deny into <code>policies</code>, which is evaluated after permissions, saved approvals and agent rules</td></tr>
 <tr><td><code>sync-labels.ps1</code> fails to parse the taxonomy</td><td><code>labels.json</code> holds YAML but is read with <code>ConvertFrom-Json</code></td><td>Known defect; convert the taxonomy to real JSON or parse the subset until it is fixed in the kit</td></tr>
-<tr><td>Nothing renders on Linux or macOS</td><td>Windows path separators in the renderer</td><td>Run init and validate on Windows today; the separator conversion is the open work item</td></tr>
 <tr><td>OpenCode runs every command without asking</td><td>No project <code>opencode.jsonc</code> yet, so only the global config applies, and <code>--auto</code> approves anything not denied</td><td>Set the deny-by-default baseline before the first session; rendering an instance installs it</td></tr>
 </tbody>
 </table>
@@ -936,7 +956,7 @@ production Environment) → data policy and lifecycle profile confirmed in <code
 → Phase 1 via <code>/pm</code>. While readiness is <code>gated</code>, operate read-only and propose.</p>
 
 <footer>
-<p><strong>AIDLC Harness</strong> · kit <code>1.2.1</code> · released under the <a href="LICENSE">MIT License</a> ·
+<p><strong>AIDLC Harness</strong> · kit <code>1.3.0</code> · released under the <a href="LICENSE">MIT License</a> ·
 handbook generated from <code>harness/README.md</code> and
 <code>docs/harness/</code> in <a href="https://github.com/tauhid-sifat/Tauness">tauhid-sifat/Tauness</a>.
 Every count on this page is asserted by <code>tests/check-sources.ps1</code> in CI, and the statements about what does
@@ -944,5 +964,7 @@ not yet work are drawn from the harness's own audits. Not affiliated with OpenCo
 </footer>
 </main>
 </div>
+<script src="search-index.js"></script>
+<script src="search.js"></script>
 </body>
 </html>

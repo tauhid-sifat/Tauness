@@ -1,6 +1,6 @@
 # AIDLC Harness — Security and Permissions
 
-> **Status:** Core harness specification (Layer A) · harness 1.2.1 · 2026-11-09. Incorporates OD-21 hardening as implemented configuration (not aspiration), the `policies` discovery from the 2026-11-09 audit, and the project-scoped data rules moved to `project.yaml`.
+> **Status:** Core harness specification (Layer A) · harness 1.3.0 · 2026-11-09. Incorporates OD-21 hardening as implemented configuration (not aspiration), the `policies` discovery from the 2026-11-09 audit, and the project-scoped data rules moved to `project.yaml`.
 > **Depends on:** `agent-specifications.md`, `workflow-and-governance.md`, `opencode-capability-matrix.md`
 
 ---

@@ -1,5 +1,5 @@
 # sync-labels.ps1 - create/update the governed GitHub label taxonomy (owner shell, requires gh auth with repo scope).
-# Usage: pwsh -File harness\scripts\sync-labels.ps1 [-DryRun] [-Repo owner/name]
+# Usage: pwsh -File harness/scripts/sync-labels.ps1 [-DryRun] [-Repo owner/name]
 
 param(
     [switch]$DryRun,
@@ -13,7 +13,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptDir
 $repoRoot = Split-Path -Parent $repoRoot            # harness/scripts -> harness -> repo root
 $cfg = Get-ProjectConfig (Join-Path $repoRoot 'project.yaml')
-$labelsJson = Get-Content (Join-Path $repoRoot 'harness\kit\github\labels.json') -Raw | ConvertFrom-Json
+$labelsJson = Get-Content (Join-Path $repoRoot 'harness/kit/github/labels.json') -Raw | ConvertFrom-Json
 
 $labels = New-Object System.Collections.ArrayList
 foreach ($t in @($labelsJson.labels.type))        { [void]$labels.Add(@{ n = "type:$t";        c = $labelsJson.colors.type }) }
@@ -22,7 +22,7 @@ foreach ($r in @($labelsJson.labels.risk))        { [void]$labels.Add(@{ n = "ri
 foreach ($s in @($labelsJson.labels.statusless))  { [void]$labels.Add(@{ n = $s;               c = $labelsJson.colors.statusless }) }
 foreach ($a in @($cfg['lifecycle.areas']))        { [void]$labels.Add(@{ n = "area:$a";        c = $labelsJson.colors.area }) }
 
-$profiles = Join-Path $repoRoot 'harness\kit\lifecycle\profiles.yaml'
+$profiles = Join-Path $repoRoot 'harness/kit/lifecycle/profiles.yaml'
 foreach ($ph in (Get-ProfilePhases -ProfilesPath $profiles -ProfileName $cfg['lifecycle.profile'])) {
     [void]$labels.Add(@{ n = "phase-$($ph.Id)"; c = $labelsJson.colors.phase })
 }
