@@ -218,10 +218,12 @@ try {
         $projPrefix = 'FIX'
         $deployCli = ''
         $ownerLogin = 'example-owner'
+        $sourceDirs = @()
         foreach ($ln in ($text -split "`r?`n")) {
             if ($ln -match '^\s*id_prefix:\s*"?([A-Z0-9]{2,4})"?') { $projPrefix = $Matches[1] }
             if ($ln -match '^\s*deploy_commands:\s*\[\s*"?([^",\]]+)"?') { $deployCli = $Matches[1].Trim() }
             if ($ln -match '^\s*login:\s*"?([^"\r\n]+)"?') { $ownerLogin = $Matches[1].Trim() }
+            if ($ln -match '^\s*source_dirs:\s*\[(.+)\]') { $sourceDirs = @($Matches[1] -split ',' | ForEach-Object { $_.Trim().Trim('"').Trim("'") } | Where-Object { $_ }) }
         }
 
         # deploy CLIs must reach both the permission and the delegation-proof policy layer
@@ -229,6 +231,17 @@ try {
         if ($deployCli) {
             if ($openCodeAll -notmatch [regex]::Escape($deployCli)) { $fails += ("{0}: stack.deploy_commands ({1}) did not render as denies" -f $v.Name, $deployCli) }
             if ($openCodeAll -notmatch ('tool.use.*shell:' + [regex]::Escape($deployCli))) { $fails += ("{0}: deploy CLI {1} missing from the policies (tool.use) layer" -f $v.Name, $deployCli) }
+        }
+
+        # ---- application source is denied for edit project-wide and re-allowed only for the
+        #      Developer. Without the deny, the base `* * allow` let the orchestrator (and QA, and the
+        #      reviewer) edit application code - the exact thing N-02 and VC-31 say cannot happen.
+        $devMd = Get-TextSafe (Join-Path $dir '.opencode/agents/developer.md')
+        $pmMd = Get-TextSafe (Join-Path $dir '.opencode/agents/project-manager.md')
+        foreach ($sd in $sourceDirs) {
+            if ($openCodeAll -notmatch ('(?s)"action":\s*"edit",\s*"resource":\s*"' + [regex]::Escape($sd) + '",\s*"effect":\s*"deny"')) { $fails += ("{0}: config does not deny edit on {1} - the orchestrator could edit application code" -f $v.Name, $sd) }
+            if ($devMd -notmatch ('(?s)action:\s*"edit"\s*\r?\n\s*resource:\s*"' + [regex]::Escape($sd) + '"\s*\r?\n\s*effect:\s*"allow"')) { $fails += ("{0}: developer agent does not allow edit on {1}" -f $v.Name, $sd) }
+            if ($pmMd -match ('(?s)action:\s*"edit"\s*\r?\n\s*resource:\s*"' + [regex]::Escape($sd) + '"')) { $fails += ("{0}: project-manager must not allow edit on {1}" -f $v.Name, $sd) }
         }
 
         # ---- governance artifacts the documentation promises must actually be produced. CODEOWNERS
@@ -279,6 +292,10 @@ try {
             # markers that matter rather than trusting a clean exit code alone.
             foreach ($marker in $requiredPassMarkers) {
                 if ($rep -notmatch [regex]::Escape($marker)) { $fails += ("{0}: validator recorded no '{1}' - that check was skipped, not passed" -f $v.Name, $marker) }
+            }
+            # source dirs vary by project, so the source-deny marker is asserted per parsed dir
+            foreach ($sd in $sourceDirs) {
+                if ($rep -notmatch [regex]::Escape('[PASS] config:source-deny:' + $sd)) { $fails += ("{0}: validator recorded no '[PASS] config:source-deny:{1}' - source denial not proven" -f $v.Name, $sd) }
             }
         }
 

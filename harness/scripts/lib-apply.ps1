@@ -73,6 +73,10 @@ function New-RenderSlots { param([hashtable]$Cfg)
     $slots['REVIEWER_STACK_SHELL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values @($Cfg['stack.reviewer_commands']) -Effect 'allow'
     $slots['SECURITY_AUDIT_TOOL_ALLOWS'] = New-PermRulesBlock -Action 'shell' -Values @($Cfg['stack.security_commands']) -Effect 'allow'
 
+    # Application code is denied for edit project-wide; only the Developer re-allows its source dirs.
+    $slots['SOURCE_DENY_RULES'] = Get-SourceDenyRules -Cfg $Cfg
+    $slots['DEVELOPER_SOURCE_ALLOWS'] = New-PermRulesBlock -Action 'edit' -Values @($Cfg['stack.source_dirs']) -Effect 'allow'
+
     return $slots
 }
 

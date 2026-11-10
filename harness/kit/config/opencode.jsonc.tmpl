@@ -44,6 +44,8 @@
     { "action": "edit", "resource": "DESIGN.md", "effect": "deny" },
     { "action": "edit", "resource": "docs/project/**", "effect": "deny" },
     { "action": "edit", "resource": "worktrees/**", "effect": "deny" },
+    // Application code is denied here; only the Developer agent re-allows its source dirs.
+    {{SOURCE_DENY_RULES}}
 
     // 3) Shell: deny by default. Each role's agent file allows its narrow command set.
     //    This replaces the old `shell * ask` baseline: ask is not enforcement (--auto approves it).

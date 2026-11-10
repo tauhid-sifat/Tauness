@@ -36,6 +36,7 @@ entry here, and material changes (permissions, policies, gates, approvals - OD-1
 
 ### Fixed
 
+- **Orchestrator could edit application code.** The permission model was allow-by-default for edit, so the base `* * allow` left `src/` and `tests/` editable by every role despite the documented "zero domain write scope" for the reviewer and "orchestrator cannot edit application code" (VC-31, N-02). The project now denies each `stack.source_dirs` entry and only the Developer re-allows it (ADR-H-018); proven live on OpenCode 2.2.6 - PM edit of `src/example.js` is denied, the developer's edit succeeds.
 - `sync-labels.ps1` attested end to end: 38 taxonomy labels created with correct colours, re-run idempotent.
 
 ## [1.2.1] - 2026-11-09

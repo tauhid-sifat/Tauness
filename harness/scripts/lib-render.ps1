@@ -216,6 +216,19 @@ function Get-StackDenyRules { param([hashtable]$Cfg)
     return $out.TrimEnd(",`r`n".ToCharArray())
 }
 
+function Get-SourceDenyRules { param([hashtable]$Cfg)
+    # Source directories are denied for edit at the project level; only the Developer agent
+    # re-allows them ({{DEVELOPER_SOURCE_ALLOWS}}). This closes the gap where the base `* * allow`
+    # left application code editable by the orchestrator, QA and the reviewer. Each rule keeps a
+    # trailing comma so the rendered JSONC stays valid ahead of the shell section.
+    $out = ''
+    foreach ($sd in @($Cfg['stack.source_dirs'])) {
+        if ([string]::IsNullOrWhiteSpace($sd)) { continue }
+        $out += ('    { "action": "edit", "resource": "' + $sd + '", "effect": "deny" },' + "`r`n")
+    }
+    return $out.TrimEnd("`r`n".ToCharArray())
+}
+
 function Get-StackPolicyDenies { param([hashtable]$Cfg)
     $out = ''
     foreach ($cli in @($Cfg['stack.deploy_commands'])) {

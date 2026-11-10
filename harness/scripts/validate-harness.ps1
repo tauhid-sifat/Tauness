@@ -82,6 +82,13 @@ if ($parsed) {
         $hit = @($parsed.permissions | Where-Object { $_.action -eq 'edit' -and $_.resource -eq $need -and $_.effect -eq 'deny' })
         if ($hit.Count -ge 1) { Pass "config:protect:$need" 'denied' } else { Fail "config:protect:$need" 'NOT denied' }
     }
+    # Application source is denied for edit project-wide; only the Developer re-allows its dirs.
+    # Without this, the base `* * allow` leaves application code editable by the orchestrator.
+    foreach ($sd in @($cfg['stack.source_dirs'])) {
+        if ([string]::IsNullOrWhiteSpace($sd)) { continue }
+        $hit = @($parsed.permissions | Where-Object { $_.action -eq 'edit' -and $_.resource -eq $sd -and $_.effect -eq 'deny' })
+        if ($hit.Count -ge 1) { Pass "config:source-deny:$sd" 'denied' } else { Fail "config:source-deny:$sd" 'application source is editable by every role' }
+    }
     if ($parsed.mcp -and $parsed.mcp.servers) { Pass 'config:mcp-shape' 'modern mcp.servers form' }
     elseif ($parsed.mcp) { Fail 'config:mcp-shape' 'deprecated top-level mcp entries - must use mcp.servers' }
     else { Pass 'config:mcp-shape' 'no mcp section (nothing enabled)' }

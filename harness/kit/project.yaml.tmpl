@@ -26,7 +26,7 @@ lifecycle:
 
 stack:                                # what the project is built with; drives rendered permissions
   name: "{{STACK_NAME}}"              # human description, e.g. "Next.js + Supabase", "Python FastAPI", "static site"
-  source_dirs: [{{SOURCE_GLOBS}}]     # code dirs, used only in documentation; permissions are negative-scoped
+  source_dirs: [{{SOURCE_GLOBS}}]     # code dirs; edit-denied project-wide and re-allowed only for the Developer
   dev_commands: [{{DEV_COMMAND_LIST}}]     # exact shell prefixes the Developer may run, e.g. ["pnpm lint", "pnpm test", "pnpm build", "pnpm dev", "pnpm install", "npm ci"]
   qa_commands: [{{QA_COMMAND_LIST}}]       # QA-runnable commands, e.g. ["pnpm test", "pnpm build", "pnpm dev", "npx playwright test"]
   reviewer_commands: [{{REVIEW_COMMAND_LIST}}]  # review-time checks, e.g. ["pnpm test", "pnpm lint", "pnpm typecheck"]

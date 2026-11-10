@@ -62,6 +62,7 @@ Residual risks stated plainly: shell matching is textual (allow-listing is the c
 | `AGENTS.md`, `opencode.jsonc`, `project.yaml`, `.opencode/**`, `.agents/**`, `.github/**`, `harness/**`, `docs/harness/**`, `.git/**`, `worktrees/**` | edit deny for every role (project layer); changes only via owner-applied kit changes |
 | `DESIGN.md` | edit deny + Designer sole re-allow (OD-02) |
 | `docs/project/**` | project-level deny; each role re-allows its owned subtree(s) |
+| application source (`stack.source_dirs`, e.g. `src/**`, `tests/**`) | project-level edit deny; the Developer alone re-allows its source dirs. The orchestrator, QA and the reviewer cannot edit application code |
 | `.env*`, keys, `.ssh` | read + edit deny (secret material never reachable; shell read shapes policy-denied) |
 
 ## 5. Threat model (agent-system) — persistent register per project

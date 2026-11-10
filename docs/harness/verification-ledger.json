@@ -317,10 +317,13 @@
       "id": "VC-31",
       "control": "Roles cannot write outside their duty - the orchestrator in particular cannot edit application code, tests, migrations or the design system",
       "tier": "permissions",
-      "status": "implemented",
-      "evidence": [{ "kind": "check", "ref": "validate-harness.ps1 config:protect + agent permission frontmatter parse" }],
+      "status": "verified",
+      "evidence": [
+        { "kind": "check", "ref": "validate-harness.ps1 config:source-deny:<dir> + agent permission frontmatter parse" },
+        { "kind": "run", "ref": "implementation-log 2026-11-10: N-02 project-manager edit of src/example.js denied (Permission denied: edit) after the source-deny fix, while the developer's edit of the same path succeeded; OpenCode 2.2.6" }
+      ],
       "tests": ["N-02"],
-      "notes": "Edit denies are per role subtree; the runtime refusal is what N-02 exercises."
+      "notes": "Was false before ADR-H-018: the base `* * allow` left application code editable by every role. Now the project denies each stack.source_dirs entry and only the Developer re-allows it."
     },
     {
       "id": "VC-32",
