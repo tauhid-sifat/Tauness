@@ -899,7 +899,7 @@ nothing parsed the rendered <code>.github</code> files, and <code>harness-valida
 <p>The harness's own rule closes every gap on this page: <strong>approved ≠ implemented ≠ verified</strong>. A control is
 real only when a test has shown it blocking. These are the harness's own audit findings, restated plainly.</p>
 <p>The machine-readable <a href="https://github.com/tauhid-sifat/Tauness/blob/main/docs/harness/verification-ledger.json">verification ledger</a>
-is what backs that sentence: the ledger records 33 controls: 22 verified, 6 implemented, 5 designed.
+is what backs that sentence: the ledger records 33 controls: 23 verified, 5 implemented, 5 designed.
 <code>validate-harness.ps1</code> re-reads that file inside every instance and fails any
 <code>verified</code> claim that carries no evidence, and <code>tests/check-site.ps1</code> refuses to publish this
 page if its counts drift from it - so the numbers here cannot be inflated by editing prose.</p>

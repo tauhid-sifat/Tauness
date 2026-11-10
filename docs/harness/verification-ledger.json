@@ -100,10 +100,10 @@
       "id": "VC-08",
       "control": "Disabled integrations render as MCP denies and enabled ones as ask, never as silent allow",
       "tier": "permissions",
-      "status": "implemented",
-      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 toggle assertions (firecrawl_*/browseros_* ask vs deny)" }],
+      "status": "verified",
+      "evidence": [{ "kind": "check", "ref": "tests/render-and-validate.ps1 toggle assertions (firecrawl_*/browseros_* ask vs deny) across the all-integrations variant" }],
       "tests": ["N-24"],
-      "notes": ""
+      "notes": "Rendering verified by the self-test (every variant asserts firecrawl_* ask when on and deny when off). The runtime refusal of a disabled MCP call (N-24) is not separately shown because a disabled server is not advertised as a callable tool."
     },
     {
       "id": "VC-09",
