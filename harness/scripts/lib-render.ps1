@@ -157,7 +157,7 @@ function New-RenderContext { param([hashtable]$Cfg, [string]$KitDir, [string]$Pr
     }
 
     # model table
-    $ctx['MODEL_TABLE'] = "| PM, BA, Designer, Developer, QA | $($Cfg['models.default']) |`r`n| Code Reviewer | $($Cfg['models.reviewer']) |`r`n| Security Monitor | $($Cfg['models.security_focused']) focused; $($Cfg['models.security_extensive']) extensive |"
+    $ctx['MODEL_TABLE'] = "| PM, BA, Designer, Developer, QA | $($Cfg['models.default']) |`r`n| Code Reviewer, Security Monitor | $($Cfg['models.reviewer']) |"
 
     return $ctx
 }

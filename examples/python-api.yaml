@@ -62,8 +62,6 @@ integrations:
 models:
   default: "opencode-go/example-work-model"
   reviewer: "opencode-go/example-review-model"
-  security_focused: "opencode-go/example-review-model"
-  security_extensive: "opencode-go/example-work-model"
   readiness: "gated"
 
 workspace:

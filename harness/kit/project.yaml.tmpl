@@ -62,11 +62,9 @@ integrations:                         # modular toggles; false entries render as
   design_system_tools: {{USE_DESIGN_TOOLS}}   # Hallmark/Impeccable (UI projects); ignored by headless profiles
   mcp_deny: ["composio_*", "jira_*", "pencil_*"]  # additional MCP tool prefixes denied at project level
 
-models:                               # OD-style role routing; verify provider privacy/structured-output conditions before live sessions
-  default: "{{MODEL_WORK}}"           # e.g. opencode-go/deepseek-v4.1-flash
-  reviewer: "{{MODEL_REVIEW}}"        # e.g. opencode-go/hy3
-  security_focused: "{{MODEL_REVIEW}}"
-  security_extensive: "{{MODEL_WORK}}"
+models:                               # model IDs are chosen by the owner here; no model is hard-coded in the kit
+  default: "{{MODEL_WORK}}"           # the work model: PM, BA, Designer, Developer, QA
+  reviewer: "{{MODEL_REVIEW}}"        # the review model: Code Reviewer and Security Monitor (independence is structural)
   readiness: "{{MODEL_READINESS}}"    # "verified" | "gated" — gated forbids real sessions (model-readiness gate)
 
 workspace:
