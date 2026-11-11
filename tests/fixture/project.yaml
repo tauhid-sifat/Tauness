@@ -28,7 +28,7 @@ lifecycle:
   gates: owner-approved
   areas: [web, api, data, auth, infra, docs]
 
-stack:
+stack:                                # trailing comments on section headers must not break parsing (regression: headers read as scalars)
   name: "Node + Express + Postgres (fixture stack)"
   source_dirs: ["src/**", "tests/**"]
   dev_commands: ["npm ci", "npm run dev", "npm run build", "npm run lint", "npm test"]
@@ -43,7 +43,7 @@ stack:
 # Skills are project configuration, never kit content: this map is the authority the renderer writes
 # and validate-harness.ps1 enforces. The names below are the fixture's own inventory; the stub SKILL.md
 # files that tests/render-and-validate.ps1 installs alongside them make "declared and installed" true.
-skills:
+skills:                               # trailing comments on section headers must not break parsing
   shared: []                            # nothing is universal in practice; grant per role
   project-manager: [opencode, report, research, triage, wayfinder, ask-matt, handoff, grilling, to-questionnaire, writing-for-agents]
   business-analyst: [to-spec, to-tickets, triage, wayfinder, grill-me, grilling, grill-with-docs, domain-modeling, research, writing-for-agents, ask-matt]
@@ -59,7 +59,7 @@ data_policy:
   rules:
     - "No secrets, credentials, .env files, or personal data in Git, issues, PRs, logs, or knowledge bundles."
 
-integrations:
+integrations:                         # trailing comments on section headers must not break parsing
   github_issues: true
   github_projects_v2: false             # test runner flips to true in the all-integrations variant
   open_knowledge: false                 # true renders disabled mcp.servers entries
@@ -69,7 +69,7 @@ integrations:
   design_system_tools: false            # true grants Hallmark/Impeccable skills and command allows
   mcp_deny: ["composio_*", "jira_*", "pencil_*"]
 
-models:
+models:                               # trailing comments on section headers must not break parsing
   default: "opencode-go/example-work-model"
   reviewer: "opencode-go/example-review-model"
   readiness: "gated"                    # gated: no live model sessions in CI

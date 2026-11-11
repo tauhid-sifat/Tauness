@@ -49,10 +49,12 @@ function Get-ProjectConfig { param([string]$Path)
         if ($line -match '^\s*#' -or $line -match '^\s*$') { continue }
         if ($line -match '^\s*-') { continue }                       # list item content
         if ($line -match '^([A-Za-z0-9_\-]+):\s*(.*)$') {
-            # indent-0 line: section header or top-level scalar
-            $key = $Matches[1]; $val = $Matches[2]
+            # indent-0 line: section header or top-level scalar. Strip any trailing
+            # comment BEFORE testing for empty, or a header like `stack:  # ...`
+            # is mistaken for a scalar and the section never opens.
+            $key = $Matches[1]; $val = Test-ProjectYamlComment $Matches[2]
             if ($val.Trim() -eq '') { $section = $key }
-            else { $cfg[$key] = Test-ProjectYamlValue (Test-ProjectYamlComment $val) }
+            else { $cfg[$key] = Test-ProjectYamlValue $val }
             continue
         }
         if ($line -match '^\s+([A-Za-z0-9_\-]+):\s*(.*)$') {
@@ -67,7 +69,10 @@ function Get-ProjectConfig { param([string]$Path)
 }
 
 function Test-ProjectYamlComment { param([string]$v)
-    # strip trailing comment: preceded by whitespace, and value is not an inline array containing it
+    # strip trailing comment: preceded by whitespace. A value that IS a comment
+    # (after `key:\s*` ate the gap, a header comment arrives as `#...` with no
+    # leading space) counts as empty so the section still opens.
+    if ($v.Trim().StartsWith('#')) { return '' }
     if ($v -match '^(.*?)\s+#.*$') { return $Matches[1] }
     return $v
 }
